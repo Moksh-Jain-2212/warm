@@ -1,0 +1,66 @@
+{
+  "source_head_at_start": "b20f3b522f1bc18a3e7449cab5105d8b08ef6bd4",
+  "recorded_head": "884f7dc8ee9f0e5fceda68ec3d40ee5653bfde9a",
+  "native_sources_unchanged_after_start": true,
+  "rust_source_manifest_sha256": "48398ba0534a89a3a2f853cf74179e21f5f351447d4757f36cff94f87d886061",
+  "target": "aarch64-apple-darwin",
+  "toolchain": "1.99.0",
+  "jobs": 2,
+  "cargo_target_dir": "/Volumes/A/holographic-memory/target/readiness-build",
+  "features": "security,experimental,server,mcp,local-models,node-api",
+  "passed": 1120,
+  "failed": 0,
+  "ignored": 12,
+  "suite_groups": 62,
+  "ignored_diagnostics": [
+    "test core::documents::search::latency_bench::lexical_latency_microbench ... ignored",
+    "test core::engine::document_memory_census::reopened_index_memory_census ... ignored, opens the diagnostic index supplied by WARM_MEMORY_INDEX",
+    "test core::qgraph::fastscan::tests::block_scan_microbenchmark ... ignored, microbenchmark: run in release with --ignored --nocapture",
+    "test core::qgraph::kernels::tests::dot_kernel_microbench ... ignored, microbenchmark: run in release with --ignored --nocapture",
+    "test core::qgraph::kernels::tests::microbench_fwht ... ignored",
+    "test core::qgraph::kernels::tests::microbench_i8_x4 ... ignored",
+    "test core::qgraph::kernels::tests::raw_screen_microbenchmark ... ignored, microbenchmark: run in release with --ignored --nocapture",
+    "test core::qgraph::tests::build_visited_reset_workload ... ignored, synthetic visited-reset timing diagnostic; run in isolation with --release",
+    "test core::qgraph::update::delta::tests::delta_search_live_set ... ignored, development delta search timing measurement",
+    "test core::qgraph::update::merge::tests::replacement_entry_large_live_set ... ignored, development memory and timing measurement",
+    "test core::qgraph::update::tests::consolidation_live_set_peak ... ignored, development consolidation memory and timing measurement",
+    "test core::qgraph::vertex::tests::microbench_pool ... ignored"
+  ],
+  "checks": [
+    {
+      "command": "cargo +1.99.0 test --offline --locked --features security,experimental,server,mcp,local-models,node-api --lib --bins --test matryoshka_vectors --test document_checkpoint --test document_chunks --test documents --test server --test server_api --test server_ops --test server_abuse --test server_ann",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo +1.99.0 clippy --offline --locked --features security,experimental,server,mcp,local-models,node-api --lib --tests --bins -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo +1.99.0 fmt -- --check",
+      "exit_code": 0
+    },
+    {
+      "command": "npm ci --offline --ignore-scripts --no-audit --no-fund",
+      "exit_code": 0
+    }
+  ],
+  "logs": {
+    "integrated-tests.log.gz": {
+      "raw_sha256": "99ad41e546b00581c7e081d9706c2d94183f157642c87fd5a6a4c83249a93b3b",
+      "gzip_sha256": "3eb35c73e046d6512f016a5af9951c7c8d96cad6c716d30770f87e4046252110"
+    },
+    "clippy.log.gz": {
+      "raw_sha256": "98e91acc6ff4797969f2383353f93aee7ca6723f63b4a9c49a1cea7cfa5bbb6e",
+      "gzip_sha256": "dcfc74e682042ab8763e54e9277ee19d2a66eea75531fbe836c2e79fe1a64082"
+    },
+    "format.log.gz": {
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    "npm-ci.log.gz": {
+      "raw_sha256": "5cf543b6979eefde502eee237097a15d7dfbb83f4a22beb9b9481971ea633698",
+      "gzip_sha256": "c77ae16bb4ba4676352d3f9e7e2234f13057823e102aa14d22ef21eee7f7413a"
+    }
+  },
+  "limits": "Local integrated Rust qualification. Final Node package/runtime and hosted platform gates remain pending. No performance inference from unit tests."
+}

@@ -1941,16 +1941,15 @@ holographic research establishes comparative document-search superiority. Evalua
 WASM distribution gaps if browser users are included in the target.
 
 No paid development API/cloud calls, tuning or model downloads are authorized.
-The core Node npm rename to `warm-sdk` is prepared separately as local signed commit
-`bfcbb708f683823a851f05c783529dd86795cdc3`; it has not been pushed or published.
+The core Node npm rename to `warm-sdk`, originally prepared as signed commit
+`bfcbb708f683823a851f05c783529dd86795cdc3`, is now integrated with the new Node
+vector API and temporal workflow for final qualification. It has not been published.
 
 Read-only preparation found that the existing `Memory` Node wrapper already supports
 the complete temporal workflow. Use explicit `latest-by-subject`, stable distinct fact
 IDs, a common subject and explicit validity times; preserve existing global defaults.
-Reapply runtime memory configuration after restart. The missing product example/test
-combines explanation, whole-chain purge and a final process restart asserting both
-versions remain absent; a public close binding is currently absent. The `purge`
-TypeScript comment also needs alignment with current compaction behavior.
+Reapply runtime memory configuration after restart. A public close binding is currently
+absent, so separate processes establish the complete restart boundary.
 
 The [Node temporal example](../../../examples/temporal-memory.cjs) now covers that
 complete workflow in four independent processes, including replacement after an
@@ -2008,7 +2007,10 @@ included in the effective embedding identity. Existing conversation tasks and fu
 output width are preserved. Its 31 model tests and strict Clippy pass locally;
 [validation](document-retrieval-task-20261102/validation.json) records the exact source.
 The native candidate implementation passes 37 focused Rust tests and eight Node tests,
-plus strict scoped Clippy and TypeScript checks. A combined feature gate is in progress.
+plus strict scoped Clippy and TypeScript checks. The combined local feature gate passes
+1,120 tests with 12 existing diagnostic ignores, strict Clippy and formatting;
+[integrated validation](agent-memory-integration-20261102/rust-validation.json) retains
+the commands, source manifest and compressed logs. Final hosted CI remains required.
 
 Fresh local generation uses all 5,183 SciFact documents and 300 test queries, the existing
 pinned Qwen3-Embedding-0.6B weights and the current native Metal backend. No model/API
