@@ -2034,13 +2034,26 @@ plus strict scoped Clippy and TypeScript checks. The combined local feature gate
 [integrated validation](agent-memory-integration-20261102/rust-validation.json) retains
 the commands, source manifest and compressed logs. Final hosted CI remains required.
 
-Fresh local generation completed for all 5,183 SciFact documents and 300 test queries, the existing
+Fresh local generation completed for all 5,183 SciFact documents and 300 test queries, using the existing
 pinned Qwen3-Embedding-0.6B weights and the current native Metal backend. No model/API
 download or paid service is used. Every input fits the current 2,048-token limit. The
 frozen comparison includes full exact, two matched full-graph controls and 256/512-prefix
 arms, selective exact filters, updates/deletes and separate-process restart verification.
-All quality and latency criteria were fixed before measurement. Initial quality results
-fail the preset acceptance gates for both projected configurations; filtered ranking,
-current reads, deletion and process-restart checks pass. The unchanged timing workload
-will quantify the tradeoff only: speed cannot override either quality failure. Full-vector
-defaults are retained, and no setting is recommended from the historical cached study.
+All quality and latency criteria were fixed before measurement. Both projected
+configurations fail quality qualification: 256/100 has 98.33% mean exact-top-10 recall
+and 512/50 has 99.10%, versus 99.93% for their matched full-graph controls. Both have
+a worst query of 70%, below the 80% floor, and exceed the permitted control-relative
+recall losses. Filtered ranking, current reads, deletion and distinct-process restart
+checks pass. The single timing attempt refused to run at 26.14%/52.55% external CPU
+capacity, above the fixed 20% gate; it collected zero query timings and was not retried.
+No latency advantage or total-memory reduction is established. Full-vector defaults
+remain unchanged; the API is experimental opt-in with no recommended setting.
+
+The [completed study](matryoshka-native-20261102/README.md) retains source ancestry,
+the new-vector hashes, all quality results and missed IDs, lifecycle receipts, logical
+graph/storage accounting and failed preflight. The coordinator independently verified
+64 artifact hashes, 4,500 exact-score/eligibility comparisons, recall counts and the
+five distinct-process lifecycle pairs; see
+[independent result audit](agent-memory-integration-20261102/fresh-results-independent-validation.json).
+Research commits were merged with ancestry preserved. Original vectors and corpus text
+remain in the documented local cache, and no weights or bulk vectors were committed.

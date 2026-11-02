@@ -191,7 +191,9 @@ according to its pinned model card. WARM's opt-in
 uses those short prefixes for graph search and the retained full vectors for
 reranking. This changes retrieval work, not embedding inference cost. It is separate
 from the default BERT-family local embedder; prefix compatibility must be established
-for the chosen model and preprocessing. Quality and speed require workload evidence.
+for the chosen model and preprocessing. This path remains experimental: the
+[fresh native evaluation](../research/technical-audit-20261029/matryoshka-native-20261102/README.md)
+failed its quality gates for both tested settings and collected no query timings.
 
 Previously created managed-model stores with nominal revisions cannot establish their original
 embedding function. Preserve them with the original binary and configuration; re-embed original

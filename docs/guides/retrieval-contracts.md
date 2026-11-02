@@ -7,13 +7,20 @@ use document ID and chunk index order.
 
 ## Optional Matryoshka candidates
 
+This is an experimental opt-in policy. The
+[fresh native SciFact evaluation](../research/technical-audit-20261029/matryoshka-native-20261102/README.md)
+did not qualify either tested configuration: 256 dimensions with 100 candidates or
+512 dimensions with 50 candidates. Both lost more recall than the preset limits,
+and host load prevented query timing. Neither setting is recommended as a default;
+no measured latency advantage is established for this path.
+
 For an embedding model trained to preserve useful information in vector prefixes,
 `WarmConfig::vector_candidates` can build the graph from a normalized prefix while
 retaining full embeddings for final cosine ranking. Set both
 `VectorCandidateConfig { dimensions, rerank_candidates }` fields; leaving the option
 absent preserves the existing full-width graph. The prefix width is between 1 and
-the configured embedding width, and the shortlist is between 1 and 4,096. A graph
-request's `k` must fit the shortlist. A full-width prefix provides a control with
+the configured embedding width, and the shortlist is between 1 and 4,096. When the
+graph actually selects candidates, `k` must fit the shortlist. A full-width prefix provides a control with
 the same shortlist size.
 
 The graph selects candidate chunks using separately L2-normalized prefixes. WARM

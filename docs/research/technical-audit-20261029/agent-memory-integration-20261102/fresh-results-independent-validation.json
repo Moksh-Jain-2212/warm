@@ -1,0 +1,51 @@
+{
+  "research_commit": "cdacd4cff39a870488e9261878fe4eb89f7851fe",
+  "root_merge": "0ffe3c0cf128fabd8eb50308182afaf671bbf234",
+  "artifact_hashes_verified": 64,
+  "quality": {
+    "exact": {
+      "mean_recall": 1.0,
+      "worst_recall": 1.0,
+      "ordered_agreement": 300,
+      "missing_exact_ids": 0,
+      "below_08_query_ids": []
+    },
+    "full100": {
+      "mean_recall": 0.9993333333333333,
+      "worst_recall": 0.9,
+      "ordered_agreement": 298,
+      "missing_exact_ids": 2,
+      "below_08_query_ids": []
+    },
+    "full50": {
+      "mean_recall": 0.9993333333333333,
+      "worst_recall": 0.9,
+      "ordered_agreement": 298,
+      "missing_exact_ids": 2,
+      "below_08_query_ids": []
+    },
+    "prefix256": {
+      "mean_recall": 0.9833333333333333,
+      "worst_recall": 0.7,
+      "ordered_agreement": 261,
+      "missing_exact_ids": 50,
+      "below_08_query_ids": [
+        "324",
+        "1279"
+      ]
+    },
+    "prefix512": {
+      "mean_recall": 0.991,
+      "worst_recall": 0.7,
+      "ordered_agreement": 277,
+      "missing_exact_ids": 27,
+      "below_08_query_ids": [
+        "1175"
+      ]
+    }
+  },
+  "exact_score_and_filtered_ranking_checks": 4500,
+  "lifecycle_pairs_checked": 5,
+  "no_query_timings_verified": true,
+  "native_or_model_calls": 0
+}
