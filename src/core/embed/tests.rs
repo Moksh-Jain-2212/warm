@@ -241,6 +241,25 @@ fn call_limits_check_boundaries_before_inference_and_preserve_identity() {
             bytes <= 4
         );
     }
+    for bytes in [3, 4, 5] {
+        assert_eq!(
+            prefixed
+                .validate_input_sizes(1, bytes, EmbedKind::Query)
+                .is_ok(),
+            bytes <= 4
+        );
+    }
+    for count in [1, 2, 3] {
+        assert_eq!(
+            prefixed
+                .validate_input_sizes(count, 0, EmbedKind::Query)
+                .is_ok(),
+            count <= 2
+        );
+    }
+    assert!(prefixed
+        .validate_input_sizes(1, usize::MAX, EmbedKind::Query)
+        .is_err());
     for bytes in [255, 256, 257] {
         let embedder = Embedder::from_pack(
             &path,

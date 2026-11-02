@@ -2257,3 +2257,21 @@ query embedding still bypasses the unused stage embedder. A regression covers a
 matching embedder, a same-dimension mismatch, and the explicit-embedding path;
 it has not been run while tests remain paused.
 The offline, locked all-features library compile check passed.
+
+### Fact-expanded keys with the local embedder (2026-11-02)
+
+When fact extraction was enabled with model stages lacking their own embedder,
+the local fallback embedded the raw chunks before fact extraction, while lexical
+indexing used fact-expanded keys. Single and batch ingestion now embed those same
+expanded keys and reuse them for lexical preparation. Explicit document embeddings
+remain untouched. Batch extraction checks the raw inputs first, then bounds the
+accumulated expanded inputs against the captured embedder's count and byte limits
+before performing one batch embedding; expanded-key extraction is sequential on this
+path. The change is unbenchmarked and does not rewrite existing embeddings.
+
+A synthetic local-embedder regression checks expanded versus raw passage vectors,
+explicit embeddings, and malformed key counts; limit regressions cover prefix bytes,
+counts and overflow. They have not run, and a full generator-to-store regression is
+still needed when testing resumes.
+Offline, locked library compile checks passed with all features and with
+local-models alone.

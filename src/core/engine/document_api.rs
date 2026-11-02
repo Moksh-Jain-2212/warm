@@ -46,6 +46,10 @@ impl WarmCore {
     ) -> Result<u32> {
         #[cfg(feature = "local-models")]
         let stages = self.model_stages();
+        #[cfg(all(feature = "local-models", feature = "local-embed"))]
+        let mut stage_keys = None;
+        #[cfg(all(feature = "local-models", not(feature = "local-embed")))]
+        let stage_keys: Option<Vec<String>> = None;
         #[cfg(feature = "local-embed")]
         let input = {
             let mut input = input;
@@ -54,16 +58,43 @@ impl WarmCore {
             #[cfg(not(feature = "local-models"))]
             let model_embedder = false;
             let embedder = self.text_embedder().filter(|_| !model_embedder);
+            #[cfg(feature = "local-models")]
+            if let (Some(stages), Some(embedder)) = (
+                stages.as_ref().filter(|stages| {
+                    input.embeddings.is_none() && stages.extract_facts && stages.generator.is_some()
+                }),
+                embedder.as_ref(),
+            ) {
+                let spans = documents::chunk_spans_with(&input, options)?;
+                let texts: Vec<&str> = spans
+                    .iter()
+                    .map(|&(start, end)| &input.text[start as usize..end as usize])
+                    .collect();
+                embedder.validate_inputs(&texts, crate::core::embed::EmbedKind::Passage)?;
+                stage_keys = Some(
+                    Self::model_fact_keys(&input, &spans, stages)?
+                        .ok_or_else(|| anyhow!("enabled fact extraction produced no keys"))?,
+                );
+            }
             Self::embed_document_inputs(
                 std::slice::from_mut(&mut input),
                 options,
                 embedder.as_deref(),
+                #[cfg(feature = "local-models")]
+                Some(std::slice::from_ref(&stage_keys)),
+                #[cfg(not(feature = "local-models"))]
+                None,
             )?;
             input
         };
         #[cfg(feature = "local-models")]
         if let Some(stages) = stages {
-            return self.memorize_document_with_models(input, &stages, options);
+            return self.memorize_document_with_models(
+                input,
+                &stages,
+                options,
+                stage_keys.as_deref(),
+            );
         }
         // The store's kept interner, as batches use: a single write otherwise stems and copies
         // every word of the document afresh. It is a pure cache; the terms do not depend on it.
@@ -132,6 +163,56 @@ impl WarmCore {
             inferred_dimensions.or_else(|| text_embedder.as_ref().map(|e| e.dimensions()));
         let spans =
             super::document_batch::validate_inputs_with(&inputs, inferred_dimensions, options)?;
+        #[cfg(all(feature = "local-models", feature = "local-embed"))]
+        let stage_keys = if let (Some(stages), Some(embedder)) = (
+            stages.as_ref().filter(|stages| {
+                stages.embedder.is_none() && stages.extract_facts && stages.generator.is_some()
+            }),
+            text_embedder.as_ref(),
+        ) {
+            let texts: Vec<&str> = inputs
+                .iter()
+                .zip(&spans)
+                .filter(|(input, _)| input.embeddings.is_none())
+                .flat_map(|(input, spans)| {
+                    spans
+                        .iter()
+                        .map(|&(start, end)| &input.text[start as usize..end as usize])
+                })
+                .collect();
+            embedder.validate_inputs(&texts, crate::core::embed::EmbedKind::Passage)?;
+            let mut keys = Vec::with_capacity(inputs.len());
+            let mut count = 0usize;
+            let mut bytes = 0usize;
+            for (input, spans) in inputs.iter().zip(&spans) {
+                if input.embeddings.is_some() {
+                    keys.push(None);
+                    continue;
+                }
+                let expanded = Self::model_fact_keys(input, spans, stages)?
+                    .ok_or_else(|| anyhow!("enabled fact extraction produced no keys"))?;
+                ensure!(expanded.len() == spans.len(), "document key count mismatch");
+                count = count
+                    .checked_add(expanded.len())
+                    .ok_or_else(|| anyhow!("embedding input count overflow"))?;
+                for key in &expanded {
+                    bytes = bytes
+                        .checked_add(key.len())
+                        .ok_or_else(|| anyhow!("embedding input size overflow"))?;
+                }
+                embedder.validate_input_sizes(
+                    count,
+                    bytes,
+                    crate::core::embed::EmbedKind::Passage,
+                )?;
+                keys.push(Some(expanded));
+            }
+            Some(keys)
+        } else {
+            None
+        };
+        #[cfg(all(feature = "local-models", not(feature = "local-embed")))]
+        let stage_keys: Option<Vec<Option<Vec<String>>>> = None;
         #[cfg(feature = "local-embed")]
         let inputs = {
             let mut inputs = inputs;
@@ -143,20 +224,31 @@ impl WarmCore {
                 &mut inputs,
                 options,
                 text_embedder.as_deref().filter(|_| !model_embedder),
+                #[cfg(feature = "local-models")]
+                stage_keys.as_deref(),
+                #[cfg(not(feature = "local-models"))]
+                None,
             )?;
             inputs
         };
         let mutations = inputs
             .into_par_iter()
             .zip(spans)
+            .enumerate()
             .map_init(
                 || self.stem_memos.take(),
-                |memo, (input, spans)| {
+                |memo, (_index, (input, spans))| {
                     let _memo = memo.install();
                     #[cfg(feature = "local-models")]
                     if let Some(stages) = stages.as_deref() {
                         return self
-                            .prepare_document_spans_with_models(input, spans, stages, options)
+                            .prepare_document_spans_with_models(
+                                input,
+                                spans,
+                                stages,
+                                options,
+                                stage_keys.as_ref().and_then(|keys| keys[_index].as_deref()),
+                            )
                             .map(|document| Mutation::Document(Arc::new(document)));
                     }
                     documents::prepare_spans(
@@ -849,8 +941,9 @@ impl WarmCore {
         input: DocumentInput,
         stages: &crate::core::models::ModelStages,
         options: &IngestOptions,
+        keys: Option<&[String]>,
     ) -> Result<u32> {
-        let document = self.prepare_document_with_models(input, stages, options)?;
+        let document = self.prepare_document_with_models(input, stages, options, keys)?;
         let count = document.chunks.len() as u32;
         self.commit(&[Mutation::Document(Arc::new(document))])?;
         Ok(count)
@@ -861,9 +954,23 @@ impl WarmCore {
         input: DocumentInput,
         stages: &crate::core::models::ModelStages,
         options: &IngestOptions,
+        keys: Option<&[String]>,
     ) -> Result<documents::StoredDocument> {
         let spans = documents::chunk_spans_with(&input, options)?;
-        self.prepare_document_spans_with_models(input, spans, stages, options)
+        self.prepare_document_spans_with_models(input, spans, stages, options, keys)
+    }
+
+    #[cfg(feature = "local-embed")]
+    fn model_fact_keys(
+        input: &DocumentInput,
+        spans: &[(u32, u32)],
+        stages: &crate::core::models::ModelStages,
+    ) -> Result<Option<Vec<String>>> {
+        let chunks: Vec<String> = spans
+            .iter()
+            .map(|&(start, end)| input.text[start as usize..end as usize].to_owned())
+            .collect();
+        stages.fact_keys(&chunks)
     }
 
     fn prepare_document_spans_with_models(
@@ -872,14 +979,22 @@ impl WarmCore {
         spans: Vec<(u32, u32)>,
         stages: &crate::core::models::ModelStages,
         options: &IngestOptions,
+        keys: Option<&[String]>,
     ) -> Result<documents::StoredDocument> {
         let chunks: Vec<String> = spans
             .iter()
             .map(|&(start, end)| input.text[start as usize..end as usize].to_owned())
             .collect();
-        let keys = stages.fact_keys(&chunks)?;
+        let generated_keys;
+        let keys = match keys {
+            Some(keys) => Some(keys),
+            None => {
+                generated_keys = stages.fact_keys(&chunks)?;
+                generated_keys.as_deref()
+            }
+        };
         if let (Some(embedder), None) = (&stages.embedder, &input.embeddings) {
-            let texts = keys.as_deref().unwrap_or(&chunks);
+            let texts = keys.unwrap_or(&chunks);
             input.embeddings = Some(
                 embedder
                     .embed(texts, false)?
@@ -893,7 +1008,7 @@ impl WarmCore {
             spans,
             self.dimensions,
             self.config.embedding_space.as_ref().map(|s| s.dimensions),
-            keys.as_deref(),
+            keys,
             self.config.text_encoder,
             options,
         )

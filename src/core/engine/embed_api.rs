@@ -99,23 +99,35 @@ impl WarmCore {
         inputs: &mut [DocumentInput],
         options: &IngestOptions,
         embedder: Option<&Embedder>,
+        keys: Option<&[Option<Vec<String>>]>,
     ) -> Result<()> {
         let Some(embedder) = embedder else {
             return Ok(());
         };
-        let mut texts: Vec<String> = Vec::new();
+        let mut texts: Vec<&str> = Vec::new();
         let mut spans = Vec::with_capacity(inputs.len());
-        for input in inputs.iter() {
+        if let Some(keys) = keys {
+            ensure!(keys.len() == inputs.len(), "document key count mismatch");
+        }
+        for (index, input) in inputs.iter().enumerate() {
             if input.embeddings.is_some() {
                 spans.push(None);
                 continue;
             }
             let start = texts.len();
-            texts.extend(
-                documents::chunk_spans_with(input, options)?
-                    .into_iter()
-                    .map(|(start, end)| input.text[start as usize..end as usize].to_owned()),
-            );
+            if let Some(keys) = keys.and_then(|keys| keys[index].as_ref()) {
+                ensure!(
+                    keys.len() == documents::chunk_spans_with(input, options)?.len(),
+                    "document key count does not match its chunks"
+                );
+                texts.extend(keys.iter().map(String::as_str));
+            } else {
+                texts.extend(
+                    documents::chunk_spans_with(input, options)?
+                        .into_iter()
+                        .map(|(start, end)| &input.text[start as usize..end as usize]),
+                );
+            }
             spans.push(Some(start..texts.len()));
         }
         if texts.is_empty() {
@@ -149,5 +161,55 @@ impl WarmCore {
         };
         let v = embedder.embed_query(&[text])?;
         Ok(Some(v[0].iter().copied().map(f64::from).collect()))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::embed::testing::write_tiny;
+    use crate::core::embed::{EmbedOptions, Pooling, Quantization};
+    use serde_json::json;
+
+    #[test]
+    fn document_embedding_uses_expanded_keys_and_preserves_supplied_vectors() -> Result<()> {
+        let directory = tempfile::tempdir()?;
+        let (pack, sha) = write_tiny(directory.path(), Quantization::F32, Pooling::Mean);
+        let embedder = Embedder::from_pack(&pack, Some(&sha), &EmbedOptions::default())?;
+        let document = |id| serde_json::from_value(json!({"id": id, "text": "cat"}));
+        let mut inputs: Vec<DocumentInput> = vec![document("expanded")?, document("raw")?];
+        let keys = vec![Some(vec!["dog cat".to_string()]), None];
+        WarmCore::embed_document_inputs(
+            &mut inputs,
+            &IngestOptions::default(),
+            Some(&embedder),
+            Some(&keys),
+        )?;
+        let expected = embedder.embed_passages(&["dog cat", "cat"])?;
+        for (input, vector) in inputs.iter().zip(expected) {
+            assert_eq!(
+                input.embeddings.as_ref().unwrap()[0],
+                vector.into_iter().map(f64::from).collect::<Vec<_>>()
+            );
+        }
+        assert_ne!(inputs[0].embeddings, inputs[1].embeddings);
+        let supplied = inputs[0].embeddings.clone();
+        WarmCore::embed_document_inputs(
+            &mut inputs,
+            &IngestOptions::default(),
+            Some(&embedder),
+            Some(&keys),
+        )?;
+        assert_eq!(inputs[0].embeddings, supplied);
+        let mut invalid = vec![document("invalid")?];
+        assert!(WarmCore::embed_document_inputs(
+            &mut invalid,
+            &IngestOptions::default(),
+            Some(&embedder),
+            Some(&[Some(vec!["one".into(), "two".into()])]),
+        )
+        .is_err());
+        assert!(invalid[0].embeddings.is_none());
+        Ok(())
     }
 }

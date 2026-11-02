@@ -400,21 +400,35 @@ impl Embedder {
         kind: EmbedKind,
     ) -> Result<usize> {
         let values = self.limits.output_values(texts.len(), self.dimensions())?;
+        let mut bytes = 0usize;
+        for (index, text) in texts.iter().enumerate() {
+            bytes = bytes
+                .checked_add(text.as_ref().len())
+                .context("embedding input size overflow")?;
+            self.validate_input_sizes(index + 1, bytes, kind)?;
+        }
+        Ok(values)
+    }
+
+    pub(crate) fn validate_input_sizes(
+        &self,
+        count: usize,
+        bytes: usize,
+        kind: EmbedKind,
+    ) -> Result<usize> {
+        let values = self.limits.output_values(count, self.dimensions())?;
         let prefix = match kind {
             EmbedKind::Query => &self.query_prefix,
             EmbedKind::Passage => &self.passage_prefix,
         };
-        let mut bytes = 0usize;
-        for text in texts {
-            bytes = bytes
-                .checked_add(text.as_ref().len())
-                .and_then(|n| n.checked_add(prefix.len()))
-                .context("embedding input size overflow")?;
-            ensure!(
-                bytes <= self.limits.max_input_bytes,
-                "embedding input exceeds max_input_bytes"
-            );
-        }
+        let bytes = count
+            .checked_mul(prefix.len())
+            .and_then(|prefix_bytes| bytes.checked_add(prefix_bytes))
+            .context("embedding input size overflow")?;
+        ensure!(
+            bytes <= self.limits.max_input_bytes,
+            "embedding input exceeds max_input_bytes"
+        );
         Ok(values)
     }
 
