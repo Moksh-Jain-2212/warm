@@ -2000,17 +2000,30 @@ GloVe 100D subset supplies 100,000 vectors/1,000 queries and exact-neighbor trut
 These are inventory observations: freeze actual hashes and row/text mappings before
 running comparisons, and do not present synthetic replication as unique-document evidence.
 
-The user also proposed testing whether records can be removed without reducing memory
-quality or recall. Treat this as an evaluation proposal, not permission to delete user
-data. Start with duplicates/repeated statements and reversible active-index reductions;
-preserve provenance, validity and historical answers. Test the whole proposed batch against
-held-out current, historical and multi-step questions, since individually redundant records
-may not be jointly removable. Measure recall, answer correctness, index/RSS/context size
-and latency together; passing a workload cannot guarantee all future questions. Owning
-several blue possessions does not establish an explicit favorite-color preference, which
-can have independent value and lower retrieval cost. Existing dry-run consolidation keeps
-source history unless destructive removal is separately enabled; any new policy should
-build on those controls. No pruning experiment or data removal has run.
+The user also proposed testing the consequences of removing records for memory quality
+and total cost. This is an evaluation proposal, not permission to delete user data or a
+claim of a new research category. Relevant prior work includes
+[LazyMem v2](https://arxiv.org/abs/2607.22690v2), which selects and compresses query-relevant
+memory at query time with a lightweight model over overlapping windows, trained for
+source-faithful answer utility. [Decision-Aware Memory Cards v4](https://arxiv.org/abs/2606.08151v4)
+uses a context graph and decision-oriented utility to select evidence and produce typed
+cards, with removal diagnostics. Their LongMemEval/LoCoMo and 50-instance SWE-bench
+file-retrieval evaluations, respectively, are prior evidence for their methods, not
+validation of WARM pruning or a WARM advantage.
+
+Compare any proposed policy with simpler recency, relevance, deduplication and diversity
+selection under identical candidate and context budgets. Use held-out current, historical
+and multi-step tasks; report quality versus total cost, including selection/compression,
+index maintenance, answering and evaluation cost rather than only final context tokens.
+Start with duplicates/repeated statements and reversible active-index reductions; preserve
+provenance, validity and historical answers. Test each proposed batch and record failures:
+individually redundant records may not be jointly removable. Measure retrieval recall,
+answer correctness, index/RSS/context size and latency together; passing a workload cannot
+guarantee all future questions. Owning several blue possessions does not establish an
+explicit favorite-color preference, which can have independent value and lower retrieval
+cost. Existing dry-run consolidation keeps source history unless destructive removal is
+separately enabled; any new policy should build on those controls. No pruning experiment
+or data removal has run.
 
 ## Fresh Matryoshka development (2026-11-02; qualification pending)
 
