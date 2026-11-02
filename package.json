@@ -71,7 +71,7 @@
     "version": "napi version",
     "test": "node --test tests/node/*.test.cjs",
     "test:package": "node scripts/test-package.cjs",
-    "test:types": "tsc --noEmit --strict --target es2022 --module nodenext --moduleResolution nodenext --types node tests/node/types.test.mts tests/node/memory-types.test.mts tests/node/vectra-types.test.mts"
+    "test:types": "tsc --noEmit --strict --target es2022 --module nodenext --moduleResolution nodenext --types node tests/node/types.test.mts tests/node/memory-types.test.mts tests/node/vector-record-types.test.mts tests/node/vectra-types.test.mts"
   },
   "devDependencies": {
     "@napi-rs/cli": "^3.10.8",
