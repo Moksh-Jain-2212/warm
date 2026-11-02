@@ -1,7 +1,7 @@
 // Copyright 2024-2026 WritersLogic Contributors
 // SPDX-License-Identifier: Apache-2.0
 import assert from 'node:assert/strict'
-import { readFile, writeFile, open } from 'node:fs/promises'
+import { readFile, writeFile, open, realpath } from 'node:fs/promises'
 import { resolve, isAbsolute } from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { performance } from 'node:perf_hooks'
@@ -68,7 +68,7 @@ export async function runWorker(config, onObservation = async () => {}) {
     : await loadSciFact(config.inputManifest)
   const baselineRss = process.memoryUsage().rss
   if (config.phase === 'prepare') {
-    if (expectedAddon) assert.equal(loadedNativeAddon(config.modulePath), expectedAddon, 'loaded native addon differs from freeze')
+    if (expectedAddon) assert.equal(await realpath(loadedNativeAddon(config.modulePath)), await realpath(expectedAddon), 'loaded native addon differs from freeze')
     process.send?.({ type: 'stage', name: 'prepare' })
     const prepared = await prepareEngine(config.engine, config.modulePath, config.store, data)
     return { engine: config.engine, phase: config.phase, purpose: config.purpose, pid: process.pid,
@@ -85,7 +85,7 @@ export async function runWorker(config, onObservation = async () => {}) {
     const openStart = performance.now()
     const context = await openEngine(config.engine, config.modulePath, config.store, data)
     openMs = performance.now() - openStart
-    if (expectedAddon) assert.equal(loadedNativeAddon(config.modulePath), expectedAddon, 'loaded native addon differs from freeze')
+    if (expectedAddon) assert.equal(await realpath(loadedNativeAddon(config.modulePath)), await realpath(expectedAddon), 'loaded native addon differs from freeze')
     process.send?.({ type: 'opened', openMs: measured ? openMs : null, scope: 'process total includes verified dataset and tokenizer setup; openMs isolates package import and engine open' })
     const textById = new Map(data.documents.map(row => [row.id, row.text]))
     const record = async row => { observations.push(row); await onObservation(row) }

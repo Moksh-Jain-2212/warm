@@ -2241,10 +2241,12 @@ selection methods.
 PR [#378](https://github.com/writerslogic/warm/pull/378) at `60620821` completed
 147 successful and 22 conditional-skipped hosted checks, including the required
 `check` aggregate, with no failed or pending checks. No unresolved current review
-threads were found. GitHub branch protection still requires a code-owner review;
-a normal merge was refused and normal auto-merge is enabled. No administrator
-bypass was used. The seven unrelated modified files in the main worktree must be
-preserved; they are outside the #378 diff.
+threads were found. GitHub branch protection required code-owner review and refused
+the normal merge. After the user explicitly directed “merge it” in response, the
+administrator bypass merged the unchanged head as `1ff8ecebea26ef47334c657f3e337e00ff22d3ec`.
+GitHub verified its signature; both parents and the tree match the qualified source.
+The main worktree was fast-forwarded to that merge and its unrelated modifications
+were preserved.
 
 The saved hybrid and vector branches are merged into `research/vectra-comparison`
 with ancestry preserved. Timed ANN rows now undergo per-repetition recall and
@@ -2267,3 +2269,11 @@ records the required workload arithmetic and limits: combined freeze and executi
 remain pending final verification and feasibility review. No input scoring, study
 timing, model download, paid operation, pruning, publication or ToIP work ran.
 The failed prefix-quality and CPU-preflight results remain unchanged.
+
+The synthetic combined freeze and verification passed at `ac4b0f54`, including
+binding the integrated addon and local dependency/runtime inventory; it used
+synthetic input files and did not run a study. The follow-up provenance checks bind
+the host, require installed nonoptional dependencies, and normalize runtime paths.
+The latest local gate passes 18 vector and 16 hybrid synthetic tests. The comparison
+inputs themselves have not yet been frozen or scored, and workload feasibility
+within the fixed phase ceilings remains unestablished.

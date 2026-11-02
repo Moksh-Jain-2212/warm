@@ -8,7 +8,7 @@ import path from 'node:path'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { normalize, normalizeRows, scalarCosine, oracleTopK, liveState, auditExact, qrelMetrics, latency, FILTERS, metadata } from './oracle-vector.mjs'
-import { ARMS, timingSchedule, qualityGate, preparationGate, dependencyInventory, runPhase, summarize } from './vector.mjs'
+import { ARMS, timingSchedule, qualityGate, preparationGate, dependencyInventory, hostInfo, verifyHost, runPhase, summarize } from './vector.mjs'
 import { parseProcesses, descendants, externalCpuFraction, preflight, writeOnce, readJson, manifest, cloneStore, assertOwnedPath, runMonitored, watchPhase, sha256, exec } from './vector-receipts.mjs'
 import { provider, routeCheck, scoreOrderPass, loadTruth } from './vector-worker.mjs'
 const require = createRequire(import.meta.url), HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -91,10 +91,25 @@ test('frozen dependency inventory detects installed code changes and refuses sym
   await fs.writeFile(path.join(pkg, 'package.json'), JSON.stringify({ name: 'vectra', version: '0.15.0' }))
   await fs.writeFile(path.join(pkg, 'index.js'), 'first')
   const initial = await dependencyInventory(path.join(root, 'package-lock.json'))
+  const lock = JSON.parse(await fs.readFile(path.join(root, 'package-lock.json'), 'utf8'))
+  lock.packages['node_modules/missing'] = { version: '1.0.0' }
+  await fs.writeFile(path.join(root, 'package-lock.json'), JSON.stringify(lock))
+  await assert.rejects(dependencyInventory(path.join(root, 'package-lock.json')), /required dependency missing/)
+  lock.packages['node_modules/missing'].optional = true
+  await fs.writeFile(path.join(root, 'package-lock.json'), JSON.stringify(lock))
+  assert.equal((await dependencyInventory(path.join(root, 'package-lock.json'))).at(-1).installed, false)
+  delete lock.packages['node_modules/missing']
+  await fs.writeFile(path.join(root, 'package-lock.json'), JSON.stringify(lock))
   await fs.writeFile(path.join(pkg, 'index.js'), 'other')
   assert.notDeepEqual(await dependencyInventory(path.join(root, 'package-lock.json')), initial)
   await fs.symlink('index.js', path.join(pkg, 'alias.js'))
   await assert.rejects(dependencyInventory(path.join(root, 'package-lock.json')), /dependency symlink refused/)
+})
+
+test('host drift cannot reuse the frozen hardware receipt', () => {
+  const original = hostInfo()
+  verifyHost(original, structuredClone(original))
+  assert.throws(() => verifyHost(original, { ...original, logicalCpus: original.logicalCpus + 1 }), /host changed/)
 })
 
 test('oracle references require the complete unique frozen query identities', async t => {

@@ -7,7 +7,7 @@ No study data has been scored and no study timing has run. The vector and hybrid
 harnesses use a shared phase driver, one preparation deadline, one measurement
 deadline, one preflight, and a single no-retry schedule. The combined freeze binds
 the selected Node addon, input and installed dependency files, hybrid sources,
-tokenizer, Python runtime and fixed schedules. Independent validation and an
+tokenizer, Python runtime and fixed schedules. Final integrated source validation and an
 execution feasibility assessment remain necessary before freezing; a standalone
 vector-only freeze would not qualify the combined comparison.
 
@@ -24,9 +24,9 @@ unestablished; do not infer that the full schedule fits the fixed budget.
 
 The phase watchdog observes controller and descendant RSS and external CPU between
 worker jobs as well as during them. It stops the active worker on violation. An
-in-progress filesystem copy has no cancellation interface in this harness; a
-violation during a copy is recorded and prevents the next job, but the copy can
-finish after the deadline. Such a phase is incomplete and cannot qualify. Per-file
+in-progress filesystem operation, including copying or hashing, may not stop
+immediately; a violation is recorded and prevents the next job, but the operation
+can finish after the deadline. Such a phase is incomplete and cannot qualify. Per-file
 clone allocation counts can include shared blocks and are not summed physical disk
 usage. One-second RSS sampling can miss shorter peaks, and process CPU observations
 do not establish isolation.

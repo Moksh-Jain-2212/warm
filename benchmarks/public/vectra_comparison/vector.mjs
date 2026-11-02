@@ -12,6 +12,8 @@ const HERE = path.dirname(fileURLToPath(import.meta.url))
 const FILES = ['vector.mjs', 'vector-worker.mjs', 'vector-receipts.mjs', 'oracle-vector.mjs', 'test_vector.mjs', 'README-vector.md', 'hybrid-run.mjs', 'hybrid-worker.mjs', 'hybrid.mjs', 'hybrid-tokenizer.py', 'test_hybrid.mjs', 'README-hybrid.md']
 const THREAD_ENVIRONMENT = ['RAYON_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'VECLIB_MAXIMUM_THREADS', 'UV_THREADPOOL_SIZE', 'TOKENIZERS_PARALLELISM']
 const threadEnvironment = () => Object.fromEntries(THREAD_ENVIRONMENT.map(name => [name, process.env[name] ?? null]))
+export function hostInfo() { return { platform: process.platform, release: os.release(), architecture: os.arch(), logicalCpus: os.cpus().length, cpuModels: [...new Set(os.cpus().map(cpu => cpu.model))], memoryBytes: os.totalmem() } }
+export function verifyHost(expected, actual = hostInfo()) { assert.deepEqual(actual, expected, 'host changed after freeze') }
 export const ARMS = Object.freeze([{ name: 'vectra-exact', engine: 'vectra', mode: 'exact' }, { name: 'warm-exact', engine: 'warm', mode: 'exact' }, ...[128, 256, 512].map(ef => ({ name: `warm-graph-${ef}`, engine: 'warm', mode: 'graph', ef }))])
 export function timingSchedule(datasets) {
   const jobs = []
@@ -50,7 +52,7 @@ export async function dependencyInventory(lockfile) {
     const filename = path.join(path.dirname(lockfile), relative, 'package.json')
     let actual
     try { actual = await readJson(filename) }
-    catch (error) { if (error.code !== 'ENOENT') throw error; result.push({ path: relative, version: item.version, installed: false, optional: !!item.optional, dev: !!item.dev }); continue }
+    catch (error) { if (error.code !== 'ENOENT') throw error; assert.ok(item.optional || item.dev, `required dependency missing: ${relative}`); result.push({ path: relative, version: item.version, installed: false, optional: !!item.optional, dev: !!item.dev }); continue }
     assert.ok(!(await fs.lstat(path.dirname(filename))).isSymbolicLink(), `dependency symlink refused: ${relative}`)
     assert.equal(actual.version, item.version, `installed dependency differs from lock: ${relative}`)
     result.push({ path: relative, name: actual.name, version: actual.version, integrity: item.integrity ?? null, packageJsonSha256: await sha256(filename), files: await packageFiles(path.dirname(filename)) })
@@ -94,8 +96,8 @@ export async function freeze(configuration, output) {
   assert.equal(loaded.length, 1, 'native loader provenance must be unambiguous')
   assert.equal(await fs.realpath(loaded[0]), await fs.realpath(config.nativeAddon), 'configured addon is not the one selected by the public loader')
   const inputs = await readJson(config.inputs), verifiedInputs = await verifyInputs(inputs)
-  const { uvPath, tokenizerPath } = config.hybrid
-  assert.ok(typeof uvPath === 'string' && typeof tokenizerPath === 'string')
+  assert.ok(path.isAbsolute(config.hybrid.uvPath ?? '') && path.isAbsolute(config.hybrid.tokenizerPath ?? ''), 'absolute hybrid runtime paths required')
+  const uvPath = await fs.realpath(config.hybrid.uvPath), tokenizerPath = await fs.realpath(config.hybrid.tokenizerPath)
   const tokenizerSha256 = await sha256(tokenizerPath)
   assert.equal(tokenizerSha256, 'def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a', 'protocol tokenizer changed')
   const python = await pythonRuntime(uvPath, tokenizerPath)
@@ -105,7 +107,7 @@ export async function freeze(configuration, output) {
   const mappingManifest = path.resolve(path.dirname(config.inputs), inputs.scifact.mapping_manifest)
   assert.equal(await sha256(mappingManifest), inputs.scifact.mapping_manifest_sha256)
   const warmFiles = Object.fromEntries(await Promise.all(['vectra.js', 'vectra-selector.js', 'vectra.d.ts', 'index.js', 'index.d.ts', 'package.json', 'package-lock.json', 'Cargo.lock'].map(async file => [file, await sha256(path.join(config.warmPath, file))])))
-  const frozen = { version: 1, preparationOnlyUntilExplicitGrant: true, createdAtUtc: new Date().toISOString(), ...config, source, runtime: { executable: process.execPath, version: process.version, sha256: await sha256(process.execPath) }, sourceFiles: warmFiles, nativeSha256: await sha256(config.nativeAddon), vectra: await manifest(config.vectraPath), dependencyLockSha256: await sha256(config.vectraLockfile), dependencyInventory: await dependencyInventory(config.vectraLockfile), protocolSha256: await sha256(config.plan), inputManifestSha256: await sha256(config.inputs), inputIdentity: hashValue(verifiedInputs), verifiedInputs, driver: await driverHashes(), datasets: datasets(inputs), limits: LIMITS, queryOrder: 'source ordinal; no query randomization', seed: 20261102, nativeGraphSeed: 'pinned engine defaults; no seed tuning', arms: ARMS, filters: FILTERS, repetitions: 3, host: { platform: process.platform, release: os.release(), architecture: os.arch(), logicalCpus: os.cpus().length, cpuModels: [...new Set(os.cpus().map(cpu => cpu.model))], memoryBytes: os.totalmem() }, durationCeilingNote: 'No duration estimate from development timings; coordinator must reject any projected execution exceeding fixed phase budgets before granting execution.' }
+  const frozen = { version: 1, preparationOnlyUntilExplicitGrant: true, createdAtUtc: new Date().toISOString(), ...config, source, runtime: { executable: process.execPath, version: process.version, sha256: await sha256(process.execPath) }, sourceFiles: warmFiles, nativeSha256: await sha256(config.nativeAddon), vectra: await manifest(config.vectraPath), dependencyLockSha256: await sha256(config.vectraLockfile), dependencyInventory: await dependencyInventory(config.vectraLockfile), protocolSha256: await sha256(config.plan), inputManifestSha256: await sha256(config.inputs), inputIdentity: hashValue(verifiedInputs), verifiedInputs, driver: await driverHashes(), datasets: datasets(inputs), limits: LIMITS, queryOrder: 'source ordinal; no query randomization', seed: 20261102, nativeGraphSeed: 'pinned engine defaults; no seed tuning', arms: ARMS, filters: FILTERS, repetitions: 3, host: hostInfo(), durationCeilingNote: 'No duration estimate from development timings; coordinator must reject any projected execution exceeding fixed phase budgets before granting execution.' }
   frozen.timingSchedule = timingSchedule(frozen.datasets)
   frozen.driverSource = (await exec('git', ['-C', HERE, 'rev-parse', 'HEAD'])).stdout.trim()
   assert.equal((await exec('git', ['-C', HERE, 'status', '--porcelain', '--', ...FILES])).stdout.trim(), '', 'commit the harness before freezing')
@@ -130,6 +132,7 @@ export async function verifyFreeze(root) {
   for (const artifact of (await readJson(path.join(root, 'hybrid-freeze.json'))).artifacts) assert.equal(await sha256(artifact.path), artifact.sha256)
   assert.deepEqual(await driverHashes(), frozen.driver, 'driver changed after freeze')
   assert.deepEqual(threadEnvironment(), frozen.threadEnvironment, 'thread configuration changed after freeze')
+  verifyHost(frozen.host)
   assert.equal(process.execPath, frozen.runtime.executable); assert.equal(process.version, frozen.runtime.version); assert.equal(await sha256(process.execPath), frozen.runtime.sha256)
   assert.equal(await sha256(frozen.nativeAddon), frozen.nativeSha256)
   for (const [file, expected] of Object.entries(frozen.sourceFiles)) assert.equal(await sha256(path.join(frozen.warmPath, file)), expected)
