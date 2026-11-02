@@ -19,6 +19,6 @@
     "test": "tsup && node --test test/*.test.mjs"
   },
   "peerDependencies": {
-    "writerslogic-warm": ">=0.6.0"
+    "warm-sdk": ">=0.6.5"
   }
 }

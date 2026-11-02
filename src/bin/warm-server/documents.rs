@@ -796,6 +796,7 @@ fn query_options(
         mode,
         ef: ef as usize,
         min_score: -1.0,
+        ..VectorQueryOptions::default()
     })
 }
 

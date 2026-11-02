@@ -93,9 +93,9 @@ version, which is independent of the launcher version.
   installed into an empty virtualenv with no source tree and no network, then a real associative
   search and a resonator factorization run through it (`scripts/ci/smoke_python.py`). Linux wheels
   are additionally installed in a Debian 11 (glibc 2.31, Python 3.9) or Alpine container.
-- **npm** (`npm-packages.yml`): `writerslogic-warm-{darwin-arm64, darwin-x64, linux-arm64-gnu,
+- **npm** (`npm-packages.yml`): `warm-sdk-{darwin-arm64, darwin-x64, linux-arm64-gnu,
   linux-arm64-musl, linux-x64-gnu, linux-x64-musl, win32-arm64-msvc, win32-x64-msvc}` plus the
-  JavaScript-only root `writerslogic-warm`, whose `optionalDependencies` select the binding by
+  JavaScript-only root `warm-sdk`, whose `optionalDependencies` select the binding by
   os, cpu and libc. glibc bindings are linked against glibc 2.17, musl bindings with zig. The
   tarballs are installed into an empty project on a machine of every target (Alpine containers for
   musl, Debian 11 for glibc) with the root's optional dependencies pointed at the local tarballs,
@@ -119,8 +119,8 @@ These cannot be committed; the publish jobs wait on them.
    `npm`, `pypi`.
 2. crates.io: add this repository's `release.yml` and environment `crates-io` as a Trusted Publisher
    for `warm-rust`. The job uses `rust-lang/crates-io-auth-action` and holds no token.
-3. npm: provide an automation token for the `writerslogic-warm` and
-   `writerslogic-warm-*` names as `NPM_TOKEN` (a repository or `npm` environment secret).
+3. npm: provide an automation token for the `warm-sdk` and
+   eight `warm-sdk-*` platform names as `NPM_TOKEN` (a repository or `npm` environment secret).
    The first publish of the eight platform package names needs a token. Publishing uses
    `--provenance`. Legacy package retirement runs separately through `retire-legacy-npm.yml`; registry policy and interactive two-factor authentication can restrict permanent deletion.
 4. PyPI: add pending Trusted Publishers under owner `writerslogic`, repository
@@ -147,31 +147,48 @@ These cannot be committed; the publish jobs wait on them.
 5. **GitHub release.** `release.yml` leaves a *draft* release holding every artefact, SBOM,
    `SHA256SUMS` and the provenance bundle. Write the notes, then publish it. The data releases
    (`evidence-v*`) use other tags and never trigger these workflows.
-6. **npm listing.** The protected `correct-npm-deprecation` job runs after `publish-npm` and
-   replaces the incorrect AGPL message on `0.3.0` while keeping that version deprecated. Verify:
+6. **npm listing.** Verify the new root package and all eight platform packages are available:
 
    ```sh
-   npm view writerslogic-warm@0.3.0 deprecated       # accurate upgrade message
-   npm view writerslogic-warm@X.Y.Z deprecated       # must print nothing
-   npm dist-tag ls writerslogic-warm                 # latest must be X.Y.Z
+   npm view warm-sdk@X.Y.Z deprecated       # must print nothing
+   npm dist-tag ls warm-sdk                # latest must be X.Y.Z
    ```
 
-   If the correction job fails after publication, fix its token and rerun that job. Then confirm
-   the latest registry page shows no deprecation banner, the README logo renders, and
-   `npm install writerslogic-warm` resolves to X.Y.Z. npm can acknowledge a new package before
+   Confirm the latest registry page shows no deprecation banner, the README logo renders, and
+   `npm install warm-sdk` resolves to X.Y.Z. npm can acknowledge a new package before
    its version is available; a [`0.0.0-stage` placeholder](https://docs.npmjs.com/staged-publishing/)
    alone is not a published binding.
    The `verify-published` job waits for the root and every declared optional platform package
    with a fresh npm cache, then installs the published package and runs a search.
 7. **Verify** what was shipped (see below).
 
+### First npm release under `warm-sdk`
+
+The source rename prepares `warm-sdk@0.6.5` and the eight platform packages; it does
+not publish them or transfer ownership from `writerslogic-warm`. Before release,
+confirm publishing authority for all nine names and configure `NPM_TOKEN` for them.
+Publish the platform tarballs first, then the root, through the existing protected
+release workflow. Require the cross-platform build/install gates, provenance checks,
+and registry consumer smoke test before directing consumers to the new name.
+
+Consumers replace `writerslogic-warm` with `warm-sdk` in their package manifests and
+imports, including `/semantic` and `/memory`. Keep existing store directories and
+configuration. Framework adapters in `integrations/js` also need a coordinated release
+because their core peer dependency changes to `warm-sdk >=0.6.5`. Until the new packages
+are available, released consumers continue using the existing published package.
+
+Retiring or deprecating `writerslogic-warm` requires a separate maintainer action after
+the replacement is verified. This rename leaves the MCP launcher, embedding-model
+packages, WebAssembly package, Rust crate, and Python distributions unchanged; npm and
+PyPI can independently use the name `warm-sdk`.
+
 ## Verify an artefact
 
 ```sh
 gh attestation verify writerslogic_warm_py-X.Y.Z-cp39-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl \
   --repo writerslogic/warm
-gh attestation verify writerslogic-warm-linux-x64-gnu-X.Y.Z.tgz --repo writerslogic/warm
-npm audit signatures            # in a project that depends on writerslogic-warm
+gh attestation verify warm-sdk-linux-x64-gnu-X.Y.Z.tgz --repo writerslogic/warm
+npm audit signatures            # in a project that depends on warm-sdk
 sha256sum -c SHA256SUMS         # next to the downloaded release assets
 ```
 
@@ -219,7 +236,7 @@ attestations, not compared).
   readers can distinguish the published crate from the original oversized release asset. Never
   move the signed release tag.
 - Published a bad version: crates.io `cargo yank --version X.Y.Z`; npm `npm deprecate
-  writerslogic-warm@X.Y.Z "reason"` (unpublish only within 72 hours); PyPI yank in the web UI (no
+  warm-sdk@X.Y.Z "reason"` (unpublish only within 72 hours); PyPI yank in the web UI (no
   API). Then release X.Y.(Z+1); never re-tag.
 - A tag pushed by mistake: delete the draft release first, then the tag, before approving any
   environment.

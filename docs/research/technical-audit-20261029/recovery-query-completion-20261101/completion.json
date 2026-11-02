@@ -1,0 +1,52 @@
+{
+  "pr": "https://github.com/writerslogic/warm/pull/375",
+  "qualified_head": "98faa7ae7e62cc3c5649ce74de366806f58547b0",
+  "merge_commit": "1ad2c4c799453043373e3a6c650357d8019eb90d",
+  "merged_at": "2026-11-02T05:57:08Z",
+  "merge_method": "merge",
+  "verified_signature": true,
+  "tested_tree": "9fc3b420f9965b1fca3867b03fc8179a3f31365a",
+  "merge_tree_equals_tested_tree": true,
+  "qualified_head_retained_as_parent": true,
+  "checks": {
+    "success": 68,
+    "skipped": 5,
+    "failed": 0
+  },
+  "skips": [
+    {
+      "name": "deploy",
+      "url": "https://github.com/writerslogic/warm/actions/runs/41393924661/job/125113034437"
+    },
+    {
+      "name": "Publish warm-sdk to PyPI",
+      "url": "https://github.com/writerslogic/warm/actions/runs/41393924706/job/125111484857"
+    },
+    {
+      "name": "vector-qualification",
+      "url": "https://github.com/writerslogic/warm/actions/runs/41393924724/job/125111057011"
+    },
+    {
+      "name": "rebuild-for-tag",
+      "url": "https://github.com/writerslogic/warm/actions/runs/41393924661/job/125111056840"
+    },
+    {
+      "name": "signoff",
+      "url": "https://github.com/writerslogic/warm/actions/runs/41393924593/job/125111056137"
+    }
+  ],
+  "skip_scope": "Release/publication/deployment, explicit manual benchmark dispatch, and the owner-exempt DCO job. All 33 PR commits were independently checked for valid signatures and DCO trailers.",
+  "windows": {
+    "service_passed": 195,
+    "service_skipped": 0,
+    "core_passed": 877,
+    "existing_core_diagnostic_skips": 14,
+    "all_ten_previous_failures_passed": true,
+    "raw_sha256": "81e43b7fdc817c5bda236a557570d9072c570950131909d6bd887689805ddb19",
+    "gzip_sha256": "cb51e00d8509ec294977cc3d88aa03dd6945b8ea6f2bc2f49ccbbdae9add8052"
+  },
+  "review_threads_unresolved": 0,
+  "open_code_scanning_alerts": 0,
+  "review_dispositions": "Four zero-argument Python-call findings reference an unrelated same-named module; sibling signatures and both fixture suites pass. The fifth finding is intentional mixed import style in frozen evidence fixtures; targeted integrity tests pass. No code or measurement rerun was needed.",
+  "transport_limit": "The snapshot concurrency test now passes; its prior empty response cause remains unproven. The receipt-handle fix does not establish a production diagnosis for that separate failure."
+}

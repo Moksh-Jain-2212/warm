@@ -7,5 +7,5 @@ export default defineConfig({
   format: ['esm', 'cjs'],
   dts: true,
   clean: true,
-  external: ['@mastra/core', '@writerslogic/warm-core', 'writerslogic-warm'],
+  external: ['@mastra/core', '@writerslogic/warm-core', 'warm-sdk'],
 })

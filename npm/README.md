@@ -7,18 +7,33 @@ selects a native binding for your operating system and architecture. It does not
 make service calls for ordinary document search.
 
 ```sh
-npm install writerslogic-warm
+npm install warm-sdk
 ```
 
 The native binding is distributed through an optional platform package, so keep npm's optional
 dependencies enabled. Published targets are macOS (arm64, x64), Linux (arm64, x64; glibc and musl),
 and Windows (arm64, x64).
 
+## Migrating from `writerslogic-warm`
+
+The Node package is now `warm-sdk`. After `warm-sdk@0.6.5` and its native platform
+packages are published, replace the old dependency and update imports of the root,
+`/semantic`, and `/memory` entry points:
+
+```sh
+npm uninstall writerslogic-warm
+npm install warm-sdk
+```
+
+The package rename does not require converting existing stores. Keep their current
+embedding and security configuration. The separately versioned MCP launcher remains
+`writerslogic-warm-mcp`; PyPI's `warm-sdk` remains the Python HTTP client.
+
 ## Search documents
 
 ```js
-const { WarmMemorySystem } = require('writerslogic-warm')
-const { DocumentMemory } = require('writerslogic-warm/semantic')
+const { WarmMemorySystem } = require('warm-sdk')
+const { DocumentMemory } = require('warm-sdk/semantic')
 
 async function main() {
   const memory = new DocumentMemory(new WarmMemorySystem(4096, './memory-store'))
@@ -50,7 +65,7 @@ launcher for the MCP server. Install or run that package if you need a server fo
 npx -y writerslogic-warm-mcp
 ```
 
-This `writerslogic-warm` package embeds the engine in a Node.js application. It does not expose
+This `warm-sdk` package embeds the engine in a Node.js application. It does not expose
 the MCP command.
 
 Apache-2.0 · [Source](https://github.com/writerslogic/warm) ·

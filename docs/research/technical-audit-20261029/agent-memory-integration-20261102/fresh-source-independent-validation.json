@@ -1,0 +1,30 @@
+{
+  "research_data_commit": "a839277c69a5fb26f9a930a2416b729ce1739da4",
+  "archive_files_verified": {
+    "bin/evaluate": "d57d8260475f8d03eb9e5518d1254455fa7a9478e9e06fcec482d548c7b7eebe",
+    "bin/generate": "ef78f4a4afbfe1c0699ecb85fe3ee000ad09d100afdaaaf44280d40e744b7ad9",
+    "generated/complete.json": "f9c50a5f991de1ff7db936b54e24a810ffc29db5bccf19b4c23959a1c7bd7e05",
+    "generated/corpus.f32": "8d97f1becfa987563838db9276f983339c0e0c293f463a978cd26f3f8e96a71f",
+    "generated/corpus.progress.json": "85244a03bac431920995fee09b88b7787694cfd770d011ead2346f08749ce3cf",
+    "generated/queries.f32": "83bf98219bd3936d9b1bf84b55b3b34d69c25f0725bb39c3b1dae9e14c2cb850",
+    "generated/queries.progress.json": "c8d61a8b6b1820d67b04d9038de344e633be91811c3d44f10e1b7b761c050bd8",
+    "generated/started.json": "7b92b43ddeed2a6681f16c86c33c544a3af0d4702914c27895222e22df7172db",
+    "generated/tokens.json": "b646dd8bfc9e070350fdd176e343004b237d1e6ce80622deea7ba33033444e0c",
+    "input.json": "87fb9d1e9c67885d40786a5102d604db5e352ba1d80727f155c27e2522cfccef"
+  },
+  "retrieval_files_verified": {
+    "PLAN.md": "156711556ab6c45742aebf04fbf157394950f3df69c1bbeeb6c584af1aa782f6",
+    "README.md": "56d29c21ab09c9efc49b85087e87238ab16ddea14162c099a82d6cb4e67d1adf",
+    "analyze.py": "fbd536d6eb4b731641bfaec16929cb26a656ccff6ee710d7deb8609bf424e8d8",
+    "metrics.py": "ea6e952d8597dc1bb8f53f999907e67041da87a384909f7a3008d59b6e57769c",
+    "run_retrieval.py": "96d2938890e5c7967f5cb50cdd00d7723f9b265900c5bf765923b576a6b89049",
+    "test_host.py": "57fa6f0ee8f5eaad1aeba8d3ba820d189d6f3226a91d2b7358ef2f05b438062a",
+    "test_metrics.py": "80d1e86c72bb49a7b87a569e7625a7ef7aaf0dc5d542ed5da28d235fa1f309e2",
+    "driver/Cargo.toml": "dbac85060e85b2a5474fe4fce1fc156c774ea3c0f65761272a864c28766e33e6",
+    "driver/Cargo.lock": "76185c43bd4b5d4840f17b438425a26bb32250f4f6d03b903abd0c58de937a54",
+    "driver/src/bin/evaluate.rs": "7b680e9119aff4dbdbe2ab822a71c70ff780b4ccc4b364fe64f35cb1ac58f522",
+    "validate_generation.py": "f88b547e6f080a96363c457cd33a205e9d0f0331049d388fe6084e9dc5be198f"
+  },
+  "root_head": "5e88ed2c64f9283c68c51eb5019047710f0c3602",
+  "native_core_bindings_manifests_equal_to_research": true
+}

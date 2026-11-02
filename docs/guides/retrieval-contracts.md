@@ -5,6 +5,71 @@ used by document search. Stored embeddings remain normalized `f32` values. Graph
 selects approximate candidates and then computes their canonical scores. Equal scores
 use document ID and chunk index order.
 
+## Optional Matryoshka candidates
+
+This is an experimental opt-in policy. The
+[fresh native SciFact evaluation](../research/technical-audit-20261029/matryoshka-native-20261102/README.md)
+did not qualify either tested configuration: 256 dimensions with 100 candidates or
+512 dimensions with 50 candidates. Both lost more recall than the preset limits,
+and host load prevented query timing. Neither setting is recommended as a default;
+no measured latency advantage is established for this path.
+
+For an embedding model trained to preserve useful information in vector prefixes,
+`WarmConfig::vector_candidates` can build the graph from a normalized prefix while
+retaining full embeddings for final cosine ranking. Set both
+`VectorCandidateConfig { dimensions, rerank_candidates }` fields; leaving the option
+absent preserves the existing full-width graph. The prefix width is between 1 and
+the configured embedding width, and the shortlist is between 1 and 4,096. When the
+graph actually selects candidates, `k` must fit the shortlist. A full-width prefix provides a control with
+the same shortlist size.
+
+The graph selects candidate chunks using separately L2-normalized prefixes. WARM
+then reranks those candidates using the original full vectors and canonical scores.
+Full reranking cannot recover a relevant item omitted from the shortlist. Measure
+recall against exact search on representative queries before choosing a width or
+shortlist; truncating a model that was not trained for prefixes has no such quality
+contract. Inference still generates the full vector once.
+
+The Node API accepts the same policy in the constructor:
+
+```js
+const warm = new WarmMemorySystem(4096, storePath, {
+  ...fullEmbeddingConfig,
+  vectorCandidateDimensions: candidateWidth,
+  vectorRerankCandidates: shortlistSize,
+})
+await warm.memorizeDocuments(documentsWithFullEmbeddings)
+await warm.maintainIndices()
+const hits = await warm.searchVectors(fullQueryEmbedding, 10, { mode: 'auto', ef: 128 })
+const exact = await warm.searchVectors(fullQueryEmbedding, 10, { mode: 'exact' })
+```
+
+`fullEmbeddingConfig` supplies the full model, revision and embedding dimensions;
+the candidate width never replaces that identity. All supplied document and query
+vectors must have the full width. The constructor's first argument is WARM's sparse
+memory dimension, which is independent of the embedding dimension. Node maintenance
+builds a graph at 4,096 embedded chunks; smaller stores use exact search in `auto`
+mode. Rust callers can set a different threshold with `rebuild_vector_index`.
+
+`filter`, `sourceUri` and `documentIds` use exact eligibility before full-dimensional
+top-k selection. Projected snapshots with updates or deletions use full exact search
+until rebuilt. A zero-norm prefix in a stored row or query also falls back to exact
+search. These routes retain correctness but do not provide projected-search speed.
+Explicit `graph` mode otherwise requires an available graph; `auto` can build or
+use an exact snapshot. `exact` always retains the full-dimensional ranking contract.
+
+Rust `search_vectors_with_report` reports the route actually used, candidate width
+and effective shortlist. `vector_index_status` separates the full embedding identity
+from prefix normalization and shortlist policy. Its graph byte counts describe
+retained graph buffers, including the separately reported residual subset; they
+exclude stored full embeddings, text, allocator overhead, build scratch and other
+snapshots still in use. Shorter candidates do not shrink retained full vectors or
+the model. The candidate policy is runtime configuration and must be reapplied on
+reopen; changing it rebuilds derived state without changing the stored embedding
+schema. The policy applies to vector graph search, not ordinary hybrid document search.
+
+## Other retrieval paths
+
 Sparse `query` results report Jaccard similarity for every route. Hopfield attention is
 available through `query_hopfield`; its weights are a separate retrieval contract. Index
 training can affect approximate candidate membership, but it does not change the meaning

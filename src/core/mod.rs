@@ -97,8 +97,8 @@ pub(crate) mod tombstone;
 pub(crate) mod triple_store;
 pub(crate) mod types;
 
-pub use config::WarmConfig;
 pub use config::WarmConfig as HmsConfig;
+pub use config::{VectorCandidateConfig, WarmConfig};
 #[cfg(not(target_arch = "wasm32"))]
 pub use engine::WarmCore;
 #[cfg(not(target_arch = "wasm32"))]

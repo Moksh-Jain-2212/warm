@@ -7,10 +7,10 @@ if (!process.env.WARM_EMBED_MODEL_DIR) {
   } catch {}
 }
 
-// Loads the native binding. Order: a locally built `writerslogic-warm.node` (development
+// Loads the native binding. Order: a locally built `warm-sdk.node` (development
 // and the packed tarball used by `npm run test:package`), then the per-platform
-// `writerslogic-warm.<suffix>.node` next to this file, then the optional dependency
-// `writerslogic-warm-<suffix>` that npm installed for this os/cpu/libc.
+// `warm-sdk.<suffix>.node` next to this file, then the optional dependency
+// `warm-sdk-<suffix>` that npm installed for this os/cpu/libc.
 
 const { existsSync, readFileSync } = require('node:fs')
 
@@ -47,8 +47,8 @@ const supportedTargets = [
 ]
 
 const suffix = abi ? `${process.platform}-${process.arch}${abi()}` : undefined
-const candidates = ['./writerslogic-warm.node']
-if (suffix) candidates.push(`./writerslogic-warm.${suffix}.node`, `writerslogic-warm-${suffix}`)
+const candidates = ['./warm-sdk.node']
+if (suffix) candidates.push(`./warm-sdk.${suffix}.node`, `warm-sdk-${suffix}`)
 
 let binding
 let lastError
@@ -63,7 +63,7 @@ for (const candidate of candidates) {
 
 if (!binding) {
   throw new Error(
-    `Unable to load writerslogic-warm native binding for ${suffix ?? `${process.platform}-${process.arch}`}. ` +
+    `Unable to load warm-sdk native binding for ${suffix ?? `${process.platform}-${process.arch}`}. ` +
     `Supported targets: ${supportedTargets.join(', ')}. Last error: ${lastError?.message ?? 'none'}`,
   )
 }

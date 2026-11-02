@@ -48,18 +48,36 @@ let why = memory.explain("where does Alice live", "home-1", &RecallOptions::defa
 memory.forget(&ForgetScope::Subject { subject: "alice/city".into() }, &ForgetOptions::default())?;
 ```
 
-Node (`writerslogic-warm/memory`):
+Node (`warm-sdk/memory`):
 
 ```js
-const { WarmMemorySystem } = require('writerslogic-warm')
-const { Memory } = require('writerslogic-warm/memory')
+const { WarmMemorySystem } = require('warm-sdk')
+const { Memory } = require('warm-sdk/memory')
 
 const memory = new Memory(new WarmMemorySystem(4096, './store'), { supersession: 'latest-by-subject' })
-await memory.remember('Alice lives in Paris', { subject: 'alice/city', validFrom: new Date('2020-01-01') })
-await memory.remember('Alice lives in Berlin', { subject: 'alice/city', validFrom: new Date('2025-01-01') })
+await memory.remember('Alice lives in Paris', { id: 'home-1', subject: 'alice/city', validFrom: new Date('2020-01-01') })
+await memory.remember('Alice lives in Berlin', { id: 'home-2', subject: 'alice/city', validFrom: new Date('2025-01-01') })
 await memory.recall('where does Alice live')                       // Berlin
 await memory.recall('where does Alice live', { asOf: new Date('2021-06-01') })   // Paris
 ```
+
+The runnable [Node temporal workflow](../../examples/temporal-memory.cjs) uses distinct stable
+IDs, a shared subject and explicit validity dates. From the repository root, after
+`npm run build`, use a new directory and run each step as a separate process:
+
+```sh
+node examples/temporal-memory.cjs remember ./temporal-demo
+node examples/temporal-memory.cjs replace ./temporal-demo
+node examples/temporal-memory.cjs forget ./temporal-demo
+node examples/temporal-memory.cjs verify ./temporal-demo
+```
+
+`replace` returns Berlin for current recall, Paris for `asOf: 2021-06-01`, and an explanation
+linking the replacement to its predecessor. The example reapplies `latest-by-subject` on
+every open: policies are runtime configuration, while facts and supersession links persist.
+`forget` targets the latest ID with `{ includeChain: true, purge: true, dryRun: false }`, then
+flushes. The final process reports empty current, historical and document results and `null`
+for both IDs. This workflow uses lexical retrieval and needs no embedding model or service.
 
 Python (`warm-sdk`, against `warm-server`):
 
@@ -319,7 +337,7 @@ body limits as the document routes. Errors: 422 `invalid_request`, 404 `not_foun
 lexical-only. Policies for every tenant come from `--memory-config <file.json>` (or
 `WARM_MEMORY_CONFIG`), a `MemoryConfig` in JSON, validated at startup.
 
-Node: `new Memory(system, config)` from `writerslogic-warm/memory`; times are `Date` or integer
+Node: `new Memory(system, config)` from `warm-sdk/memory`; times are `Date` or integer
 milliseconds, results carry milliseconds, errors are `MemoryError` with `code`. Python:
 `WarmClient(...).memory` / `AsyncWarmClient(...).memory` (or `MemoryClient`),
 fully typed with a `memory.pyi` stub; times are `datetime` or integer milliseconds;

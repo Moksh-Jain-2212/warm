@@ -3,7 +3,7 @@
 A `BaseVectorStore` and a `BaseKVStore` (for `KVDocumentStore` and `KVIndexStore`) for LlamaIndex.TS, running the native engine in process through [`@writerslogic/warm-core`](js-core.md). ESM and CJS, typed.
 
 ```sh
-npm install @writerslogic/warm-llamaindex llamaindex @llamaindex/core writerslogic-warm
+npm install @writerslogic/warm-llamaindex llamaindex @llamaindex/core warm-sdk
 ```
 
 ## Quickstart

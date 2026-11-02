@@ -158,7 +158,7 @@ export interface ForgetOptions {
   includeChain?: boolean
   /** Report without removing. */
   dryRun?: boolean
-  /** Compact the store so deleted text leaves the journal; the text segment file is rebuilt at next open. */
+  /** Compact and scrub removed journal data, and rebuild the live text segment before returning. */
   purge?: boolean
 }
 

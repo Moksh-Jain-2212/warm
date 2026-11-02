@@ -4,7 +4,7 @@
 const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
-const { WarmMemorySystem } = require('writerslogic-warm')
+const { WarmMemorySystem } = require('warm-sdk')
 const { OrganizationalKnowledge, documentId, readCuratedFiles, validateImport } = require('../index.cjs')
 
 // Same dimensions and default configuration as examples/organizational_knowledge.rs,

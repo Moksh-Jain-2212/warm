@@ -131,7 +131,7 @@ def node_pages() -> list[str]:
             if rel.name in seen:
                 raise SystemExit(f"docs_api: two Node symbols are both named {rel.name}: {seen[rel.name]} and {rel}")
             seen[rel.name] = rel
-        label = {"index": "writerslogic-warm"}
+        label = {"index": "warm-sdk"}
         for md in sorted(out.rglob("*.md")):
             rel = md.relative_to(out)
             if len(rel.parts) < 3:
@@ -143,17 +143,17 @@ def node_pages() -> list[str]:
             name = heading.group(1).rstrip("()") if heading else md.stem
             text = f"# {name}\n" + rest
             text = re.sub(r"\]\(((?:\.\./|\./)*)(?:[\w-]+/)*([\w.-]+\.md)", r"](\2", text)
-            module_name = label.get(rel.parts[0], f"writerslogic-warm/{rel.parts[0]}")
+            module_name = label.get(rel.parts[0], f"warm-sdk/{rel.parts[0]}")
             desc = f"{kind.replace('-', ' ').rstrip('s').capitalize()} `{name}` from `{module_name}`."
             target = f"api/node/{md.stem}.md"
             write(target, front(desc, 0.5) + text, None)
             pages.append(target)
-        lines = [front("The Node and TypeScript API of the writerslogic-warm package, generated from its type declarations.").rstrip(), "",
+        lines = [front("The Node and TypeScript API of the warm-sdk package, generated from its type declarations.").rstrip(), "",
                  "# Node and TypeScript API", "",
                  "Generated from the package's `.d.ts` files, one page per exported symbol. "
                  + "The package is built from source with a Rust toolchain; the [quickstart](../../quickstart/index.md) shows how.", ""]
         for module, listing in modules.items():
-            lines += [f"## `{label.get(module, 'writerslogic-warm/' + module)}`", ""]
+            lines += [f"## `{label.get(module, 'warm-sdk/' + module)}`", ""]
             for line in listing.splitlines():
                 if line.startswith("## "):
                     lines += ["", f"### {line[3:]}", ""]
@@ -213,7 +213,7 @@ def c_pages() -> list[str]:
 def overview(pages: list[str]) -> None:
     rows = {
         "api/rust/index.md": ("Rust", "The `warm-rust` crate: the engine itself."),
-        "api/node/index.md": ("Node and TypeScript", "The `writerslogic-warm` npm package."),
+        "api/node/index.md": ("Node and TypeScript", "The `warm-sdk` npm package."),
         "api/http.md": ("HTTP", "The `warm-server` endpoints, from its OpenAPI document."),
         "api/c.md": ("C", "The stable C ABI that the Go, Java and .NET bindings sit on."),
     }

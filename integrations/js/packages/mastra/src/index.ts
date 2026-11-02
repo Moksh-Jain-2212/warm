@@ -19,7 +19,7 @@ import {
   type VectorFilter,
 } from '@mastra/core/vector'
 import { WarmError, WarmStore, parseFilter, type Embedder, type FilterLike, type WarmStoreOptions, type Metadata, type StoredRecord } from '@writerslogic/warm-core'
-import type { WarmMemorySystem } from 'writerslogic-warm'
+import type { WarmMemorySystem } from 'warm-sdk'
 
 const REGISTRY = '__warm_indexes__'
 const STORE_NAME = 'HOLOGRAPHIC'

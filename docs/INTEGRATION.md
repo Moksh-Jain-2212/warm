@@ -21,7 +21,7 @@ fn main() -> anyhow::Result<()> {
 
 CommonJS and ESM both export `WarmMemorySystem`. Native operations return promises when
 work is scheduled off the event loop. For documents, import `DocumentMemory` from
-`writerslogic-warm/semantic`; it serializes model work, bounds its queue, and supports async
+`warm-sdk/semantic`; it serializes model work, bounds its queue, and supports async
 iterable ingestion. The default document search is lexical BM25. Add an embedder for cosine
 semantic candidates and optional reranking. See [the example](../examples/local-documents.mjs)
 and the README for the complete setup.

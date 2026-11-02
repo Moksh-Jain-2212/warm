@@ -1,0 +1,40 @@
+{
+  "sha": "1ad2c4c799453043373e3a6c650357d8019eb90d",
+  "node_id": "C_kwDORYA29doAKDFhZDJjNGM3OTk0NTMwNDMzNzNlM2E2YzY1MDM1N2Q4MDE5ZWI5MGQ",
+  "url": "https://api.github.com/repos/writerslogic/warm/git/commits/1ad2c4c799453043373e3a6c650357d8019eb90d",
+  "html_url": "https://github.com/writerslogic/warm/commit/1ad2c4c799453043373e3a6c650357d8019eb90d",
+  "author": {
+    "name": "David Condrey",
+    "email": "davidcondrey@me.com",
+    "date": "2026-11-02T05:57:08Z"
+  },
+  "committer": {
+    "name": "GitHub",
+    "email": "noreply@github.com",
+    "date": "2026-11-02T05:57:08Z"
+  },
+  "tree": {
+    "sha": "9fc3b420f9965b1fca3867b03fc8179a3f31365a",
+    "url": "https://api.github.com/repos/writerslogic/warm/git/trees/9fc3b420f9965b1fca3867b03fc8179a3f31365a"
+  },
+  "message": "fix: Complete durable retry and query-efficiency followups (#375)\n\nPersist restart-safe HTTP retry receipts, stage retained text before commit, preserve retryable physical cleanup, and bound query capture memory. Track vector snapshot changes and score stale exact queries outside the store lock. Retain integrated validation and qualified performance evidence.\n\nSigned-off-by: David Condrey <david@writerslogic.com>",
+  "parents": [
+    {
+      "sha": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+      "url": "https://api.github.com/repos/writerslogic/warm/git/commits/ba980ffc16e01981bf1d025debfb83d6e7334aac",
+      "html_url": "https://github.com/writerslogic/warm/commit/ba980ffc16e01981bf1d025debfb83d6e7334aac"
+    },
+    {
+      "sha": "98faa7ae7e62cc3c5649ce74de366806f58547b0",
+      "url": "https://api.github.com/repos/writerslogic/warm/git/commits/98faa7ae7e62cc3c5649ce74de366806f58547b0",
+      "html_url": "https://github.com/writerslogic/warm/commit/98faa7ae7e62cc3c5649ce74de366806f58547b0"
+    }
+  ],
+  "verification": {
+    "verified": true,
+    "reason": "valid",
+    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJq6CY0CRC1aQ7uu5UhlAAAEvYQAJPvWNMy9klQjH4xq4FLFKd5\nxrkkZ4TbxUfPUUBdgY2se0zordQpX+gLItM4czV+p5tPO78z/0l3UX22qIyHEGZw\nijEDk4GhWknoUYaAByNE9ZLawml/1NZ2EYj2uwhNMmNc1wr010aSongpL3xPySCA\nRI4ezhBCB84yzKhknnTQfvHJntKksHw09Si38hBXNaoBQF9042ywbhTRMQpjSHiK\nWtyGiMHoCoz2jlSN1MPpM+efouJzcQ4OLsuFSMY6S+0UtM9ea1xF6h7JBT6R2qha\nwHTlrYSUcj5pG/q53baYc9B8IsCrM8gFBd90Qw6Wbjispy6qQZrl9zA4LimlnfCz\nMGgnEkyV3tnqu+7vPZOFWuFNV2blz/DYWstQ/06gjpOF/9vkZS39GIc/J8aLvaHd\n2zXkVlbWF08gfyIKypDkFoBK8g9/XH/aXx45ldE1Bn3TCJQFrXYwrHRQXQtQlYAB\nqfPhOFgdmKDa8/pVuLftWn9Hu2zR+eQ4ZITbG2VN+ilLleQvkgC6wmiY5vAchgJC\n4ZsE7PRvxtmvlf5QUB5xLuduny0XF/bPe5n5epHk8BHCm2H3BXkyQjUSaCmOn88i\nuTL9XfwlRM3x9zKhbO6pPKdgEc/2R8uhIEpjSSZjXoEu++RpRtWvS6MCpsFImPOF\nKYxVfgC6a/uPJJksp/uc\n=7C2o\n-----END PGP SIGNATURE-----\n",
+    "payload": "tree 9fc3b420f9965b1fca3867b03fc8179a3f31365a\nparent ba980ffc16e01981bf1d025debfb83d6e7334aac\nparent 98faa7ae7e62cc3c5649ce74de366806f58547b0\nauthor David Condrey <davidcondrey@me.com> 1793599028 -0800\ncommitter GitHub <noreply@github.com> 1793599028 -0800\n\nfix: Complete durable retry and query-efficiency followups (#375)\n\nPersist restart-safe HTTP retry receipts, stage retained text before commit, preserve retryable physical cleanup, and bound query capture memory. Track vector snapshot changes and score stale exact queries outside the store lock. Retain integrated validation and qualified performance evidence.\n\nSigned-off-by: David Condrey <david@writerslogic.com>",
+    "verified_at": "2026-11-02T05:57:08Z"
+  }
+}

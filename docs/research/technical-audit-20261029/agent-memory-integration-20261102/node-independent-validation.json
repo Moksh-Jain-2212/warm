@@ -1,0 +1,80 @@
+{
+  "verified_root_head": "5e88ed2c64f9283c68c51eb5019047710f0c3602",
+  "verified_agent_commit": "02511a25d6cf913f5d49c3571174e4939bd0fd0f",
+  "production_and_packaged_source_equal": true,
+  "artifacts_independently_hashed": 8,
+  "logs": {
+    "node-final-npm-ci.log.gz": {
+      "raw_sha256": "5cf543b6979eefde502eee237097a15d7dfbb83f4a22beb9b9481971ea633698",
+      "gzip_sha256": "c77ae16bb4ba4676352d3f9e7e2234f13057823e102aa14d22ef21eee7f7413a"
+    },
+    "node-final-native-build.log.gz": {
+      "raw_sha256": "dc004967f557a2b4e1e0eb396edbfd46563c68785625bce3618b0ce1b39ed81e",
+      "gzip_sha256": "f87f309617d86e482f8dcb89e93070c88ff338edb52b5d988380e6d08da707ae"
+    },
+    "node-final-node-tests.log.gz": {
+      "raw_sha256": "b38fd24c9a20a28b8875b8b676b35cb156ca13d342acdf579c7fe10d7c07e68e",
+      "gzip_sha256": "3c28c0f1f13c8ed6560026ee2ea25302001e5dbb05332f2c064f79958d31ff38"
+    },
+    "node-final-types.log.gz": {
+      "raw_sha256": "ea26f1916c4a14ad7fa658baec1a6ab90939a74467b31026ca7bd4a98cf86dba",
+      "gzip_sha256": "00e5fba5ccfc952ce740efbe81d66f03db5683ea97aaf8da0ceb320c98aef6f7"
+    },
+    "node-final-package-tests.log.gz": {
+      "raw_sha256": "ada86b1626a7cf095a1a11a52e575d201dfb8a93668d5a9ad67d3d3f37260866",
+      "gzip_sha256": "35d1a7e8c709ac957967d4acb899555f34eeda243d139eec86625566791a04b8"
+    },
+    "node-final-platform-metadata.json.gz": {
+      "raw_sha256": "f4b6aea8eefec229979a8ad416761c9c2b53cbd7fbe023d8709f0451d7d5d9f2",
+      "gzip_sha256": "d79884fda937bb43333ce331cd1ad773952523bcb4a405e71b32555a337f73f8"
+    },
+    "node-final-root-pack.json.gz": {
+      "raw_sha256": "8205d4166558311e9fe99d52327a3a6e7edfa8f6a3e33fede410ff0a75b67eb7",
+      "gzip_sha256": "0014605a34f210f7abc42db3b9d7340e9a4e182a11262dd8d2bfa48f70c4f020"
+    },
+    "node-final-platform-pack.json.gz": {
+      "raw_sha256": "1e45efecb1a3591d1017d77b9d1b05649f4243982c06e6801e0d1d1920938365",
+      "gzip_sha256": "63a1ec7e23d4746dcfc5523c7b7c57718ce55ca6a647cf3e0e2619b003d5a3e4"
+    },
+    "node-final-platform-install.log.gz": {
+      "raw_sha256": "f413f1196fdbc03663c1502bfebbf2dde242517063b1b9baa01dae56d3d9a1ae",
+      "gzip_sha256": "e68d0ac9ce109daf4cd3a9530c612a9acdfaeb907b59718d80b33390691e2f2f"
+    },
+    "node-final-platform-consumer.log.gz": {
+      "raw_sha256": "296c9922e7913fe05a19de4daa5386aa7d03d7b838aca54e730370e3663f1107",
+      "gzip_sha256": "ea5ddd5eba2c2af93d279f2279a91893675ea33c215f800f574d05aee993bc68"
+    },
+    "node-final-optional-build.log.gz": {
+      "raw_sha256": "96030fedfe56060ed6140ef36a59a44ce6ea82f7811bd3e3efbde65979cc0cf3",
+      "gzip_sha256": "e10694423fe6e5c9af33e4c651ca605a14c7cf7c028ac1e682ff8410564da3af"
+    },
+    "node-final-optional-tests.log.gz": {
+      "raw_sha256": "cb597ec54a412e190ea0e01dd7daadea7e6fbdbba6264225f8029b6b77802b36",
+      "gzip_sha256": "18502d559f341c1a18ee33bbfa791d017cf40c688c2ab63d04d74edce68c8410"
+    },
+    "node-source-actionlint.log.gz": {
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    "node-source-versions.json.gz": {
+      "raw_sha256": "f0bcb246efd639e4a95c02f8e990869d597bc60e9e0441b4a46c4b7c6888875f",
+      "gzip_sha256": "6f20c22932d31cb02c633d01b2fe96d272de0275929f87896ebcb111f3cbfe0c"
+    },
+    "node-source-package-config.json.gz": {
+      "raw_sha256": "fc3762975d4065f8106b35864fe73dc3876679af388ee8200d3a5091abe6803d",
+      "gzip_sha256": "cd18c63a4c0d63e7006ee7ed836663738a5e11758885845382ce7b2db585338b"
+    },
+    "node-source-platform-config.json.gz": {
+      "raw_sha256": "60f7600b41775aa00b384ca9867fc04c62ae754b68fea29ff8122645189d0d83",
+      "gzip_sha256": "aab2e480f84e052dfb5b46062120557206eed83fa29a138ec5cc61e32b3fb560"
+    },
+    "node-source-source-pack.json.gz": {
+      "raw_sha256": "bf52adf5c802bcaa99ec0a07fa17b4bb79a6cbe785cdbf6fc779429394569a80",
+      "gzip_sha256": "4187b90154b6a5f7f50920aca797ce5cfec55b0ade9baf20fd39bf3a45487c7f"
+    },
+    "node-source-types.log.gz": {
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    }
+  }
+}

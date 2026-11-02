@@ -1,0 +1,98 @@
+{
+  "scope": "Integrated source-only checks; no native build, install, runtime or platform qualification in this worktree",
+  "checkedAt": "2026-11-02T05:36:50.120884+00:00",
+  "base": "b20f3b522f1bc18a3e7449cab5105d8b08ef6bd4",
+  "head": "02511a25d6cf913f5d49c3571174e4939bd0fd0f",
+  "branch": "feat/npm-sdk-integration",
+  "rootCherryPicks": [
+    "ead04dfd9d8efc804b7af74554319214384d4f92",
+    "02511a25d6cf913f5d49c3571174e4939bd0fd0f"
+  ],
+  "skipDuplicateTemporal": "f09fda00e83a9d9843d2a509092e6319a40b0576; root already integrated temporal as bb4f66d7",
+  "priorQualification": {
+    "path": "/Volumes/A/warm-npm-sdk-name/target/npm-sdk-name/verification.json",
+    "commit": "bfcbb708f683823a851f05c783529dd86795cdc3",
+    "preserved": true,
+    "appliesToIntegratedRuntime": false
+  },
+  "conflicts": [],
+  "decisions": [
+    "Preserved the complete b20f3b52 Rust/binding implementation and index.d.ts byte-for-byte.",
+    "Preserved temporal lifecycle example, restart regression and corrected purge comment.",
+    "Resolve the new VectorSearchOptions type through warm-sdk self exports.",
+    "Retained distinct model-pack, MCP and framework package names; this renames only the Node SDK root and native packages."
+  ],
+  "checks": {
+    "typescript": "passed --noEmit for tests/node/types.test.mts and memory-types.test.mts using the existing cached compiler and @types/node; no install",
+    "platformMetadata": "passed existing npm-platform-packages.cjs validation with empty artifacts and --allow-partial; all eight binary artifacts explicitly missing",
+    "packageMetadata": "passed root name/binary name, package-lock identity, eight native dependency names/versions and integrations/js workspace dependency consistency",
+    "releaseVersions": "passed check-versions.py; version 0.6.5, zero problems",
+    "packDryRun": "passed npm pack --dry-run --json --ignore-scripts --offline; JavaScript/type/docs file list only, no native artifact or consumer install",
+    "syntax": "passed node --check for loader, package scripts, platform script, temporal example and memory tests",
+    "actionlint": "passed ci.yml, npm-packages.yml and release.yml",
+    "whitespace": "passed git diff --check",
+    "rustAndGeneratedTypes": "passed git diff --exit-code b20f3b52 -- index.d.ts src/core src/bindings src/bin",
+    "signatures": "all three integration commits verify G and retain DCO sign-offs"
+  },
+  "remainingGates": [
+    {
+      "gate": "Final integrated install, native build, generated declarations and root consumer",
+      "commands": [
+        "npm ci --ignore-scripts",
+        "RUSTUP_TOOLCHAIN=1.99.0 CARGO_NET_OFFLINE=true CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=\"$PWD/target/npm-sdk-final\" npm run build:debug -- -- --locked",
+        "git diff --exit-code -- index.js index.d.ts",
+        "npm test",
+        "npm run test:types",
+        "npm run test:package"
+      ],
+      "when": "After root coordinates completion of the combined Rust gate and the fresh native benchmark quiet window"
+    },
+    {
+      "gate": "Optional embedding tests without skipped tests or model downloads",
+      "commands": [
+        "RUSTUP_TOOLCHAIN=1.99.0 CARGO_NET_OFFLINE=true CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=\"$PWD/target/npm-sdk-final\" node scripts/build-node.cjs --features node-api,security,local-embed --no-js --output-dir target/node-embed -- --locked",
+        "WARM_EMBED_ADDON=\"$PWD/target/node-embed/warm-sdk.node\" node --test tests/node/embedding-limits.test.cjs"
+      ],
+      "note": "Uses checked-in synthetic tiny-model fixtures; the prior rename qualification skipped these three tests because the optional addon was absent."
+    },
+    {
+      "gate": "Maintained JavaScript integration consumers",
+      "commands": [
+        "npm ci --ignore-scripts --prefix integrations/js",
+        "npm run build --prefix integrations/js",
+        "npm test --prefix integrations/js",
+        "node --test integrations/organizational-knowledge/test/*.test.cjs",
+        "node node_modules/typescript/bin/tsc --noEmit --strict --target es2022 --module nodenext --moduleResolution nodenext --types node tests/organizational_knowledge_types.test.cts"
+      ]
+    },
+    {
+      "gate": "All platform packages and JavaScript-only root consumer",
+      "workflow": ".github/workflows/npm-packages.yml build -> package -> smoke, with publishing disabled",
+      "commandsAfterRealBindingsExist": [
+        "node scripts/ci/npm-platform-packages.cjs bindings packages",
+        "node scripts/ci/smoke-node.cjs tarballs --expect <matrix suffix>"
+      ],
+      "platforms": [
+        "darwin-arm64",
+        "darwin-x64",
+        "linux-arm64-gnu",
+        "linux-arm64-musl",
+        "linux-x64-gnu",
+        "linux-x64-musl",
+        "win32-arm64-msvc",
+        "win32-x64-msvc"
+      ],
+      "note": "Requires every real binding, matching root/platform tarballs, and native platform selection/search on each target, including the workflow Debian/Alpine compatibility consumers. No integrated platform binaries were built here."
+    }
+  ],
+  "publication": "Not performed or authorized by this preparation task. Source/package qualification does not establish registry ownership or publishing permission for any of the nine names.",
+  "logs": [
+    "types.log",
+    "platform-config.json",
+    "package-config.json",
+    "versions.json",
+    "source-pack.json",
+    "source-pack.log",
+    "actionlint.log"
+  ]
+}

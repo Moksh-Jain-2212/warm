@@ -1,0 +1,151 @@
+{
+  "scope": "Final integrated native macOS arm64 Node and offline package qualification",
+  "checkedAt": "2026-11-02T05:44:14.161494+00:00",
+  "source": {
+    "commit": "02511a25d6cf913f5d49c3571174e4939bd0fd0f",
+    "tree": "c5b9f6aa2be76c0c40f81dd3ce53fea7a22d2ed5",
+    "branch": "feat/npm-sdk-integration",
+    "clean": true,
+    "rootEquivalentCommit": "884f7dc8ee9f0e5fceda68ec3d40ee5653bfde9a",
+    "equivalentPaths": [
+      "Cargo.lock",
+      "Cargo.toml",
+      "LICENSE",
+      "README.md",
+      "docs/INTEGRATION.md",
+      "docs/PRIVACY.md",
+      "docs/evaluation.md",
+      "docs/memory-api/README.md",
+      "docs/production-readiness.md",
+      "examples/temporal-memory.cjs",
+      "index.d.ts",
+      "index.js",
+      "index.mjs",
+      "memory.d.ts",
+      "memory.js",
+      "package-lock.json",
+      "package.json",
+      "scripts/build-node.cjs",
+      "semantic.d.ts",
+      "semantic.js",
+      "src",
+      "tests/node"
+    ]
+  },
+  "node": "v26.8.1",
+  "rustToolchain": "1.99.0",
+  "target": "aarch64-apple-darwin",
+  "build": {
+    "offline": true,
+    "jobs": 2,
+    "targetDir": "/Volumes/A/warm-node-temporal-workflow/target/build",
+    "features": [
+      "node-api",
+      "security"
+    ],
+    "profile": "dev opt-level=3 debug=0",
+    "optionalAddonFeatures": [
+      "node-api",
+      "security",
+      "local-embed"
+    ],
+    "downloadFeature": false
+  },
+  "checks": {
+    "npmCi": "passed npm ci --offline --ignore-scripts --no-audit --no-fund",
+    "nativeBuild": "passed project build:debug script with --locked",
+    "defaultNodeTests": {
+      "passed": 16,
+      "failed": 0,
+      "skipped": 3,
+      "skipReason": "The default node-api/security build excludes optional LocalEmbedder. All three skips are tests/node/embedding-limits.test.cjs."
+    },
+    "nodeTypes": "passed npm run test:types against installed dependencies",
+    "generatedDeclarationsAndLoader": "unchanged by project generator; git diff --exit-code -- index.js index.d.ts passed",
+    "bundledPackageConsumer": "passed npm run test:package offline: CommonJS, ESM, native binding and real document query",
+    "platformPackageConsumer": "passed offline npm install of exact retained JavaScript-only warm-sdk root plus warm-sdk-darwin-arm64 tarballs, with unchanged eight-platform root metadata; installed exactly one platform package",
+    "platformQueries": [
+      "CJS/ESM root identity",
+      "CJS/ESM memory identity",
+      "semantic lexical query",
+      "full vector query with explicit candidate config",
+      "temporal current/asOf recall",
+      "includeChain+purge+dryRun:false deletion and flush"
+    ],
+    "optionalSyntheticAddon": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "tests": "tests/node/embedding-limits.test.cjs",
+      "fixture": "tests/fixtures/tiny-embed-int8.hmsemb",
+      "fullModelInference": false,
+      "modelDownload": false
+    },
+    "sourceChecks": "Previous source-only verification.json preserved; unchanged platform/version/workflow checks not repeated"
+  },
+  "artifacts": [
+    {
+      "path": "warm-sdk.node",
+      "bytes": 12449632,
+      "sha256": "d1a4c0411de70f80b443b09ae08b96c17224d3828bd475d411b93a8349d219a1"
+    },
+    {
+      "path": "target/node-embed/warm-sdk.node",
+      "bytes": 18209280,
+      "sha256": "cd92fbee9cfe41acc862b51f6f1dc903cd9d7011be8f76ad8e5ae170aebd902b"
+    },
+    {
+      "path": "target/npm-sdk-integration/final/bindings/warm-sdk.darwin-arm64.node",
+      "bytes": 12449632,
+      "sha256": "d1a4c0411de70f80b443b09ae08b96c17224d3828bd475d411b93a8349d219a1"
+    },
+    {
+      "path": "target/npm-sdk-integration/final/consumer/node_modules/warm-sdk-darwin-arm64/warm-sdk.darwin-arm64.node",
+      "bytes": 12449632,
+      "sha256": "d1a4c0411de70f80b443b09ae08b96c17224d3828bd475d411b93a8349d219a1"
+    },
+    {
+      "path": "target/npm-sdk-integration/final/tarballs/warm-sdk-0.6.5.tgz",
+      "bytes": 51794,
+      "sha256": "4c7640acd15654e871ba8e9d1bfa11be1f37785be4b77fa30a53fa4061c084c2"
+    },
+    {
+      "path": "target/npm-sdk-integration/final/tarballs/warm-sdk-darwin-arm64-0.6.5.tgz",
+      "bytes": 3293576,
+      "sha256": "476c8ebfd76fadb274cdc590fa53b1f306fc2a9d8623697a4e4e38c09234a8a1"
+    },
+    {
+      "path": "target/npm-sdk-integration/final/consumer/check.cjs",
+      "bytes": 2478,
+      "sha256": "0c036c77bcfbe1ee400cb45eabaf42e10c062a7a754a5419ef41b9b0f4781f43"
+    },
+    {
+      "path": "target/npm-sdk-integration/final/consumer/package-lock.json",
+      "bytes": 1601,
+      "sha256": "214222af7233f4a361c8a2cb808b14e62e0692b34f3b5c05b58e45a571448b01"
+    }
+  ],
+  "logs": [
+    "final-npm-ci.log",
+    "final-native-build.log",
+    "final-node-tests.log",
+    "final-types.log",
+    "final-package-tests.log",
+    "final-platform-metadata.json",
+    "final-root-pack.json",
+    "final-platform-pack.json",
+    "final-platform-install.log",
+    "final-platform-consumer.log",
+    "final-optional-build.log",
+    "final-optional-tests.log"
+  ],
+  "remaining": [
+    "Seven other native platforms and the full CI platform-selection/compatibility matrix are not qualified by this arm64 macOS run.",
+    "Framework adapter/organizational suites have the prior rename qualification, but were not rerun in this specifically requested final Node gate.",
+    "No registry publish, ownership transfer, deprecation, push or remote install was performed; publishing authority is not inferred from these local checks."
+  ],
+  "preservedPriorEvidence": [
+    "/Volumes/A/warm-npm-sdk-name/target/npm-sdk-name/verification.json",
+    "target/npm-sdk-integration/verification.json"
+  ]
+}

@@ -6,7 +6,7 @@ const fs = require('node:fs')
 const os = require('node:os')
 const path = require('node:path')
 const { spawnSync } = require('node:child_process')
-const { WarmMemorySystem } = require('writerslogic-warm')
+const { WarmMemorySystem } = require('warm-sdk')
 const { KnowledgeError, OrganizationalKnowledge, documentId, prepareImport, validateImport } = require('../index.cjs')
 
 const ADAPTER = path.resolve(__dirname, '..')
@@ -597,7 +597,7 @@ test('a failed delete reports what was removed, and repeating the forget finishe
 })
 
 const hasListing = typeof WarmMemorySystem.prototype.listDocuments === 'function'
-const needsListing = { skip: !hasListing && 'the loaded writerslogic-warm binding has no listDocuments; rebuild it' }
+const needsListing = { skip: !hasListing && 'the loaded warm-sdk binding has no listDocuments; rebuild it' }
 const seedInputs = (namespace, sourceSystem, count, prefix = 'bulk') =>
   prepareImport(namespace, Array.from({ length: count }, (_, index) => entry(curated({ source_system: sourceSystem, id: `${prefix}-${String(index).padStart(5, '0')}`, content: 'zebraquartz bulk' }), `${prefix}-${index}`))).map(item => item.input)
 const idsIn = result => result.targets.map(target => target.id).sort()

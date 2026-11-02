@@ -140,3 +140,50 @@ test('shared memory negotiation and malformed-input contract', () => {
     rmSync(directory, { recursive: true, force: true })
   }
 })
+
+test('documented temporal workflow replaces after restart and purges the chain across a final restart', () => {
+  const directory = mkdtempSync(join(tmpdir(), 'warm-node-temporal-workflow-'))
+  const example = join(__dirname, '../../examples/temporal-memory.cjs')
+  const originalId = 'alice-city-2020-01-01'
+  const replacementId = 'alice-city-2025-01-01'
+  const original = { id: originalId, text: 'Alice lives in Paris', status: 'current' }
+  const replacement = { id: replacementId, text: 'Alice lives in Berlin', status: 'current' }
+  function phase(name) {
+    const result = spawnSync(process.execPath, [example, name, directory], {
+      cwd: process.cwd(), encoding: 'utf8', timeout: 120000,
+    })
+    assert.equal(result.status, 0, result.stderr || result.stdout)
+    const report = JSON.parse(result.stdout)
+    assert.equal(report.phase, name)
+    return report
+  }
+  try {
+    const first = phase('remember')
+    assert.equal(first.stored.created, true)
+    assert.deepEqual(first.current, [original])
+
+    const second = phase('replace')
+    assert.equal(second.stored.created, true)
+    assert.deepEqual(second.stored.supersedes, [originalId])
+    assert.deepEqual(second.current, [replacement])
+    assert.deepEqual(second.asOf, [original])
+    assert.equal(second.explanation.status, 'current')
+    assert.equal(second.explanation.retrieved, true)
+    assert.deepEqual(second.explanation.chain.map(({ id, relation }) => ({ id, relation })), [
+      { id: originalId, relation: 'predecessor' },
+    ])
+
+    const third = phase('forget')
+    assert.deepEqual(third.before, { current: [replacement], asOf: [original] })
+    assert.deepEqual(third.forgotten, {
+      forgotten: [originalId, replacementId], dryRun: false, purged: true,
+    })
+    assert.deepEqual(third.remaining, [])
+
+    assert.deepEqual(phase('verify'), {
+      phase: 'verify', current: [], asOf: [], all: [], original: null, replacement: null, documents: [],
+    })
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
+})

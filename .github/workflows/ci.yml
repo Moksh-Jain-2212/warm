@@ -394,7 +394,7 @@ jobs:
         shell: bash
         run: |
           node scripts/build-node.cjs --release --features node-api,security,local-embed --no-js --output-dir target/node-embed
-          WARM_EMBED_ADDON="$PWD/target/node-embed/writerslogic-warm.node" node --test tests/node/embedding-limits.test.cjs
+          WARM_EMBED_ADDON="$PWD/target/node-embed/warm-sdk.node" node --test tests/node/embedding-limits.test.cjs
 
   workflows:
     name: workflow lint and pins

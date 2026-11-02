@@ -1915,6 +1915,20 @@ The Windows workflow runs the same service checks before core checks to expose
 failures sooner. Windows qualification remains pending; no retry-to-pass or
 platform bypass is used. The qualified core and vector benchmark are unchanged.
 
+PR [#375](https://github.com/writerslogic/warm/pull/375) merged as signed commit
+`1ad2c4c799453043373e3a6c650357d8019eb90d`, preserving the qualified source ancestry.
+Its tree exactly matches tested head `98faa7ae7e62cc3c5649ce74de366806f58547b0`.
+All 73 checks settled: 68 passed and five unchanged conditional jobs skipped.
+Windows passed all 195 HTTP/MCP tests and 877 core tests, with 14 existing core
+diagnostic skips. All ten previously failing tests pass; the earlier empty-response
+cause remains unproven. Five automated review findings were verified against actual
+sibling Python imports and passing fixture tests, then resolved without altering
+frozen evidence. No unresolved review threads or open CodeQL alerts remained.
+All 33 PR commits have valid signatures and DCO trailers. Root main is clean and
+fast-forwarded. [Completion evidence](recovery-query-completion-20261101/completion.json)
+retains the full gate, review dispositions, merge verification and Windows log.
+The four recovery/query followups are complete.
+
 ## Next authorized phase: changing agent memory and Vectra migration
 
 The user queued this phase after the four recovery/query followups are completed.
@@ -1941,16 +1955,30 @@ holographic research establishes comparative document-search superiority. Evalua
 WASM distribution gaps if browser users are included in the target.
 
 No paid development API/cloud calls, tuning or model downloads are authorized.
-The core Node npm rename to `warm-sdk` is prepared separately as local signed commit
-`bfcbb708f683823a851f05c783529dd86795cdc3`; it has not been pushed or published.
+The core Node npm rename to `warm-sdk`, originally prepared as signed commit
+`bfcbb708f683823a851f05c783529dd86795cdc3`, is now integrated with the new Node
+vector API and temporal workflow for final qualification. It has not been published.
+The integrated native macOS arm64 gate passes 16 default Node tests; its three optional
+embedding tests also pass in a separate addon built from the checked-in tiny fixture.
+Types, packed CommonJS/ESM retrieval and an offline JavaScript-only root plus native
+platform-package install pass. The coordinator verified all eight retained artifact
+hashes and byte-identical production/package sources. See
+[Node qualification](agent-memory-integration-20261102/node-final-verification.json)
+and [independent verification](agent-memory-integration-20261102/node-independent-validation.json).
+The other seven platform packages still require the hosted matrix.
 
 Read-only preparation found that the existing `Memory` Node wrapper already supports
 the complete temporal workflow. Use explicit `latest-by-subject`, stable distinct fact
 IDs, a common subject and explicit validity times; preserve existing global defaults.
-Reapply runtime memory configuration after restart. The missing product example/test
-combines explanation, whole-chain purge and a final process restart asserting both
-versions remain absent; a public close binding is currently absent. The `purge`
-TypeScript comment also needs alignment with current compaction behavior.
+Reapply runtime memory configuration after restart. A public close binding is currently
+absent, so separate processes establish the complete restart boundary.
+
+The [Node temporal example](../../../examples/temporal-memory.cjs) now covers that
+complete workflow in four independent processes, including replacement after an
+initial restart. Its regression verifies current and historical values, predecessor
+explanation, explicit whole-chain purge and final absence after restart. All four
+Node memory tests and TypeScript checks pass locally; the purge declaration now
+describes synchronous text-segment rebuilding. Full integrated CI remains required.
 
 Vectra 0.15.0 is the current npm comparator, and the inspected packaged implementations
 match the user's pinned source after line-ending normalization. Its implementation
@@ -1983,3 +2011,79 @@ several blue possessions does not establish an explicit favorite-color preferenc
 can have independent value and lower retrieval cost. Existing dry-run consolidation keeps
 source history unless destructive removal is separately enabled; any new policy should
 build on those controls. No pruning experiment or data removal has run.
+
+## Fresh Matryoshka development (2026-11-02; qualification pending)
+
+The user requested full embeddings with short-vector candidate search and full-vector
+reranking, then rejected old cached vectors as the basis for the new evaluation.
+An opt-in native candidate policy now normalizes prefixes for graph construction and
+traversal while retaining full stored embeddings and canonical final cosine scores.
+The defaults remain unchanged. Filters use complete exact eligibility; stale projected
+snapshots and zero-norm prefixes fall back to full exact search. Actual route diagnostics
+distinguish these paths. Native and Node input bounds, mutation/reopen behavior, full
+scores and filtered negative scores have focused regression coverage. See the
+[retrieval contract](../../guides/retrieval-contracts.md#optional-matryoshka-candidates).
+
+The Qwen3 backend also has an explicit generic Documents query task, with its instruction
+included in the effective embedding identity. Existing conversation tasks and full
+output width are preserved. Its 31 model tests and strict Clippy pass locally;
+[validation](document-retrieval-task-20261102/validation.json) records the exact source.
+The native candidate implementation passes 37 focused Rust tests and eight Node tests,
+plus strict scoped Clippy and TypeScript checks. The combined local feature gate passes
+1,120 tests with 12 existing diagnostic ignores, strict Clippy and formatting;
+[integrated validation](agent-memory-integration-20261102/rust-validation.json) retains
+the commands, source manifest and compressed logs. Final hosted CI remains required.
+
+Fresh local generation completed for all 5,183 SciFact documents and 300 test queries, using the existing
+pinned Qwen3-Embedding-0.6B weights and the current native Metal backend. No model/API
+download or paid service is used. Every input fits the current 2,048-token limit. The
+frozen comparison includes full exact, two matched full-graph controls and 256/512-prefix
+arms, selective exact filters, updates/deletes and separate-process restart verification.
+All quality and latency criteria were fixed before measurement. Both projected
+configurations fail quality qualification: 256/100 has 98.33% mean exact-top-10 recall
+and 512/50 has 99.10%, versus 99.93% for their matched full-graph controls. Both have
+a worst query of 70%, below the 80% floor, and exceed the permitted control-relative
+recall losses. Filtered ranking, current reads, deletion and distinct-process restart
+checks pass. The single timing attempt refused to run at 26.14%/52.55% external CPU
+capacity, above the fixed 20% gate; it collected zero query timings and was not retried.
+No latency advantage or total-memory reduction is established. Full-vector defaults
+remain unchanged; the API is experimental opt-in with no recommended setting.
+
+The [completed study](matryoshka-native-20261102/README.md) retains source ancestry,
+the new-vector hashes, all quality results and missed IDs, lifecycle receipts, logical
+graph/storage accounting and failed preflight. The coordinator independently verified
+64 artifact hashes, 4,500 exact-score/eligibility comparisons, recall counts and the
+five distinct-process lifecycle pairs; see
+[independent result audit](agent-memory-integration-20261102/fresh-results-independent-validation.json).
+Research commits were merged with ancestry preserved. Original vectors and corpus text
+remain in the documented local cache, and no weights or bulk vectors were committed.
+
+### Hosted Release gate correction
+
+PR #376's `fac0304f` Release run failed before scheduling any job: its npm reusable
+workflow caller allowed only read access, while the child's attestation jobs require
+`id-token: write` and `attestations: write`. GitHub validates that permission ceiling
+even when publication conditions would skip those child jobs. The caller now grants
+exactly those two permissions alongside `contents: read`; publication conditions and
+protected environments are unchanged. The [gate correction receipt](agent-memory-integration-20261102/release-gate-correction.json)
+preserves the failed run and local workflow checks. The corrected head still requires
+hosted validation. The required `check` context is the existing CI aggregate, which
+waits for the Windows test job; it was not missing from the workflow configuration.
+
+### Crate package scope correction
+
+The repaired Release workflow exposed a separate packaging failure at `1e066c06`:
+the crate archive was 21,858,747 bytes, above the unchanged 9,500,000-byte gate.
+Cargo's broad documentation include had picked up research archives and result
+receipts. Only research gzip, JSON, JSONL, log and bundle files are now omitted
+from the crate; the repository retains all evidence. Other package members,
+including source, tests, fixtures, user documentation and research Markdown,
+drivers and images, are unchanged. Declared targets and compile-time file
+references were checked before exclusion.
+
+The offline package/build verification from the actual tarball passes with Rust
+1.99 and two jobs; the corrected archive is 3,200,245 bytes. The exact member diff,
+archive hash, original hosted failure and local build log are preserved in the
+[package correction receipt](agent-memory-integration-20261102/crate-packaging-correction.json).
+Hosted checks must still pass on the resulting PR head; no upload or publication
+was performed.

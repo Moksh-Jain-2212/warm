@@ -29,7 +29,7 @@ function npm(args, cwd) {
 const forwardSlashes = p => p.split(path.sep).join('/')
 
 const files = fs.readdirSync(tarballs).filter(f => f.endsWith('.tgz'))
-const rootTarball = files.find(f => /^writerslogic-warm-\d/.test(f))
+const rootTarball = files.find(f => /^warm-sdk-\d/.test(f))
 assert.ok(rootTarball, `no root tarball in ${tarballs}: ${files.join(', ')}`)
 const platformTarballs = files.filter(f => f !== rootTarball)
 
@@ -51,24 +51,24 @@ try {
   assert.equal(platformTarballs.length, Object.keys(local).length, 'unexpected extra tarballs')
   manifest.optionalDependencies = local
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2))
-  const repacked = path.join(work, 'writerslogic-warm-smoke.tgz')
-  execFileSync('tar', ['-czf', 'writerslogic-warm-smoke.tgz', '-C', 'root', 'package'], { cwd: work })
+  const repacked = path.join(work, 'warm-sdk-smoke.tgz')
+  execFileSync('tar', ['-czf', 'warm-sdk-smoke.tgz', '-C', 'root', 'package'], { cwd: work })
 
   const project = path.join(work, 'project')
   fs.mkdirSync(project)
   fs.writeFileSync(path.join(project, 'package.json'), JSON.stringify({ name: 'smoke', private: true }))
   npm(['install', '--no-audit', '--no-fund', '--ignore-scripts', forwardSlashes(repacked)], project)
 
-  const installed = fs.readdirSync(path.join(project, 'node_modules')).filter(n => n.startsWith('writerslogic-warm-'))
-  assert.deepEqual(installed, [`writerslogic-warm-${expected}`], 'npm must select exactly this platform package')
+  const installed = fs.readdirSync(path.join(project, 'node_modules')).filter(n => n.startsWith('warm-sdk-'))
+  assert.deepEqual(installed, [`warm-sdk-${expected}`], 'npm must select exactly this platform package')
 
   fs.writeFileSync(path.join(project, 'search.cjs'), `
     const assert = require('node:assert/strict');
     (async () => {
-      const cjs = require('writerslogic-warm');
-      const esm = await import('writerslogic-warm');
+      const cjs = require('warm-sdk');
+      const esm = await import('warm-sdk');
       assert.equal(cjs.WarmMemorySystem, esm.WarmMemorySystem);
-      const { DocumentMemory } = await import('writerslogic-warm/semantic');
+      const { DocumentMemory } = await import('warm-sdk/semantic');
       const warm = new cjs.WarmMemorySystem(4096, './store');
       const memory = new DocumentMemory(warm);
       await memory.memorize({ id: 'manual', text: 'Backups protect stored documents.', sourceUri: 'manual.md' });

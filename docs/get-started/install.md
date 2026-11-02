@@ -71,7 +71,7 @@ For Python, create and activate a virtual environment first: `uv venv`, then
     Install the Node bindings. npm selects the native binary for your platform:
 
     ```sh
-    npm install writerslogic-warm
+    npm install warm-sdk
     ```
 
     To build from a checkout instead, run `npm ci --omit=optional && npm run build` with a Rust
@@ -94,7 +94,7 @@ For Python, create and activate a virtual environment first: `uv venv`, then
 === "Node"
 
     ```sh
-    node -e "const { WarmMemorySystem } = require('writerslogic-warm'); console.log(typeof WarmMemorySystem)"
+    node -e "const { WarmMemorySystem } = require('warm-sdk'); console.log(typeof WarmMemorySystem)"
     ```
 
 The [quickstart](../quickstart/index.md) runs a full ingest and search against the same checkout.

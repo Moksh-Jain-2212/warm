@@ -3,7 +3,7 @@
 ## Supported surfaces
 
 Rust `WarmCore` and Node `WarmMemorySystem` expose persistent vector, document, and
-structured knowledge operations. `writerslogic-warm/semantic` adds bounded ingestion, local
+structured knowledge operations. `warm-sdk/semantic` adds bounded ingestion, local
 ONNX embeddings, hybrid retrieval, and optional local cross-encoder reranking. Python currently
 exposes the quantized-phase substrate, not the document engine. The Rust MSRV is 1.89.
 

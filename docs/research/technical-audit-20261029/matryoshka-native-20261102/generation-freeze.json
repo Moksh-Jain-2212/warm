@@ -1,0 +1,32 @@
+{
+  "stage": "generation",
+  "native_source_commit": "ee10156c7346c203ae89e528a0308eeb804ce0d9",
+  "generic_task_original_commit": "104a014b94a1ab4024e0f2e1a44d8b5f17cbfb9d",
+  "generator_binary": "/Volumes/A/warm-matryoshka-fresh/target/native-eval/release/generate",
+  "generator_binary_sha256": "ef78f4a4afbfe1c0699ecb85fe3ee000ad09d100afdaaaf44280d40e744b7ad9",
+  "input_sha256": "87fb9d1e9c67885d40786a5102d604db5e352ba1d80727f155c27e2522cfccef",
+  "files_sha256": {
+    "PLAN.md": "156711556ab6c45742aebf04fbf157394950f3df69c1bbeeb6c584af1aa782f6",
+    "prepare.py": "c4a2b930900522d7d3c32e6258736641f05b6f03ee6bcf72ad852883950c6f82",
+    "inputs.json": "e0389dd3de52db820741fb3b405094582045e064ecddedc71fad8d87c4758630",
+    "metrics.py": "ea6e952d8597dc1bb8f53f999907e67041da87a384909f7a3008d59b6e57769c",
+    "test_metrics.py": "80d1e86c72bb49a7b87a569e7625a7ef7aaf0dc5d542ed5da28d235fa1f309e2",
+    "run_generation.py": "033864f4d59e66e140566e02fc71d5421d04de342c90d6d4622f969345425fc2",
+    "generation-config.json": "d1355594fa96cb456f637ee41c8d9d470ba972aadbfc5f98586c9b292bd9ec11",
+    "driver/Cargo.toml": "7f35f39272c5a61e39af279f61f16c72da74dd1c8a086260f06464c516b6d835",
+    "driver/Cargo.lock": "757d53e8abc93e23559da97fa0e042dd1f8795a1fbdf58de3d35d6d844eae15f",
+    "driver/src/bin/generate.rs": "7c46437a8ebcf5be21a8de365e01289e54bf70f024c0800a0542dd995c49ef8a"
+  },
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+  "python": "3.13.9",
+  "numpy": "2.5.4",
+  "uv": "uv 0.12.10 (3c979abda 2026-09-04 aarch64-apple-darwin)",
+  "platform": "macOS-27.0-arm64-arm-64bit-Mach-O",
+  "build_jobs": 2,
+  "checks": {
+    "generation_native_tests": 2,
+    "metric_tests": 5,
+    "release_build": "passed",
+    "strict_clippy_generate": "passed"
+  }
+}

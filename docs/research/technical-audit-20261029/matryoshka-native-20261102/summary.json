@@ -1,0 +1,2279 @@
+{
+  "baseline_quality": {
+    "exact": {
+      "0": {
+        "queries": 300,
+        "qrel_positive_queries": 300,
+        "mean_oracle_recall": 1.0,
+        "worst_oracle_recall": 1.0,
+        "ordered_agreement_queries": 300,
+        "qrel_recall": 0.8338888888888889,
+        "qrel_ndcg": 0.7018461391701573,
+        "routes": {
+          "fullExact": 300
+        }
+      },
+      "10": {
+        "queries": 300,
+        "qrel_positive_queries": 31,
+        "mean_oracle_recall": 1.0,
+        "worst_oracle_recall": 1.0,
+        "ordered_agreement_queries": 300,
+        "qrel_recall": 0.9354838709677419,
+        "qrel_ndcg": 0.8569181072454234,
+        "routes": {
+          "filteredExact": 300
+        }
+      },
+      "100": {
+        "queries": 300,
+        "qrel_positive_queries": 3,
+        "mean_oracle_recall": 1.0,
+        "worst_oracle_recall": 1.0,
+        "ordered_agreement_queries": 300,
+        "qrel_recall": 1.0,
+        "qrel_ndcg": 1.0,
+        "routes": {
+          "filteredExact": 300
+        }
+      }
+    },
+    "full100": {
+      "0": {
+        "queries": 300,
+        "qrel_positive_queries": 300,
+        "mean_oracle_recall": 0.9993333333333334,
+        "worst_oracle_recall": 0.9,
+        "ordered_agreement_queries": 298,
+        "qrel_recall": 0.8338888888888889,
+        "qrel_ndcg": 0.7018461391701573,
+        "routes": {
+          "fullGraph": 300
+        }
+      },
+      "10": {
+        "queries": 300,
+        "qrel_positive_queries": 31,
+        "mean_oracle_recall": 1.0,
+        "worst_oracle_recall": 1.0,
+        "ordered_agreement_queries": 300,
+        "qrel_recall": 0.9354838709677419,
+        "qrel_ndcg": 0.8569181072454234,
+        "routes": {
+          "filteredExact": 300
+        }
+      },
+      "100": {
+        "queries": 300,
+        "qrel_positive_queries": 3,
+        "mean_oracle_recall": 1.0,
+        "worst_oracle_recall": 1.0,
+        "ordered_agreement_queries": 300,
+        "qrel_recall": 1.0,
+        "qrel_ndcg": 1.0,
+        "routes": {
+          "filteredExact": 300
+        }
+      }
+    },
+    "full50": {
+      "0": {
+        "queries": 300,
+        "qrel_positive_queries": 300,
+        "mean_oracle_recall": 0.9993333333333334,
+        "worst_oracle_recall": 0.9,
+        "ordered_agreement_queries": 298,
+        "qrel_recall": 0.8338888888888889,
+        "qrel_ndcg": 0.7018461391701573,
+        "routes": {
+          "fullGraph": 300
+        }
+      },
+      "10": {
+        "queries": 300,
+        "qrel_positive_queries": 31,
+        "mean_oracle_recall": 1.0,
+        "worst_oracle_recall": 1.0,
+        "ordered_agreement_queries": 300,
+        "qrel_recall": 0.9354838709677419,
+        "qrel_ndcg": 0.8569181072454234,
+        "routes": {
+          "filteredExact": 300
+        }
+      },
+      "100": {
+        "queries": 300,
+        "qrel_positive_queries": 3,
+        "mean_oracle_recall": 1.0,
+        "worst_oracle_recall": 1.0,
+        "ordered_agreement_queries": 300,
+        "qrel_recall": 1.0,
+        "qrel_ndcg": 1.0,
+        "routes": {
+          "filteredExact": 300
+        }
+      }
+    },
+    "prefix256": {
+      "0": {
+        "queries": 300,
+        "qrel_positive_queries": 300,
+        "mean_oracle_recall": 0.9833333333333333,
+        "worst_oracle_recall": 0.7,
+        "ordered_agreement_queries": 261,
+        "qrel_recall": 0.8238888888888889,
+        "qrel_ndcg": 0.6983358901110751,
+        "routes": {
+          "projectedGraph": 300
+        }
+      },
+      "10": {
+        "queries": 300,
+        "qrel_positive_queries": 31,
+        "mean_oracle_recall": 1.0,
+        "worst_oracle_recall": 1.0,
+        "ordered_agreement_queries": 300,
+        "qrel_recall": 0.9354838709677419,
+        "qrel_ndcg": 0.8569181072454234,
+        "routes": {
+          "filteredExact": 300
+        }
+      },
+      "100": {
+        "queries": 300,
+        "qrel_positive_queries": 3,
+        "mean_oracle_recall": 1.0,
+        "worst_oracle_recall": 1.0,
+        "ordered_agreement_queries": 300,
+        "qrel_recall": 1.0,
+        "qrel_ndcg": 1.0,
+        "routes": {
+          "filteredExact": 300
+        }
+      }
+    },
+    "prefix512": {
+      "0": {
+        "queries": 300,
+        "qrel_positive_queries": 300,
+        "mean_oracle_recall": 0.991,
+        "worst_oracle_recall": 0.7,
+        "ordered_agreement_queries": 277,
+        "qrel_recall": 0.8272222222222222,
+        "qrel_ndcg": 0.6997714786379865,
+        "routes": {
+          "projectedGraph": 300
+        }
+      },
+      "10": {
+        "queries": 300,
+        "qrel_positive_queries": 31,
+        "mean_oracle_recall": 1.0,
+        "worst_oracle_recall": 1.0,
+        "ordered_agreement_queries": 300,
+        "qrel_recall": 0.9354838709677419,
+        "qrel_ndcg": 0.8569181072454234,
+        "routes": {
+          "filteredExact": 300
+        }
+      },
+      "100": {
+        "queries": 300,
+        "qrel_positive_queries": 3,
+        "mean_oracle_recall": 1.0,
+        "worst_oracle_recall": 1.0,
+        "ordered_agreement_queries": 300,
+        "qrel_recall": 1.0,
+        "qrel_ndcg": 1.0,
+        "routes": {
+          "filteredExact": 300
+        }
+      }
+    }
+  },
+  "quality_gates": {
+    "prefix256": {
+      "mean_oracle_recall_at_least_099": false,
+      "worst_oracle_recall_at_least_08": false,
+      "matched_control_mean_recall_loss_at_most_0005": false,
+      "matched_control_ndcg_loss_at_most_0005": true,
+      "matched_control_qrel_recall_loss_at_most_0005": false
+    },
+    "prefix512": {
+      "mean_oracle_recall_at_least_099": true,
+      "worst_oracle_recall_at_least_08": false,
+      "matched_control_mean_recall_loss_at_most_0005": false,
+      "matched_control_ndcg_loss_at_most_0005": true,
+      "matched_control_qrel_recall_loss_at_most_0005": false
+    }
+  },
+  "timing_replicates": {},
+  "median_process_percentiles_ms": {},
+  "unfiltered_latency_gates": {},
+  "native_lifecycle_completed": true,
+  "result_hashes": {
+    "ingest-exact.json": "86fc4f65a171d8a97b78bc3dc9c25a9e809ec86fc9057a08811f075805f9d232",
+    "ingest-full100.json": "8b295d758a4c5aebfc5f57dc9e427e2ffeea9a75f86386348705d61450e828c5",
+    "ingest-full50.json": "27be1fbcf06a97afe39da238d78380f4f84cc8904938b10f7e0111389f560940",
+    "ingest-prefix256.json": "2fcf862dcb267efcedbb61f766a0c4651b650814fb0526aa732fb240d8b316db",
+    "ingest-prefix512.json": "135d2e2e4d9a705556f7e38b41f39d690aeac504e484aee32e31a52044e58838",
+    "lifecycle-exact.json": "f28e5351ee086892743a09aa92075458b3228cf3926a6639cfab6cfee65d6f48",
+    "lifecycle-full100.json": "001a4f5e8ca7d9d76a6c7fd8916c488cae55400bcb778ce1c6f3bd867f175f09",
+    "lifecycle-full50.json": "569c4e07c71c768efb509e734b60e27436be2dfd8c47275e6b75d36e094b10f3",
+    "lifecycle-prefix256.json": "46dfe55187765fd4d9127aa0b35d611034f39a760a36ec9acb2ba3c9a08bf358",
+    "lifecycle-prefix512.json": "8cbae6cbefbc606441bc4c187c7ba5a01d6aa12c89134aeb896aa3c12dbdec4c",
+    "mutation-exact.json": "47b750eaadc576e235fe96d314ce510c8b75d89c3689062df09d55b586169bcb",
+    "mutation-full100.json": "54d429698db96d669514b093bb8e579358a1afcaa4f49e63260d23309e43d665",
+    "mutation-full50.json": "9621b17f5a7448e89bc4fd055ca50fbb628210091a3996e03f2cb8e36ff411d2",
+    "mutation-prefix256.json": "dfbf58f9bdac877e7ad73d97906acc71be352d46b4e885a3ebd13178e8313b55",
+    "mutation-prefix512.json": "c8019dedea7b34c3525651f208f137d4a1287d7c0ea8160e0ac0b54d439c4e9f",
+    "quality-exact.json": "ef0f0f8a991e094ce928a3615f192800317ee21cbfc6f4cfae2e306f083fcd55",
+    "quality-full100.json": "731b24f60ad705f72e67157cbff7e647dd8e6879d8af0e67eb477eda68c6ada8",
+    "quality-full50.json": "ef54a64c99a8ac54dc580b262119daecb577731a48e7af7557b6257092a25bf5",
+    "quality-prefix256.json": "ee8176c925f4d475e62e7a82713b699637e437d5e926048663184444ad0e60f0",
+    "quality-prefix512.json": "33213c534d3e2d82c7b485f4aab22355ec873b1d1db52ad7ec5a40d41c0bdaeb",
+    "restart-exact.json": "1179c8b44034898b129fe2803ee494221de5761479243f3cd313a4816f97473b",
+    "restart-full100.json": "138af5a68c5cbd0fff0450b811d23ae2072e29adc87b123162cb6da0f1493960",
+    "restart-full50.json": "f914910509758f1450b37c7408b06df153a9b6b997861112cef6a9dbb3fae623",
+    "restart-prefix256.json": "ccd50facd28eaeeaa6ffb35e14a1c03f2b79821a4528613b0e37e8cfa878eae9",
+    "restart-prefix512.json": "0a44766652581832d6c1f4520512adc08458597253914c2c9683fc4b99d4cb54",
+    "timing-window.json": "6db76a287a668147db4eea975a09ee481d41129865c14ced19d81098d10cecda"
+  },
+  "timing_window": {
+    "coordinator_grant": "root-20261102-diagnostic-timing-after-failed-quality",
+    "started_unix": 1793598546.424204,
+    "status": "preflight_failed_no_query_timings_collected",
+    "preflight": [
+      {
+        "unix": 1793598551.5296152,
+        "elapsed_seconds": 5.077325791935436,
+        "external_core_percent": 261.3580562640163,
+        "external_capacity_percent_10_cpus": 26.135805626401627,
+        "new_pids": [
+          74815
+        ],
+        "vanished_pids": [
+          74814
+        ],
+        "top_external": [
+          {
+            "pid": 16087,
+            "name": "mds_stores",
+            "cpu_seconds": 3.0
+          },
+          {
+            "pid": 364,
+            "name": "mds",
+            "cpu_seconds": 1.7700000000004366
+          },
+          {
+            "pid": 79247,
+            "name": "Terminal",
+            "cpu_seconds": 0.9400000000023283
+          },
+          {
+            "pid": 90436,
+            "name": "codex",
+            "cpu_seconds": 0.7200000000000273
+          },
+          {
+            "pid": 42993,
+            "name": "Wolfram Engine 15.0",
+            "cpu_seconds": 0.6000000000000227
+          },
+          {
+            "pid": 74796,
+            "name": "mdworker_shared",
+            "cpu_seconds": 0.4600000000000001
+          },
+          {
+            "pid": 74782,
+            "name": "mdworker_shared",
+            "cpu_seconds": 0.44999999999999996
+          },
+          {
+            "pid": 74795,
+            "name": "mdworker_shared",
+            "cpu_seconds": 0.42000000000000004
+          },
+          {
+            "pid": 74767,
+            "name": "mdworker_shared",
+            "cpu_seconds": 0.41000000000000014
+          },
+          {
+            "pid": 74783,
+            "name": "mdworker_shared",
+            "cpu_seconds": 0.3999999999999999
+          }
+        ],
+        "excluded_pids": [
+          74813
+        ]
+      },
+      {
+        "unix": 1793598556.604931,
+        "elapsed_seconds": 5.075292750028893,
+        "external_core_percent": 525.4869288052703,
+        "external_capacity_percent_10_cpus": 52.54869288052703,
+        "new_pids": [
+          74816
+        ],
+        "vanished_pids": [
+          74815
+        ],
+        "top_external": [
+          {
+            "pid": 16087,
+            "name": "mds_stores",
+            "cpu_seconds": 7.900000000001455
+          },
+          {
+            "pid": 364,
+            "name": "mds",
+            "cpu_seconds": 5.479999999999563
+          },
+          {
+            "pid": 79247,
+            "name": "Terminal",
+            "cpu_seconds": 1.0199999999967986
+          },
+          {
+            "pid": 74795,
+            "name": "mdworker_shared",
+            "cpu_seconds": 0.9099999999999999
+          },
+          {
+            "pid": 74783,
+            "name": "mdworker_shared",
+            "cpu_seconds": 0.8900000000000001
+          },
+          {
+            "pid": 74784,
+            "name": "mdworker_shared",
+            "cpu_seconds": 0.8899999999999999
+          },
+          {
+            "pid": 74796,
+            "name": "mdworker_shared",
+            "cpu_seconds": 0.8899999999999999
+          },
+          {
+            "pid": 74801,
+            "name": "mdworker_shared",
+            "cpu_seconds": 0.8899999999999999
+          },
+          {
+            "pid": 74794,
+            "name": "mdworker_shared",
+            "cpu_seconds": 0.8800000000000001
+          },
+          {
+            "pid": 74767,
+            "name": "mdworker_shared",
+            "cpu_seconds": 0.8699999999999999
+          }
+        ],
+        "excluded_pids": [
+          74813
+        ]
+      }
+    ],
+    "order": [],
+    "cpu_observation": "Process CPU time deltas over five-second intervals, ten-CPU denominator; exited short-lived processes may be unobserved. No host-isolation claim."
+  },
+  "latency_measured": false,
+  "latency_gates_assessed": false,
+  "overall_qualified": {
+    "prefix256": false,
+    "prefix512": false
+  },
+  "source_commits": {
+    "generation_plan": "22559c12",
+    "native_harness": "fcd0eb53",
+    "retrieval_runner": "fa2a87be",
+    "data_binding": "a839277c"
+  },
+  "accounting": {
+    "exact": {
+      "ingest": {
+        "arm": "exact",
+        "build_seconds": 0.001673208,
+        "flush_seconds": 0.18146825,
+        "index_status": {
+          "candidateIdentity": null,
+          "current": true,
+          "generation": 4700839818165494,
+          "graph": false,
+          "graphIndexBytes": null,
+          "graphResidualBytes": null,
+          "rebuildRecommended": false,
+          "rerankCandidates": null,
+          "rows": 5183,
+          "staleMutations": 0
+        },
+        "ingest_acknowledgement_seconds": 3.783013208,
+        "open_seconds": 1.7809540419999998,
+        "peak_rss_bytes": 477462528,
+        "retained_full_vector_bytes": 21229568,
+        "serving_rss_bytes": 477216768,
+        "store_files": {
+          ".hms.lock": 10,
+          "audit.effects.bin": 8,
+          "documents.text": 7778371,
+          "indices.json": 124,
+          "store.json": 443,
+          "store.json.crc32": 9,
+          "vectors_data.bin/format.json": 72,
+          "vectors_data.bin/format.json.crc32": 9,
+          "vectors_data.bin/seg_0.bin": 67108864
+        }
+      },
+      "quality_process": {
+        "arm": "exact",
+        "build_seconds": 0.00073875,
+        "harness_f64_vector_bytes": 44916736,
+        "index_status": {
+          "candidateIdentity": null,
+          "current": true,
+          "generation": 5193653771143338,
+          "graph": false,
+          "graphIndexBytes": null,
+          "graphResidualBytes": null,
+          "rebuildRecommended": false,
+          "rerankCandidates": null,
+          "rows": 5183,
+          "staleMutations": 0
+        },
+        "measured": false,
+        "open_seconds": 0.4875275,
+        "peak_rss_bytes": 169902080,
+        "serving_rss_bytes": 154943488,
+        "store_files": {
+          ".hms.lock": 10,
+          "audit.effects.bin": 8,
+          "documents.text": 7778371,
+          "indices.json": 124,
+          "store.json": 443,
+          "store.json.crc32": 9,
+          "vectors_data.bin/format.json": 72,
+          "vectors_data.bin/format.json.crc32": 9,
+          "vectors_data.bin/seg_0.bin": 67108864
+        },
+        "workload_only_rss_bytes": 92471296
+      },
+      "lifecycle": {
+        "arm": "exact",
+        "mutation_pid": 74143,
+        "restart_pid": 74144,
+        "stages": [
+          {
+            "graph_misses": [],
+            "index_status": {
+              "candidateIdentity": null,
+              "current": false,
+              "generation": 3155886561860069,
+              "graph": false,
+              "graphIndexBytes": null,
+              "graphResidualBytes": null,
+              "rebuildRecommended": false,
+              "rerankCandidates": null,
+              "rows": 5183,
+              "staleMutations": 42
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "StaleExact": 300
+            },
+            "stage": "stale"
+          },
+          {
+            "graph_misses": [],
+            "index_status": {
+              "candidateIdentity": null,
+              "current": true,
+              "generation": 1584219772685959,
+              "graph": true,
+              "graphIndexBytes": 11293276,
+              "graphResidualBytes": 5306536,
+              "rebuildRecommended": false,
+              "rerankCandidates": null,
+              "rows": 5162,
+              "staleMutations": 0
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "FullExact": 300
+            },
+            "stage": "reopened"
+          },
+          {
+            "graph_misses": [],
+            "index_status": {
+              "candidateIdentity": null,
+              "current": true,
+              "generation": 1584219772685959,
+              "graph": false,
+              "graphIndexBytes": null,
+              "graphResidualBytes": null,
+              "rebuildRecommended": false,
+              "rerankCandidates": null,
+              "rows": 5162,
+              "staleMutations": 0
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "FullExact": 300
+            },
+            "stage": "rebuilt"
+          }
+        ]
+      }
+    },
+    "full100": {
+      "ingest": {
+        "arm": "full100",
+        "build_seconds": 0.2796075,
+        "flush_seconds": 0.242478,
+        "index_status": {
+          "candidateIdentity": {
+            "dimensions": 1024,
+            "embeddingSpace": {
+              "dimensions": 1024,
+              "metric": "cosine",
+              "model": "Qwen/Qwen3-Embedding-0.6B",
+              "normalization": "l2",
+              "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+            },
+            "normalization": "prefix-l2-v1"
+          },
+          "current": true,
+          "generation": 5393939590578660,
+          "graph": true,
+          "graphIndexBytes": 11339012,
+          "graphResidualBytes": 5328124,
+          "rebuildRecommended": false,
+          "rerankCandidates": 100,
+          "rows": 5183,
+          "staleMutations": 0
+        },
+        "ingest_acknowledgement_seconds": 2.705507667,
+        "open_seconds": 1.9896855420000001,
+        "peak_rss_bytes": 495190016,
+        "retained_full_vector_bytes": 21229568,
+        "serving_rss_bytes": 495190016,
+        "store_files": {
+          ".hms.lock": 10,
+          "audit.effects.bin": 8,
+          "documents.text": 7778371,
+          "indices.json": 124,
+          "store.json": 443,
+          "store.json.crc32": 9,
+          "vectors_data.bin/format.json": 72,
+          "vectors_data.bin/format.json.crc32": 9,
+          "vectors_data.bin/seg_0.bin": 67108864
+        }
+      },
+      "quality_process": {
+        "arm": "full100",
+        "build_seconds": 0.24861725,
+        "harness_f64_vector_bytes": 44916736,
+        "index_status": {
+          "candidateIdentity": {
+            "dimensions": 1024,
+            "embeddingSpace": {
+              "dimensions": 1024,
+              "metric": "cosine",
+              "model": "Qwen/Qwen3-Embedding-0.6B",
+              "normalization": "l2",
+              "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+            },
+            "normalization": "prefix-l2-v1"
+          },
+          "current": true,
+          "generation": 2073685400774543,
+          "graph": true,
+          "graphIndexBytes": 11339012,
+          "graphResidualBytes": 5328124,
+          "rebuildRecommended": false,
+          "rerankCandidates": 100,
+          "rows": 5183,
+          "staleMutations": 0
+        },
+        "measured": false,
+        "open_seconds": 0.52194375,
+        "peak_rss_bytes": 176177152,
+        "serving_rss_bytes": 161251328,
+        "store_files": {
+          ".hms.lock": 10,
+          "audit.effects.bin": 8,
+          "documents.text": 7778371,
+          "indices.json": 124,
+          "store.json": 443,
+          "store.json.crc32": 9,
+          "vectors_data.bin/format.json": 72,
+          "vectors_data.bin/format.json.crc32": 9,
+          "vectors_data.bin/seg_0.bin": 67108864
+        },
+        "workload_only_rss_bytes": 92487680
+      },
+      "lifecycle": {
+        "arm": "full100",
+        "mutation_pid": 74186,
+        "restart_pid": 74193,
+        "stages": [
+          {
+            "graph_misses": [],
+            "index_status": {
+              "candidateIdentity": {
+                "dimensions": 1024,
+                "embeddingSpace": {
+                  "dimensions": 1024,
+                  "metric": "cosine",
+                  "model": "Qwen/Qwen3-Embedding-0.6B",
+                  "normalization": "l2",
+                  "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+                },
+                "normalization": "prefix-l2-v1"
+              },
+              "current": false,
+              "generation": 8156775750267860,
+              "graph": true,
+              "graphIndexBytes": 11339012,
+              "graphResidualBytes": 5328124,
+              "rebuildRecommended": false,
+              "rerankCandidates": 100,
+              "rows": 5183,
+              "staleMutations": 42
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "StaleExact": 300
+            },
+            "stage": "stale"
+          },
+          {
+            "graph_misses": [
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "20454006"
+                ],
+                "query_id": "1"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "37296667"
+                ],
+                "query_id": "1140"
+              }
+            ],
+            "index_status": {
+              "candidateIdentity": {
+                "dimensions": 1024,
+                "embeddingSpace": {
+                  "dimensions": 1024,
+                  "metric": "cosine",
+                  "model": "Qwen/Qwen3-Embedding-0.6B",
+                  "normalization": "l2",
+                  "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+                },
+                "normalization": "prefix-l2-v1"
+              },
+              "current": true,
+              "generation": 7828956441640280,
+              "graph": true,
+              "graphIndexBytes": 11293276,
+              "graphResidualBytes": 5306536,
+              "rebuildRecommended": false,
+              "rerankCandidates": 100,
+              "rows": 5162,
+              "staleMutations": 0
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "FullGraph": 300
+            },
+            "stage": "reopened"
+          },
+          {
+            "graph_misses": [
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "20454006"
+                ],
+                "query_id": "1"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "37296667"
+                ],
+                "query_id": "1140"
+              }
+            ],
+            "index_status": {
+              "candidateIdentity": {
+                "dimensions": 1024,
+                "embeddingSpace": {
+                  "dimensions": 1024,
+                  "metric": "cosine",
+                  "model": "Qwen/Qwen3-Embedding-0.6B",
+                  "normalization": "l2",
+                  "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+                },
+                "normalization": "prefix-l2-v1"
+              },
+              "current": true,
+              "generation": 7828956441640280,
+              "graph": true,
+              "graphIndexBytes": 11293276,
+              "graphResidualBytes": 5306536,
+              "rebuildRecommended": false,
+              "rerankCandidates": 100,
+              "rows": 5162,
+              "staleMutations": 0
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "FullGraph": 300
+            },
+            "stage": "rebuilt"
+          }
+        ]
+      }
+    },
+    "full50": {
+      "ingest": {
+        "arm": "full50",
+        "build_seconds": 0.266448583,
+        "flush_seconds": 0.195877792,
+        "index_status": {
+          "candidateIdentity": {
+            "dimensions": 1024,
+            "embeddingSpace": {
+              "dimensions": 1024,
+              "metric": "cosine",
+              "model": "Qwen/Qwen3-Embedding-0.6B",
+              "normalization": "l2",
+              "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+            },
+            "normalization": "prefix-l2-v1"
+          },
+          "current": true,
+          "generation": 3820723613195267,
+          "graph": true,
+          "graphIndexBytes": 11339012,
+          "graphResidualBytes": 5328124,
+          "rebuildRecommended": false,
+          "rerankCandidates": 50,
+          "rows": 5183,
+          "staleMutations": 0
+        },
+        "ingest_acknowledgement_seconds": 2.695064958,
+        "open_seconds": 1.770645708,
+        "peak_rss_bytes": 499826688,
+        "retained_full_vector_bytes": 21229568,
+        "serving_rss_bytes": 499826688,
+        "store_files": {
+          ".hms.lock": 10,
+          "audit.effects.bin": 8,
+          "documents.text": 7778371,
+          "indices.json": 124,
+          "store.json": 443,
+          "store.json.crc32": 9,
+          "vectors_data.bin/format.json": 72,
+          "vectors_data.bin/format.json.crc32": 9,
+          "vectors_data.bin/seg_0.bin": 67108864
+        }
+      },
+      "quality_process": {
+        "arm": "full50",
+        "build_seconds": 0.240311375,
+        "harness_f64_vector_bytes": 44916736,
+        "index_status": {
+          "candidateIdentity": {
+            "dimensions": 1024,
+            "embeddingSpace": {
+              "dimensions": 1024,
+              "metric": "cosine",
+              "model": "Qwen/Qwen3-Embedding-0.6B",
+              "normalization": "l2",
+              "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+            },
+            "normalization": "prefix-l2-v1"
+          },
+          "current": true,
+          "generation": 248099238682982,
+          "graph": true,
+          "graphIndexBytes": 11339012,
+          "graphResidualBytes": 5328124,
+          "rebuildRecommended": false,
+          "rerankCandidates": 50,
+          "rows": 5183,
+          "staleMutations": 0
+        },
+        "measured": false,
+        "open_seconds": 0.55545,
+        "peak_rss_bytes": 176685056,
+        "serving_rss_bytes": 161792000,
+        "store_files": {
+          ".hms.lock": 10,
+          "audit.effects.bin": 8,
+          "documents.text": 7778371,
+          "indices.json": 124,
+          "store.json": 443,
+          "store.json.crc32": 9,
+          "vectors_data.bin/format.json": 72,
+          "vectors_data.bin/format.json.crc32": 9,
+          "vectors_data.bin/seg_0.bin": 67108864
+        },
+        "workload_only_rss_bytes": 92454912
+      },
+      "lifecycle": {
+        "arm": "full50",
+        "mutation_pid": 74234,
+        "restart_pid": 74237,
+        "stages": [
+          {
+            "graph_misses": [],
+            "index_status": {
+              "candidateIdentity": {
+                "dimensions": 1024,
+                "embeddingSpace": {
+                  "dimensions": 1024,
+                  "metric": "cosine",
+                  "model": "Qwen/Qwen3-Embedding-0.6B",
+                  "normalization": "l2",
+                  "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+                },
+                "normalization": "prefix-l2-v1"
+              },
+              "current": false,
+              "generation": 4049345587210493,
+              "graph": true,
+              "graphIndexBytes": 11339012,
+              "graphResidualBytes": 5328124,
+              "rebuildRecommended": false,
+              "rerankCandidates": 50,
+              "rows": 5183,
+              "staleMutations": 42
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "StaleExact": 300
+            },
+            "stage": "stale"
+          },
+          {
+            "graph_misses": [
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "20454006"
+                ],
+                "query_id": "1"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "37296667"
+                ],
+                "query_id": "1140"
+              }
+            ],
+            "index_status": {
+              "candidateIdentity": {
+                "dimensions": 1024,
+                "embeddingSpace": {
+                  "dimensions": 1024,
+                  "metric": "cosine",
+                  "model": "Qwen/Qwen3-Embedding-0.6B",
+                  "normalization": "l2",
+                  "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+                },
+                "normalization": "prefix-l2-v1"
+              },
+              "current": true,
+              "generation": 8496341535140726,
+              "graph": true,
+              "graphIndexBytes": 11293276,
+              "graphResidualBytes": 5306536,
+              "rebuildRecommended": false,
+              "rerankCandidates": 50,
+              "rows": 5162,
+              "staleMutations": 0
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "FullGraph": 300
+            },
+            "stage": "reopened"
+          },
+          {
+            "graph_misses": [
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "20454006"
+                ],
+                "query_id": "1"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "37296667"
+                ],
+                "query_id": "1140"
+              }
+            ],
+            "index_status": {
+              "candidateIdentity": {
+                "dimensions": 1024,
+                "embeddingSpace": {
+                  "dimensions": 1024,
+                  "metric": "cosine",
+                  "model": "Qwen/Qwen3-Embedding-0.6B",
+                  "normalization": "l2",
+                  "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+                },
+                "normalization": "prefix-l2-v1"
+              },
+              "current": true,
+              "generation": 8496341535140726,
+              "graph": true,
+              "graphIndexBytes": 11293276,
+              "graphResidualBytes": 5306536,
+              "rebuildRecommended": false,
+              "rerankCandidates": 50,
+              "rows": 5162,
+              "staleMutations": 0
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "FullGraph": 300
+            },
+            "stage": "rebuilt"
+          }
+        ]
+      }
+    },
+    "prefix256": {
+      "ingest": {
+        "arm": "prefix256",
+        "build_seconds": 0.114092042,
+        "flush_seconds": 0.23912,
+        "index_status": {
+          "candidateIdentity": {
+            "dimensions": 256,
+            "embeddingSpace": {
+              "dimensions": 1024,
+              "metric": "cosine",
+              "model": "Qwen/Qwen3-Embedding-0.6B",
+              "normalization": "l2",
+              "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+            },
+            "normalization": "prefix-l2-v1"
+          },
+          "current": true,
+          "generation": 3698092730444840,
+          "graph": true,
+          "graphIndexBytes": 3374800,
+          "graphResidualBytes": 1347580,
+          "rebuildRecommended": false,
+          "rerankCandidates": 100,
+          "rows": 5183,
+          "staleMutations": 0
+        },
+        "ingest_acknowledgement_seconds": 2.820546708,
+        "open_seconds": 1.7354874580000001,
+        "peak_rss_bytes": 476381184,
+        "retained_full_vector_bytes": 21229568,
+        "serving_rss_bytes": 476381184,
+        "store_files": {
+          ".hms.lock": 10,
+          "audit.effects.bin": 8,
+          "documents.text": 7778371,
+          "indices.json": 124,
+          "store.json": 443,
+          "store.json.crc32": 9,
+          "vectors_data.bin/format.json": 72,
+          "vectors_data.bin/format.json.crc32": 9,
+          "vectors_data.bin/seg_0.bin": 67108864
+        }
+      },
+      "quality_process": {
+        "arm": "prefix256",
+        "build_seconds": 0.106306208,
+        "harness_f64_vector_bytes": 44916736,
+        "index_status": {
+          "candidateIdentity": {
+            "dimensions": 256,
+            "embeddingSpace": {
+              "dimensions": 1024,
+              "metric": "cosine",
+              "model": "Qwen/Qwen3-Embedding-0.6B",
+              "normalization": "l2",
+              "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+            },
+            "normalization": "prefix-l2-v1"
+          },
+          "current": true,
+          "generation": 3131117975517003,
+          "graph": true,
+          "graphIndexBytes": 3374800,
+          "graphResidualBytes": 1347580,
+          "rebuildRecommended": false,
+          "rerankCandidates": 100,
+          "rows": 5183,
+          "staleMutations": 0
+        },
+        "measured": false,
+        "open_seconds": 0.55623175,
+        "peak_rss_bytes": 173277184,
+        "serving_rss_bytes": 158351360,
+        "store_files": {
+          ".hms.lock": 10,
+          "audit.effects.bin": 8,
+          "documents.text": 7778371,
+          "indices.json": 124,
+          "store.json": 443,
+          "store.json.crc32": 9,
+          "vectors_data.bin/format.json": 72,
+          "vectors_data.bin/format.json.crc32": 9,
+          "vectors_data.bin/seg_0.bin": 67108864
+        },
+        "workload_only_rss_bytes": 92487680
+      },
+      "lifecycle": {
+        "arm": "prefix256",
+        "mutation_pid": 74274,
+        "restart_pid": 74283,
+        "stages": [
+          {
+            "graph_misses": [],
+            "index_status": {
+              "candidateIdentity": {
+                "dimensions": 256,
+                "embeddingSpace": {
+                  "dimensions": 1024,
+                  "metric": "cosine",
+                  "model": "Qwen/Qwen3-Embedding-0.6B",
+                  "normalization": "l2",
+                  "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+                },
+                "normalization": "prefix-l2-v1"
+              },
+              "current": false,
+              "generation": 4870682402406264,
+              "graph": true,
+              "graphIndexBytes": 3374800,
+              "graphResidualBytes": 1347580,
+              "rebuildRecommended": false,
+              "rerankCandidates": 100,
+              "rows": 5183,
+              "staleMutations": 42
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "StaleExact": 300
+            },
+            "stage": "stale"
+          },
+          {
+            "graph_misses": [
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "20454006",
+                  "7583104"
+                ],
+                "query_id": "1"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "6491532"
+                ],
+                "query_id": "94"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "18810195"
+                ],
+                "query_id": "99"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "25682129"
+                ],
+                "query_id": "127"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "21323587",
+                  "9754530"
+                ],
+                "query_id": "129"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "9754530"
+                ],
+                "query_id": "130"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "76776022"
+                ],
+                "query_id": "171"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "15600979"
+                ],
+                "query_id": "208"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "13774178"
+                ],
+                "query_id": "249"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3553087"
+                ],
+                "query_id": "300"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "18348376",
+                  "33076846",
+                  "21185923"
+                ],
+                "query_id": "324"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3591070"
+                ],
+                "query_id": "362"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3835423"
+                ],
+                "query_id": "380"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "17656445"
+                ],
+                "query_id": "491"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "10893238"
+                ],
+                "query_id": "502"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3788528",
+                  "37269418"
+                ],
+                "query_id": "528"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "2147704"
+                ],
+                "query_id": "587"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "33118292"
+                ],
+                "query_id": "693"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "980008"
+                ],
+                "query_id": "811"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "21164071"
+                ],
+                "query_id": "814"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "16927286"
+                ],
+                "query_id": "820"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "16927286"
+                ],
+                "query_id": "821"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "1897324"
+                ],
+                "query_id": "830"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "23076291"
+                ],
+                "query_id": "831"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "885056"
+                ],
+                "query_id": "837"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "12315072",
+                  "2061878"
+                ],
+                "query_id": "859"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "2251426"
+                ],
+                "query_id": "887"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "20457190"
+                ],
+                "query_id": "936"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "86694016",
+                  "12640810"
+                ],
+                "query_id": "967"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "2619579"
+                ],
+                "query_id": "985"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "10534299"
+                ],
+                "query_id": "1014"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "5152028"
+                ],
+                "query_id": "1086"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "10029970"
+                ],
+                "query_id": "1175"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "39389082"
+                ],
+                "query_id": "1200"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3152612"
+                ],
+                "query_id": "1207"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "145335387",
+                  "37118634"
+                ],
+                "query_id": "1245"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "14834714"
+                ],
+                "query_id": "1278"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "15405204",
+                  "8354687",
+                  "14834714"
+                ],
+                "query_id": "1279"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "23206239"
+                ],
+                "query_id": "1292"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "13277623"
+                ],
+                "query_id": "1337"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "19343151",
+                  "18218379"
+                ],
+                "query_id": "1395"
+              }
+            ],
+            "index_status": {
+              "candidateIdentity": {
+                "dimensions": 256,
+                "embeddingSpace": {
+                  "dimensions": 1024,
+                  "metric": "cosine",
+                  "model": "Qwen/Qwen3-Embedding-0.6B",
+                  "normalization": "l2",
+                  "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+                },
+                "normalization": "prefix-l2-v1"
+              },
+              "current": true,
+              "generation": 8681816352292022,
+              "graph": true,
+              "graphIndexBytes": 3361428,
+              "graphResidualBytes": 1342120,
+              "rebuildRecommended": false,
+              "rerankCandidates": 100,
+              "rows": 5162,
+              "staleMutations": 0
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "ProjectedGraph": 300
+            },
+            "stage": "reopened"
+          },
+          {
+            "graph_misses": [
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "20454006",
+                  "7583104"
+                ],
+                "query_id": "1"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "6491532"
+                ],
+                "query_id": "94"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "18810195"
+                ],
+                "query_id": "99"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "25682129"
+                ],
+                "query_id": "127"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "21323587",
+                  "9754530"
+                ],
+                "query_id": "129"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "9754530"
+                ],
+                "query_id": "130"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "76776022"
+                ],
+                "query_id": "171"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "15600979"
+                ],
+                "query_id": "208"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "13774178"
+                ],
+                "query_id": "249"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3553087"
+                ],
+                "query_id": "300"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "18348376",
+                  "33076846",
+                  "21185923"
+                ],
+                "query_id": "324"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3591070"
+                ],
+                "query_id": "362"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3835423"
+                ],
+                "query_id": "380"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "17656445"
+                ],
+                "query_id": "491"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "10893238"
+                ],
+                "query_id": "502"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3788528",
+                  "37269418"
+                ],
+                "query_id": "528"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "2147704"
+                ],
+                "query_id": "587"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "33118292"
+                ],
+                "query_id": "693"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "980008"
+                ],
+                "query_id": "811"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "21164071"
+                ],
+                "query_id": "814"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "16927286"
+                ],
+                "query_id": "820"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "16927286"
+                ],
+                "query_id": "821"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "1897324"
+                ],
+                "query_id": "830"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "23076291"
+                ],
+                "query_id": "831"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "885056"
+                ],
+                "query_id": "837"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "12315072",
+                  "2061878"
+                ],
+                "query_id": "859"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "2251426"
+                ],
+                "query_id": "887"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "20457190"
+                ],
+                "query_id": "936"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "86694016",
+                  "12640810"
+                ],
+                "query_id": "967"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "2619579"
+                ],
+                "query_id": "985"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "10534299"
+                ],
+                "query_id": "1014"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "5152028"
+                ],
+                "query_id": "1086"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "10029970"
+                ],
+                "query_id": "1175"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "39389082"
+                ],
+                "query_id": "1200"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3152612"
+                ],
+                "query_id": "1207"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "145335387",
+                  "37118634"
+                ],
+                "query_id": "1245"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "14834714"
+                ],
+                "query_id": "1278"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "15405204",
+                  "8354687",
+                  "14834714"
+                ],
+                "query_id": "1279"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "23206239"
+                ],
+                "query_id": "1292"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "13277623"
+                ],
+                "query_id": "1337"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "19343151",
+                  "18218379"
+                ],
+                "query_id": "1395"
+              }
+            ],
+            "index_status": {
+              "candidateIdentity": {
+                "dimensions": 256,
+                "embeddingSpace": {
+                  "dimensions": 1024,
+                  "metric": "cosine",
+                  "model": "Qwen/Qwen3-Embedding-0.6B",
+                  "normalization": "l2",
+                  "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+                },
+                "normalization": "prefix-l2-v1"
+              },
+              "current": true,
+              "generation": 8681816352292022,
+              "graph": true,
+              "graphIndexBytes": 3361428,
+              "graphResidualBytes": 1342120,
+              "rebuildRecommended": false,
+              "rerankCandidates": 100,
+              "rows": 5162,
+              "staleMutations": 0
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "ProjectedGraph": 300
+            },
+            "stage": "rebuilt"
+          }
+        ]
+      }
+    },
+    "prefix512": {
+      "ingest": {
+        "arm": "prefix512",
+        "build_seconds": 0.174107208,
+        "flush_seconds": 0.197133667,
+        "index_status": {
+          "candidateIdentity": {
+            "dimensions": 512,
+            "embeddingSpace": {
+              "dimensions": 1024,
+              "metric": "cosine",
+              "model": "Qwen/Qwen3-Embedding-0.6B",
+              "normalization": "l2",
+              "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+            },
+            "normalization": "prefix-l2-v1"
+          },
+          "current": true,
+          "generation": 6921715285668608,
+          "graph": true,
+          "graphIndexBytes": 6029456,
+          "graphResidualBytes": 2674428,
+          "rebuildRecommended": false,
+          "rerankCandidates": 50,
+          "rows": 5183,
+          "staleMutations": 0
+        },
+        "ingest_acknowledgement_seconds": 2.817393708,
+        "open_seconds": 2.047377,
+        "peak_rss_bytes": 486391808,
+        "retained_full_vector_bytes": 21229568,
+        "serving_rss_bytes": 486391808,
+        "store_files": {
+          ".hms.lock": 10,
+          "audit.effects.bin": 8,
+          "documents.text": 7778371,
+          "indices.json": 124,
+          "store.json": 443,
+          "store.json.crc32": 9,
+          "vectors_data.bin/format.json": 72,
+          "vectors_data.bin/format.json.crc32": 9,
+          "vectors_data.bin/seg_0.bin": 67108864
+        }
+      },
+      "quality_process": {
+        "arm": "prefix512",
+        "build_seconds": 0.142441834,
+        "harness_f64_vector_bytes": 44916736,
+        "index_status": {
+          "candidateIdentity": {
+            "dimensions": 512,
+            "embeddingSpace": {
+              "dimensions": 1024,
+              "metric": "cosine",
+              "model": "Qwen/Qwen3-Embedding-0.6B",
+              "normalization": "l2",
+              "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+            },
+            "normalization": "prefix-l2-v1"
+          },
+          "current": true,
+          "generation": 7908936806039877,
+          "graph": true,
+          "graphIndexBytes": 6029456,
+          "graphResidualBytes": 2674428,
+          "rebuildRecommended": false,
+          "rerankCandidates": 50,
+          "rows": 5183,
+          "staleMutations": 0
+        },
+        "measured": false,
+        "open_seconds": 0.665874417,
+        "peak_rss_bytes": 187006976,
+        "serving_rss_bytes": 172113920,
+        "store_files": {
+          ".hms.lock": 10,
+          "audit.effects.bin": 8,
+          "documents.text": 7778371,
+          "indices.json": 124,
+          "store.json": 443,
+          "store.json.crc32": 9,
+          "vectors_data.bin/format.json": 72,
+          "vectors_data.bin/format.json.crc32": 9,
+          "vectors_data.bin/seg_0.bin": 67108864
+        },
+        "workload_only_rss_bytes": 92504064
+      },
+      "lifecycle": {
+        "arm": "prefix512",
+        "mutation_pid": 74323,
+        "restart_pid": 74325,
+        "stages": [
+          {
+            "graph_misses": [],
+            "index_status": {
+              "candidateIdentity": {
+                "dimensions": 512,
+                "embeddingSpace": {
+                  "dimensions": 1024,
+                  "metric": "cosine",
+                  "model": "Qwen/Qwen3-Embedding-0.6B",
+                  "normalization": "l2",
+                  "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+                },
+                "normalization": "prefix-l2-v1"
+              },
+              "current": false,
+              "generation": 3338309880926859,
+              "graph": true,
+              "graphIndexBytes": 6029456,
+              "graphResidualBytes": 2674428,
+              "rebuildRecommended": false,
+              "rerankCandidates": 50,
+              "rows": 5183,
+              "staleMutations": 42
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "StaleExact": 300
+            },
+            "stage": "stale"
+          },
+          {
+            "graph_misses": [
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "20454006"
+                ],
+                "query_id": "1"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3553087"
+                ],
+                "query_id": "300"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "33076846",
+                  "1127562"
+                ],
+                "query_id": "324"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3591070"
+                ],
+                "query_id": "362"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "25747721"
+                ],
+                "query_id": "528"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "471735",
+                  "2147704"
+                ],
+                "query_id": "587"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "4460880"
+                ],
+                "query_id": "619"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "4399268"
+                ],
+                "query_id": "690"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "12903921"
+                ],
+                "query_id": "691"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "46926352"
+                ],
+                "query_id": "693"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "21164071"
+                ],
+                "query_id": "814"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "16927286"
+                ],
+                "query_id": "820"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "16927286"
+                ],
+                "query_id": "821"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "1897324"
+                ],
+                "query_id": "830"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "2061878"
+                ],
+                "query_id": "859"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "22059387"
+                ],
+                "query_id": "882"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "2251426"
+                ],
+                "query_id": "887"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "37296667"
+                ],
+                "query_id": "1140"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "10029970",
+                  "26283293",
+                  "15548965"
+                ],
+                "query_id": "1175"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "36310858"
+                ],
+                "query_id": "1187"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "38747567"
+                ],
+                "query_id": "1281"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "18691097"
+                ],
+                "query_id": "1303"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "164985"
+                ],
+                "query_id": "1332"
+              }
+            ],
+            "index_status": {
+              "candidateIdentity": {
+                "dimensions": 512,
+                "embeddingSpace": {
+                  "dimensions": 1024,
+                  "metric": "cosine",
+                  "model": "Qwen/Qwen3-Embedding-0.6B",
+                  "normalization": "l2",
+                  "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+                },
+                "normalization": "prefix-l2-v1"
+              },
+              "current": true,
+              "generation": 6430991306821849,
+              "graph": true,
+              "graphIndexBytes": 6005008,
+              "graphResidualBytes": 2663592,
+              "rebuildRecommended": false,
+              "rerankCandidates": 50,
+              "rows": 5162,
+              "staleMutations": 0
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "ProjectedGraph": 300
+            },
+            "stage": "reopened"
+          },
+          {
+            "graph_misses": [
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "20454006"
+                ],
+                "query_id": "1"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3553087"
+                ],
+                "query_id": "300"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "33076846",
+                  "1127562"
+                ],
+                "query_id": "324"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "3591070"
+                ],
+                "query_id": "362"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "25747721"
+                ],
+                "query_id": "528"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "471735",
+                  "2147704"
+                ],
+                "query_id": "587"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "4460880"
+                ],
+                "query_id": "619"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "4399268"
+                ],
+                "query_id": "690"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "12903921"
+                ],
+                "query_id": "691"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "46926352"
+                ],
+                "query_id": "693"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "21164071"
+                ],
+                "query_id": "814"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "16927286"
+                ],
+                "query_id": "820"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "16927286"
+                ],
+                "query_id": "821"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "1897324"
+                ],
+                "query_id": "830"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "2061878"
+                ],
+                "query_id": "859"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "22059387"
+                ],
+                "query_id": "882"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "2251426"
+                ],
+                "query_id": "887"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "37296667"
+                ],
+                "query_id": "1140"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "10029970",
+                  "26283293",
+                  "15548965"
+                ],
+                "query_id": "1175"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "36310858"
+                ],
+                "query_id": "1187"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "38747567"
+                ],
+                "query_id": "1281"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "18691097"
+                ],
+                "query_id": "1303"
+              },
+              {
+                "condition": 0,
+                "missed_exact_ids": [
+                  "164985"
+                ],
+                "query_id": "1332"
+              }
+            ],
+            "index_status": {
+              "candidateIdentity": {
+                "dimensions": 512,
+                "embeddingSpace": {
+                  "dimensions": 1024,
+                  "metric": "cosine",
+                  "model": "Qwen/Qwen3-Embedding-0.6B",
+                  "normalization": "l2",
+                  "revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061"
+                },
+                "normalization": "prefix-l2-v1"
+              },
+              "current": true,
+              "generation": 6430991306821849,
+              "graph": true,
+              "graphIndexBytes": 6005008,
+              "graphResidualBytes": 2663592,
+              "rebuildRecommended": false,
+              "rerankCandidates": 50,
+              "rows": 5162,
+              "staleMutations": 0
+            },
+            "queries_checked": 900,
+            "routes": {
+              "FilteredExact": 600,
+              "ProjectedGraph": 300
+            },
+            "stage": "rebuilt"
+          }
+        ]
+      }
+    }
+  }
+}

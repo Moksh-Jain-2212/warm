@@ -40,10 +40,10 @@ index.search("feline on a rug", k=3)             # [(id, score, text), ...]
 hm.Embedder(threads=4, max_length=256).embed_query("what is WARM?")   # list[float]
 ```
 
-Node (`npm i writerslogic-warm`; `npm i writerslogic-warm-models` adds offline packs):
+Node (`npm i warm-sdk`; `npm i writerslogic-warm-models` adds offline packs):
 
 ```js
-const { LocalEmbedder, SemanticIndex } = require('writerslogic-warm')
+const { LocalEmbedder, SemanticIndex } = require('warm-sdk')
 const embedder = await LocalEmbedder.load()
 const index = SemanticIndex.create(embedder)
 await index.add(['a', 'b'], ['The cat sat on the mat.', 'Quarterly revenue grew.'])
@@ -175,6 +175,25 @@ query/passage instruction, token and UTF-8 prefix truncation, and inference prof
 normalization records `none`. Worker counts and batch sizes do not change the pure-Rust identity.
 Candle query tasks and numeric precision are part of its identity. The core and MCP backend
 validate the installed embedder against that identity, including same-dimensional replacements.
+
+The separate `local-models` Qwen3 embedder defaults to the `UserMessages` query task.
+For general document retrieval, select `EmbeddingQueryTask::Documents` with
+`set_query_task` before reading `space()` or installing model stages. It uses the
+[Qwen3 reference retrieval instruction](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B/blob/97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3/README.md).
+Documents remain unprefixed; the query instruction changes the effective embedding
+space, so it cannot silently replace another task in an existing store. The
+`Conversation` task remains the instruction for retrieving both conversation roles.
+All three tasks keep the current 2048-token input cap and full model output width.
+
+Qwen3-Embedding-0.6B supports Matryoshka prefixes from 32 through 1024 dimensions,
+according to its pinned model card. WARM's opt-in
+[candidate projection](../guides/retrieval-contracts.md#optional-matryoshka-candidates)
+uses those short prefixes for graph search and the retained full vectors for
+reranking. This changes retrieval work, not embedding inference cost. It is separate
+from the default BERT-family local embedder; prefix compatibility must be established
+for the chosen model and preprocessing. This path remains experimental: the
+[fresh native evaluation](../research/technical-audit-20261029/matryoshka-native-20261102/README.md)
+failed its quality gates for both tested settings and collected no query timings.
 
 Previously created managed-model stores with nominal revisions cannot establish their original
 embedding function. Preserve them with the original binary and configuration; re-embed original

@@ -278,13 +278,27 @@ impl WarmCore {
     /// vector snapshot (`documents::vector_index`) when one is built: the graph index under
     /// `Auto`/`Graph`, the contiguous exact scan under `Exact`. Without a snapshot, or when the
     /// snapshot is too stale for this query, the generic exact path answers. `Graph` without a
-    /// graph index fails with [`documents::GraphUnavailable`].
+    /// graph index fails with [`documents::GraphUnavailable`]. Filters always use complete
+    /// full-dimensional eligibility before ranking. Projected stale or zero-prefix queries
+    /// use the full exact route.
     pub fn search_vectors(
         &self,
         embedding: &[f64],
         k: usize,
         options: &VectorQueryOptions,
     ) -> Result<Vec<DocumentResult>> {
+        Ok(self
+            .search_vectors_with_report(embedding, k, options)?
+            .results)
+    }
+
+    /// Vector results with the route actually used, including full exact fallbacks.
+    pub fn search_vectors_with_report(
+        &self,
+        embedding: &[f64],
+        k: usize,
+        options: &VectorQueryOptions,
+    ) -> Result<documents::VectorSearchResults> {
         let Some(space) = &self.config.embedding_space else {
             anyhow::bail!("configure an embedding space before vector search");
         };
@@ -304,29 +318,17 @@ impl WarmCore {
         );
         let normalized = documents::normalize_embedding(embedding, space.dimensions)?;
         let query: Vec<f32> = normalized.iter().map(|&value| value as f32).collect();
-        match self.vector_index.get() {
-            Some(snapshot) => {
-                if let Some(results) = documents::search_vector_snapshot(
-                    &snapshot,
-                    &self.documents,
-                    &query,
-                    &normalized,
-                    k,
-                    options,
-                )? {
-                    return Ok(results);
-                }
-            }
-            None if options.mode == VectorIndexMode::Graph => {
-                return Err(anyhow::Error::new(documents::GraphUnavailable));
-            }
-            None => {
-                // First vector query over a store without a snapshot: publish one now so an
-                // unfiltered query answers from the same scan before and after maintenance
-                // (the fallback below scores `f64` rows and would differ in the last digits).
-                if self.rebuild_vector_index(documents::DEFAULT_GRAPH_MIN_ROWS)? {
-                    if let Some(snapshot) = self.vector_index.get() {
-                        if let Some(results) = documents::search_vector_snapshot(
+        let filtered = options.source_uri.is_some()
+            || options.document_ids.is_some()
+            || options
+                .filter
+                .as_ref()
+                .is_some_and(|filter| filter.as_object().is_none_or(|object| !object.is_empty()));
+        if !filtered {
+            match self.vector_index.get() {
+                Some(snapshot) => {
+                    if snapshot.matches_embedding_space(space) {
+                        if let Some(results) = documents::search_vector_snapshot_with_report(
                             &snapshot,
                             &self.documents,
                             &query,
@@ -335,6 +337,28 @@ impl WarmCore {
                             options,
                         )? {
                             return Ok(results);
+                        }
+                    }
+                }
+                None if options.mode == VectorIndexMode::Graph => {
+                    return Err(anyhow::Error::new(documents::GraphUnavailable));
+                }
+                None => {
+                    // First vector query over a store without a snapshot: publish one now so an
+                    // unfiltered query answers from the same scan before and after maintenance
+                    // (the fallback below scores `f64` rows and would differ in the last digits).
+                    if self.rebuild_vector_index(documents::DEFAULT_GRAPH_MIN_ROWS)? {
+                        if let Some(snapshot) = self.vector_index.get() {
+                            if let Some(results) = documents::search_vector_snapshot_with_report(
+                                &snapshot,
+                                &self.documents,
+                                &query,
+                                &normalized,
+                                k,
+                                options,
+                            )? {
+                                return Ok(results);
+                            }
                         }
                     }
                 }
@@ -347,13 +371,27 @@ impl WarmCore {
             lexical_weight: Some(0.0),
             semantic_weight: Some(1.0),
             min_semantic_score: Some(options.min_score),
+            filter: options.filter.clone(),
+            source_uri: options.source_uri.clone(),
+            document_ids: options.document_ids.clone(),
             ..SearchOptions::default()
         };
         let mut hits = self.search_documents("", &fallback)?;
         for hit in &mut hits {
             hit.score = hit.semantic_score.unwrap_or(hit.score);
         }
-        Ok(hits)
+        Ok(documents::VectorSearchResults {
+            results: hits,
+            diagnostics: documents::VectorSearchDiagnostics {
+                route: if filtered {
+                    documents::VectorSearchRoute::FilteredExact
+                } else {
+                    documents::VectorSearchRoute::FallbackExact
+                },
+                candidate_dimensions: space.dimensions,
+                shortlist_limit: None,
+            },
+        })
     }
 
     pub fn vector_index_status(&self) -> VectorIndexStatus {
@@ -395,7 +433,15 @@ impl WarmCore {
             self.vector_index.clear();
             return Ok(false);
         };
-        let snapshot = documents::build_vector_snapshot(capture, graph_min_rows)?;
+        let snapshot = match &self.config.vector_candidates {
+            Some(candidates) => documents::build_projected_vector_snapshot(
+                capture,
+                graph_min_rows,
+                space,
+                candidates,
+            )?,
+            None => documents::build_vector_snapshot(capture, graph_min_rows)?,
+        };
         self.vector_index.publish(Arc::new(snapshot));
         Ok(true)
     }
