@@ -1,0 +1,22 @@
+{
+  "checked_at": "2026-11-02T02:58:14.899284+00:00",
+  "plan_sha256": "814a66ae234debd53e98e91d54c24d1eaeed7f4355f4556b2620c3f19d2f32e4",
+  "variants": {
+    "baseline": {
+      "revision": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+      "engine_vector_sha256": "a73d03603309b7bdb060b790f3d222a77bb2309fbcbf6685fbbafde5d86927ce",
+      "instrumented_vector_unchanged": true,
+      "original_binary_sha256": "93ea04ce31960cb7cb711e7da65c490a2bb2a7bb9eae362a785da6c4a2fc5a09",
+      "confirmation_binary_sha256": "7ffed0f39836260294ed7df7f0ff6a9d930e6e09dd90f67aeb3932b0e690286b"
+    },
+    "current": {
+      "revision": "0e49e592f8d7d3fddd68a842748a4c462408c4ed",
+      "engine_vector_sha256": "9f7ce9fdd9f6d77fd3ad2a3856934e80d8cc957a34b723cded2b572f7a416f60",
+      "instrumented_vector_unchanged": true,
+      "original_binary_sha256": "8beac2df875d0f916c6827d37e2153775f22ebefaa5a7ceaa678177725e868ad",
+      "confirmation_binary_sha256": "5b0774a09274a24c34021b3120c78456809826ac961663985b9b486fe52922eb"
+    }
+  },
+  "measurement_collected": false,
+  "difference": "Only standalone harness iteration count and repeating query-index schedule differ. The instrumented vector source files are byte-identical to original built sources; rebuilt binary hashes differ."
+}

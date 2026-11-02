@@ -1,0 +1,210 @@
+{
+  "revision": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+  "engine_vector_sha256": "a73d03603309b7bdb060b790f3d222a77bb2309fbcbf6685fbbafde5d86927ce",
+  "original_binary_sha256": "93ea04ce31960cb7cb711e7da65c490a2bb2a7bb9eae362a785da6c4a2fc5a09",
+  "probe_sha256": "218b539132bbb6573b759f199d7ef77bfd77d59e7a20366fa041b47e2b6fd466",
+  "instrumented_vector_sha256": "206ae3aa93404d1aac0b28325a1f502fbeadf72d2b4d53e79c72eaba8a639293",
+  "harness_sha256": "26c187124d0f934706c1eab6b82932ca058c26da06b4e9d87b41b28cf36cf679",
+  "plan_source": {
+    "scope": "Separately preregistered 1024-sample confirmation of unchanged engine revisions; retains original failed 64-sample study",
+    "baseline": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+    "current": "0e49e592f8d7d3fddd68a842748a4c462408c4ed",
+    "compiler": "Rust 1.99.0, opt-level 3 test profile, debug 0, default features, jobs 2",
+    "rows": 8192,
+    "dimensions": [
+      16,
+      128,
+      768
+    ],
+    "k": 10,
+    "warmup_queries": 8,
+    "samples_per_phase": 1024,
+    "phases": [
+      "fresh_idle",
+      "stale_idle",
+      "stale_writer"
+    ],
+    "stale_changes": "Replace IDs 0..16, delete IDs 16..24, insert IDs 8192..8200; writer replaces already-uncovered ID 0 once per query",
+    "writer_protocol": "Preconstruct replacement; query signals writer at canonical scoring entry without waiting; measure acquisition wait and complete insert; immutable pre-query full-scan oracle checked after every sample",
+    "memory": "Query-thread allocator calls and peak net requested bytes while rank_vector_snapshot runs; excludes corpus, writer allocations, output serialization, and allocator metadata/RSS",
+    "orders": [
+      [
+        "baseline",
+        "current"
+      ],
+      [
+        "current",
+        "baseline"
+      ],
+      [
+        "baseline",
+        "current"
+      ],
+      [
+        "current",
+        "baseline"
+      ],
+      [
+        "baseline",
+        "current"
+      ]
+    ],
+    "execution_budget_seconds": 600,
+    "acceptance": {
+      "correctness": "Every complete ordered (document ID, chunk index, canonical score bits) list equals a coherent brute-force oracle; deterministic paused-scoring writer test and delta/bitmap boundaries pass",
+      "writer": "Median per-process writer lock-wait p50 decreases at least 50% at dimensions 128 and 768",
+      "query": "Median per-process query p50 and p99 increase no more than 15% for fresh_idle and stale_idle at each dimension; concurrent query latency reported without hiding tradeoffs",
+      "allocation": "Additional stale capture remains bounded by 512 KiB bitmap plus 128 document Arcs and at most 1024 scored delta hits; no embedding or document-text copy",
+      "limits": "Local synthetic fixed workload on a shared desktop, conditional on all host checks; no production/general-hardware claim. Preserve original failed study. No tuning, automatic reruns or selective exclusions."
+    },
+    "source_pinning": "Both engine commits are fixed to the original comparison before rebuilding; no production source changes or diagnostic measurements in this confirmation.",
+    "query_schedule": {
+      "warmup_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "recorded_indices": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71
+      ],
+      "repeats": 16,
+      "writer_versions": "Original index+2 progression continues through 1032 iterations; query vectors alone repeat the original 64 recorded vectors."
+    },
+    "original_study": {
+      "evidence_commit": "efb53a541767d6da8893d0a86850bd28839cd096",
+      "query_gate": "failed: fresh 16D median-process empirical p99 +24.6216%; never superseded or erased",
+      "files": {
+        "plan.json": "8202ba2e4151202563d1184a28cf15893127b9dabe232f7f8baddaec79b1d449",
+        "probe.py": "c35777ef2f4ccf1cd90967ed3ba9fc733243fb0483f9a55af55bcb7f0350cb48",
+        "contention_probe.rs": "0fc4ce4e0ed204930346cabac65dddad8a41060af1c38fb999bbcf205fa90ea0",
+        "summary.json": "bb595ce241cd7e25c0480685e181661e5871d1fce2cdd42ebb98602b449802c6",
+        "execution.json": "5cb6196cdce47cd0fd280b7e2f36992d863abfb1b4ec2f71fc5bbb74c9024715"
+      }
+    },
+    "confirmation_reason": "Increase empirical tail-sample precision: original 64-sample nearest-rank p99 is the maximum; 1024 samples place p99 at the eleventh-largest sample. Original failed gate and background-activity observations remain retained. This is a separately preregistered study, not an original-plan retry.",
+    "binary_change": "Existing binaries hardcode 8+64 iterations. Rebuild unchanged engine revisions with the same scoring instrumentation and only harness sample-count/query-schedule changes; preserve both original and new binary hashes.",
+    "host_conditions": {
+      "preflight_observations": 2,
+      "preflight_interval_seconds": 5,
+      "monitor_interval_seconds": 5,
+      "require_explicit_coordinator_quiet_grant": true,
+      "unexpected_build_names": [
+        "cargo",
+        "rustc",
+        "clang",
+        "clang++",
+        "cc",
+        "cc1",
+        "cc1plus",
+        "ld",
+        "lld",
+        "ninja",
+        "make",
+        "cmake"
+      ],
+      "exclusions": "Only this harness PID, its descendants (including the active probe and ps collector), and its exact ancestor PIDs; never unrelated children of ancestors.",
+      "inconclusive_if": "Any observed aggregate external CPU capacity >20%, any non-excluded build executable, failed process observation, changed logical CPU count, missing/failed process, expired execution budget, or missing quiet grant. Preflight violation prevents measurement; in-run violation stops after the active process and retains partial evidence. No exclusions or automatic retries.",
+      "limitation": "This is an observed shared-host activity budget, not an isolated or idle host. Sampled ps CPU/load observations cannot rule out activity between observations or attribute latency changes; unrelated jobs are never stopped.",
+      "external_cpu_capacity_percent_limit": 20.0,
+      "logical_cpu_count": 10,
+      "aggregate_definition": "Sum all non-excluded ps CPU percentages divided by logical CPU count; ps 100% is one logical core. Exactly 20% total external capacity is allowed; >20% is inconclusive.",
+      "worker_condition": "Coordinator confirms no WARM worker builds or tests during measurement; observed external compiler/build executables also disqualify the run."
+    },
+    "preregistered_at": "2026-11-02T02:50:39.588074+00:00",
+    "frozen_at": "2026-11-02T02:54:04.776569+00:00"
+  },
+  "command": [
+    "cargo",
+    "+1.99.0",
+    "test",
+    "--offline",
+    "--locked",
+    "--lib",
+    "--no-run",
+    "--message-format=json"
+  ],
+  "settings": {
+    "CARGO_TARGET_DIR": "/Volumes/A/warm-vector-contention/target/vector-contention/build",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_PROFILE_DEV_OPT_LEVEL": "3",
+    "CARGO_PROFILE_TEST_OPT_LEVEL": "3",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "RAYON_NUM_THREADS": "1"
+  },
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+  "started_at": "2026-11-02T02:54:25.982685+00:00",
+  "status": "built",
+  "exit_code": 0,
+  "binary": "/Volumes/A/warm-vector-contention/target/vector-contention-confirmation-1024/baseline-probe",
+  "binary_sha256": "7ffed0f39836260294ed7df7f0ff6a9d930e6e09dd90f67aeb3932b0e690286b",
+  "finished_at": "2026-11-02T02:55:34.127709+00:00"
+}

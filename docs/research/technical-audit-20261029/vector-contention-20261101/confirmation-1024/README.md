@@ -1,5 +1,12 @@
 # Separately preregistered 1,024-sample confirmation
 
+**Blocked before measurement.** The single attempt's two host preflights observed
+20.62% and 20.34% external CPU capacity, exceeding the frozen 20% budget.
+No benchmark process or timing sample ran; no retry occurred. `preflight-failure.json`
+and `host-availability.json` retain the outcome and complete observations. The
+candidate remains unqualified; this attempt contributes no new timing or oracle
+results. The coordinating agent released the workers after the failed preflight.
+
 The original 64-sample study and failed fresh-16D latency gate at commit
 `efb53a541767d6da8893d0a86850bd28839cd096` remain unchanged. This confirmation
 increases empirical tail-sample precision: nearest-rank p99 is the maximum with
@@ -44,6 +51,21 @@ original failure.
 `design-revision.json` retains an earlier draft's 25% per-process CPU rule and
 the coordinator's correction to an aggregate capacity budget before any builds
 or timings. No performance result informed that revision.
+
+Both rebuilt binaries compiled successfully and `build-verification.json` confirms
+that their instrumented vector source files are byte-identical to the original
+study. The candidate's unused test pause-hook warning arises because the benchmark
+replaces that hook with its own identical instrumentation in both revisions.
+Five harness integrity tests passed; their exact output is in `harness-tests.log.gz`.
+
+`codegen-inspection.json` and `original-*-rank-disassembly.log.gz` retain a read-only
+inspection of the original binaries, including exact commands and executable hashes.
+The original baseline dispatch reserves 464 stack bytes (`sub sp, sp, #0x1d0`);
+the original candidate reserves 512 bytes (112-byte pre-indexed save plus
+`sub sp, sp, #0x190`). This 48-byte increase is a concrete code-generation difference.
+It does not establish the cause of the original tail-latency failure. Extracting
+the complete stale exact route into a non-inlined helper is a bounded follow-up
+implementation experiment; a changed candidate needs its own frozen comparison.
 
 Use `uv run --no-project python` with `probe.py build baseline`, then
 `build current`. `probe.py verify` checks pinned artifacts. `probe.py preflight`

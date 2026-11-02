@@ -1,0 +1,21 @@
+{
+  "recorded_at": "2026-11-02T03:01:51.633405+00:00",
+  "status": "blocked_before_measurement",
+  "attempts": 1,
+  "timing_processes_started": 0,
+  "timing_samples_collected": 0,
+  "automatic_retries": 0,
+  "command_exit_code": 1,
+  "error": "Host preflight failed; no timing samples were collected",
+  "external_capacity_percent": [
+    20.62,
+    20.34
+  ],
+  "frozen_capacity_limit_percent": 20,
+  "plan_sha256": "814a66ae234debd53e98e91d54c24d1eaeed7f4355f4556b2620c3f19d2f32e4",
+  "host_observations_sha256": "bbd93cb207762a290beb067c9a5b69539b04d2423d4fb6cf5f04d58c14c92b41",
+  "quiet_grant": "Root coordinator: root Clippy and final six text tests complete; builds/tests stopped. Timing granted after candidate build/hash verification only if both frozen aggregate external-load preflights pass. No other WARM worker builds/tests authorized during the run. Grant recorded 2026-11-02T02:58:14Z; preserve any inconclusive result without retry.",
+  "original_study_files_unchanged": true,
+  "performance_qualified": false,
+  "interpretation": "The unchanged engine candidate remains unqualified; this confirmation supplied no new timing or oracle evidence. Preflight rejected shared-host activity under its separately frozen aggregate budget. Do not relax the budget or repeat this study to obtain a passing result."
+}
