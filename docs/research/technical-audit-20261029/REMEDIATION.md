@@ -2133,3 +2133,38 @@ sources/locks and the separate native benchmark bridge still mention/use bincode
 they are outside this shipping-library dependency removal and have not been
 rewritten as if old experiments used a new codec. No performance benefit is claimed.
 Integration, package verification and hosted gates remain required before merge.
+
+### Native vector migration integration (2026-11-02)
+
+Native vector-only records and `warm-sdk/vectra` are implemented and locally
+qualified. Schema 7 is explicit opt-in; ordinary new stores remain schema 6, and
+older stores use the existing copy/verify/publish upgrade path. Ordered batches
+are atomic, original accepted f64 vector bits are retained separately from the
+normalized search representation, and revision tokens guard metadata paging and
+ranking. Record kind is explicit, so ordinary document metadata cannot impersonate
+a native record. Original vectors plus metadata share the documented 64 KiB limit.
+
+The migration profile preserves Vectra 0.15 selector behavior, including its quirks,
+and evaluates complete eligibility before top-k. It preserves full versus indexed
+metadata separately, imports into a fresh owned directory, quarantines failed
+imports, and rejects unsafe external metadata filenames before reads. This is a
+documented vector migration profile; browser storage and Vectra's full API remain
+outside its compatibility scope. Filter scans include their actual wrapper and
+archive-handling cost; performance improvement is not assumed.
+
+The [integrated validation](vector-migration-integration-20261102/validation.json)
+records 1,175 passing Rust test executions across 67 groups, no failures, strict
+Clippy/formatting and the all-features dependency gate. The 13 ignores are 12 existing
+diagnostics and the deliberate golden writer. Node passes 25 default tests, and
+all three optional embedding fixture tests pass in the feature-enabled addon;
+all four type fixtures and bundled/CJS/ESM/platform consumer gates pass. The
+coordinator verified nine Node artifact hashes, 17 log archives and 13 source hashes.
+The clean crate archive is 3,244,600 bytes, includes the required legacy event fixture,
+builds from its tarball, and passes 17 packaged event/recovery tests. Original
+native and adapter source commits remain reachable through integration merges.
+
+Hosted checks and main merge remain pending for this integration. The
+[Vectra comparison protocol](vectra-comparison-20261102/PLAN.md) and local synthetic
+harness development are preparation only: no study search, timing, inference or
+pruning run has begun. No performance advantage, held-out task advantage or npm
+publication is claimed; the ToIP PR remains on hold.
