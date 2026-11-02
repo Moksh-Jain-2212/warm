@@ -2244,7 +2244,7 @@ PR [#378](https://github.com/writerslogic/warm/pull/378) at `60620821` completed
 threads were found. GitHub branch protection required code-owner review and refused
 the normal merge. After the user explicitly directed “merge it” in response, the
 administrator bypass merged the unchanged head as `1ff8ecebea26ef47334c657f3e337e00ff22d3ec`.
-GitHub verified its signature; both parents and the tree match the qualified source.
+GitHub verified its signature; both parents and the tree match the qualified source. The [merge receipt](vectra-comparison-20261102/pr378-merge-verification.json) preserves the hosted gate and signature evidence.
 The main worktree was fast-forwarded to that merge and its unrelated modifications
 were preserved.
 
@@ -2277,3 +2277,16 @@ the host, require installed nonoptional dependencies, and normalize runtime path
 The latest local gate passes 18 vector and 16 hybrid synthetic tests. The comparison
 inputs themselves have not yet been frozen or scored, and workload feasibility
 within the fixed phase ceilings remains unestablished.
+
+The combined input freeze was created at
+`/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen` with freeze hash
+`bdc3c2b02e1b93b48895280da89d434a3fd9570bb09770f96a5b67ceea37d4b6`.
+The [frozen receipt](vectra-comparison-20261102/frozen-inputs-receipt.json) and
+compressed full manifests preserve source, addon, runtime, dependencies, inputs,
+schedules and ceilings. The pinned clean source is the detached worktree
+`/Volumes/A/warm-vectra-frozen-source` at `cdc6603a`; its addon hash is
+`a0f52138b80c1c2a75c152305d95385a34ea36894fc7c1cb9a3cc40d38688475`.
+The freeze itself scored no study queries. Full post-freeze verification passed;
+neither study phase has been started. An unrelated Cargo test is active on the
+shared host, so no quiet-window admission or timing preflight has been attempted. The measured performance advantage
+remains unproven, and existing failed research results are retained.

@@ -1,0 +1,13 @@
+{
+  "plan": "/Volumes/A/warm-vectra-comparison/docs/research/technical-audit-20261029/vectra-comparison-20261102/PLAN.md",
+  "inputs": "/Volumes/A/warm-vectra-comparison/docs/research/technical-audit-20261029/vectra-comparison-20261102/inputs.json",
+  "warmPath": "/Volumes/A/warm-vectra-frozen-source",
+  "warmSourceCommit": "cdc6603a24c27dc29056b7cc09c4911ef06f1341",
+  "nativeAddon": "/Volumes/A/warm-vectra-frozen-source/warm-sdk.darwin-arm64.node",
+  "vectraPath": "/Volumes/A/toip-warm-backend/toip-mcp-server/node_modules/vectra",
+  "vectraLockfile": "/Volumes/A/toip-warm-backend/toip-mcp-server/package-lock.json",
+  "hybrid": {
+    "uvPath": "/Users/davidcondrey/.local/bin/uv",
+    "tokenizerPath": "/Volumes/A/hms-models/Qwen3-Embedding-0.6B/tokenizer.json"
+  }
+}

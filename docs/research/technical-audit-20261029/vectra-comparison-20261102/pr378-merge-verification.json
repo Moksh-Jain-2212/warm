@@ -1,0 +1,20 @@
+{
+  "parents": [
+    "113f8ad12b0790d0aad5050267c46996379ee659",
+    "60620821524b3d7b1ede2b3520d37084853a4f67"
+  ],
+  "reason": "valid",
+  "sha": "1ff8ecebea26ef47334c657f3e337e00ff22d3ec",
+  "tree": "0dc62284b39db7c5a79a4d3b44a426af75341be6",
+  "verified": true,
+  "pullRequest": 378,
+  "sourceHead": "60620821524b3d7b1ede2b3520d37084853a4f67",
+  "successes": 147,
+  "conditionalSkips": 22,
+  "failed": 0,
+  "pending": 0,
+  "checksArchive": "pr378-final-checks.json.gz",
+  "checksRawSha256": "619b45427e1cf5882ca1b4b99f35b8d125a8c4473dfbfb73364ff6b8867fee8c",
+  "checksGzipSha256": "a1263f7e4f41565399007915918937b08b56788c4ed1dd8f90e996e9ee5472a0",
+  "mergeAuthorization": "User directed merge after normal merge was blocked by the required code-owner review; administrator bypass used."
+}

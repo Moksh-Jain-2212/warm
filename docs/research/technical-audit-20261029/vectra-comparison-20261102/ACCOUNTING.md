@@ -22,6 +22,16 @@ setup, validation, interruption checks and reporting. Two hours would allow at m
 arithmetic ceilings, not measured or projected performance. Feasibility remains
 unestablished; do not infer that the full schedule fits the fixed budget.
 
+The hybrid workload also has a source-derived I/O constraint. Vectra's pinned
+`LocalIndex` awaits each reader call in its BM25 loop. If every declared case
+reaches the validated ranking path, the all/10%/1% filters have 5,183/520/52
+eligible documents and 5,173/510/42 reader calls after the ten semantic results.
+Across 300 quality queries per filter this is 1,717,500 sequential reads. Across
+three repetitions of the fixed timing and warmup schedules it is 5,164,800 reads.
+The measurement ceiling would permit at most 1.394 ms per read if all other work
+were free; this is an arithmetic upper bound, not a measured latency or duration
+projection. Errors can reduce actual reads but cannot qualify the affected results.
+
 The phase watchdog observes controller and descendant RSS and external CPU between
 worker jobs as well as during them. It stops the active worker on violation. An
 in-progress filesystem operation, including copying or hashing, may not stop
