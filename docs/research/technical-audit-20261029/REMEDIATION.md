@@ -2168,3 +2168,70 @@ Hosted checks and main merge remain pending for this integration. The
 harness development are preparation only: no study search, timing, inference or
 pruning run has begun. No performance advantage, held-out task advantage or npm
 publication is claimed; the ToIP PR remains on hold.
+
+### User-requested stopping point (2026-11-02 UTC)
+
+The user requested a stopping point and progress summary. Main is clean at
+`113f8ad12b0790d0aad5050267c46996379ee659`. PRs
+[#375](https://github.com/writerslogic/warm/pull/375) and
+[#376](https://github.com/writerslogic/warm/pull/376) are merged. The four original
+follow-ups are complete: durable retry/reconciliation, text publication and cleanup
+recovery, bounded query scratch memory, and changed-row vector tracking with reduced
+writer contention. The Node temporal workflow, `warm-sdk` rename and experimental
+prefix retrieval are also on main. The final #376 gate recorded 147 successes,
+23 conditional skips and one neutral result; its signed merge tree matched the
+qualified source. Nothing has been published to npm.
+
+The fresh Matryoshka study is finished, not awaiting a rerun: both tested prefix
+settings failed the declared quality criteria. CPU-load preflight rejected timing,
+so no speedup was measured. Full vectors remain the default. Neither a general
+Vectra performance advantage nor a selective-memory quality/cost advantage has
+been established.
+
+[#378](https://github.com/writerslogic/warm/pull/378) is pushed at
+`60620821524b3d7b1ede2b3520d37084853a4f67`, but is not merged. It contains native
+vector records, the Vectra migration profile and removal of the shipping library's
+bincode dependency/advisory exception. The local gate above passed; the final
+type-only review fix also passed all four type fixtures. At the
+[saved 07:50:39 UTC snapshot](vectra-comparison-20261102/pr378-stop-snapshot.json),
+95 checks had succeeded, 26 were running, six were conditionally skipped and one
+was neutral. No current-head failure or unresolved review thread was reported.
+Existing hosted jobs continue; monitoring has stopped. Recheck this mutable state
+before merging. Bincode removal must not be described as already on main.
+
+Comparison preparation is saved separately from #378. The hybrid harness and its
+11 passing synthetic checks are committed at `afb049022e78f04577f56460e788aa9e504dea49`
+in `/Volumes/A/warm-evaluation-followups` (`docs/evaluation-followups`). The vector
+harness is in `/Volumes/A/warm-vectra-vector-harness`
+(`test/vectra-vector-harness`), clean at signed/DCO commit
+`1b8fc1002030c5180c6226e8afd8380dcefd6e25`, with eight passing synthetic groups and
+no skips. Its receipt and compressed log are committed under the same research
+subdirectory as `vector-development.json` and `vector-development.log.gz` on that
+branch. The coordinator verified the receipt, six harness hashes, native/JS
+artifacts and raw/compressed log hashes. The development receipt explicitly records
+that the reused native addon predates the fully integrated build. No real comparison
+corpus scoring, freeze or timing has run. The independent bounded review found
+[three unresolved qualification blockers](vectra-comparison-20261102/vector-review-blockers.json):
+timed ANN quality is not gated per repetition, duplicate query IDs can hide missing
+static/lifecycle queries, and graph result order is not checked. These are benchmark
+harness defects, not demonstrated production retrieval defects. Passing development
+checks do not qualify this harness for a study.
+
+Resume from `/Volumes/A/warm-vectra-comparison`, branch
+`research/vectra-comparison`, which preserves this checkpoint without changing
+#378. First finish #378's complete hosted checks/workflows, inspect review/security
+findings, and merge normally only when qualified; verify merge signature, parent
+and tree, then fast-forward the clean main checkout. Next fix all three harness
+blockers with focused failing-case regressions, verify the descendant-cleanup
+regression, and integrate the saved hybrid/vector branches with ancestry preserved.
+Review the shared monitor and complete measurement accounting before freezing
+source, final integrated addon, inputs, dependencies, schedule and budgets. Then
+execute the existing protocol only after its explicit admission/preflight gates;
+failed quality and preflight results stay recorded without automatic retries.
+
+Use Rust 1.99, two build jobs and separate worktrees for concurrent builds. Preserve
+signed/DCO commits and all research evidence. No paid development calls, model
+downloads, user-memory deletion, npm publication or ToIP PR work is authorized by
+this checkpoint. ToIP remains on hold. The proposed memory-pruning study remains
+future work requiring held-out quality and total-cost evidence against simpler
+selection methods.

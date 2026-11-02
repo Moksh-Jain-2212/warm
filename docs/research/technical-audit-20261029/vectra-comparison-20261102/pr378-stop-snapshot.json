@@ -1,0 +1,23 @@
+{
+  "observed_at_utc": "2026-11-02T07:50:39Z",
+  "pr": "https://github.com/writerslogic/warm/pull/378",
+  "head": "60620821524b3d7b1ede2b3520d37084853a4f67",
+  "merged": false,
+  "check_counts": {
+    "skipped": 6,
+    "neutral": 1,
+    "success": 95,
+    "in_progress": 26
+  },
+  "workflow_counts": {
+    "skipped": 1,
+    "success": 6,
+    "in_progress": 10
+  },
+  "unresolved_review_threads": 0,
+  "snapshot_archive": "pr378-stop-snapshot.tar.gz",
+  "snapshot_sha256": "61732945caafd8dd9612f67a085da3f502a33e9d6cec7d986b74484740793dcf",
+  "verified_raw_hashes": 12,
+  "monitor_stopped": true,
+  "hosted_jobs": "Existing GitHub workflows remain running; none cancelled or rerun at this stopping point."
+}
