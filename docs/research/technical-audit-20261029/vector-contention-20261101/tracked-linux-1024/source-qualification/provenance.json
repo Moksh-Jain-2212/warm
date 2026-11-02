@@ -1,0 +1,19 @@
+{
+  "recorded_at": "2026-11-02T04:06:43.524073+00:00",
+  "tested_tracker_commit": "8cd4cb9056b69ab6f6778cabd6a901c0735fe97c",
+  "integrated_candidate": "b4fc1ba634e1cca0ae8024f259fa6bcb8ef73954",
+  "later_docstring_commit": "d666cac19cd427a174fb34d51ed843bed09b0e04",
+  "tested_source_hashes": {
+    "src/core/documents/index.rs": "240d4dc93f692b3ce830e1f316ac174d7a384da3b81079855e0cc506c5f0f912",
+    "src/core/documents/vector_index.rs": "af65de0d28b36b7f6cbc974f557325ba9c6c4bb33d2a07248069f38147d2b042",
+    "src/core/engine/document_snapshot_tests.rs": "864499253616c0415ed9c261925f8338aaa2b677dce2caa109b69be76c647a45"
+  },
+  "integrated_source_hashes": {
+    "src/core/documents/index.rs": "240d4dc93f692b3ce830e1f316ac174d7a384da3b81079855e0cc506c5f0f912",
+    "src/core/documents/vector_index.rs": "c3e7de4ad76fa71712c07b8507297fe82073940500b3d7470674ce03fc731e92",
+    "src/core/engine/document_snapshot_tests.rs": "864499253616c0415ed9c261925f8338aaa2b677dce2caa109b69be76c647a45"
+  },
+  "source_difference": "Only the retained vector_index.rs module-docstring patch differs between scoped-test source and integrated source; every non-comment source line in the three reviewed Rust files matches. No rerun or timing is claimed for this archival step.",
+  "scope": "Initial scoped qualification: 15 vector tests, 16 snapshot tests, strict library/test Clippy, format/diff; zero ignored. Root combined tests/Clippy/fmt gate and explicit dispatch are still required.",
+  "log_storage": "Raw original log SHA256 values remain in qualification.json; .log.gz files decompress to those exact bytes."
+}
