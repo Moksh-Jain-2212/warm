@@ -1,6 +1,6 @@
 'use strict'
 
-const { DocumentMemory } = require('writerslogic-warm/semantic')
+const { DocumentMemory } = require('warm-sdk/semantic')
 const { KnowledgeError } = require('./errors.cjs')
 const { NAMESPACE_KEY, adaptDocument, documentId, isPlainObject, parseDocumentId, requestFailure } = require('./document.cjs')
 
@@ -264,7 +264,7 @@ class OrganizationalKnowledge {
       }
     }
     if (typeof this.#memory.listDocuments !== 'function') {
-      throw new KnowledgeError('unsupported_binding', 'this writerslogic-warm binding has no listDocuments; rebuild it from a source that exports it')
+      throw new KnowledgeError('unsupported_binding', 'this warm-sdk binding has no listDocuments; rebuild it from a source that exports it')
     }
 
     const { planned, truncated } = await this.#scan(sourceSystem, kept, limit)

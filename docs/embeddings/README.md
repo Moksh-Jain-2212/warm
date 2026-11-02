@@ -40,10 +40,10 @@ index.search("feline on a rug", k=3)             # [(id, score, text), ...]
 hm.Embedder(threads=4, max_length=256).embed_query("what is WARM?")   # list[float]
 ```
 
-Node (`npm i writerslogic-warm`; `npm i writerslogic-warm-models` adds offline packs):
+Node (`npm i warm-sdk`; `npm i writerslogic-warm-models` adds offline packs):
 
 ```js
-const { LocalEmbedder, SemanticIndex } = require('writerslogic-warm')
+const { LocalEmbedder, SemanticIndex } = require('warm-sdk')
 const embedder = await LocalEmbedder.load()
 const index = SemanticIndex.create(embedder)
 await index.add(['a', 'b'], ['The cat sat on the mat.', 'Quarterly revenue grew.'])

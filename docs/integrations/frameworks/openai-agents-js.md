@@ -3,7 +3,7 @@
 A `Session` and a set of memory tools for the OpenAI Agents SDK for JavaScript/TypeScript (`@openai/agents`), running the native engine in process through [`@writerslogic/warm-core`](js-core.md). ESM and CJS, typed.
 
 ```sh
-npm install @writerslogic/warm-openai-agents @openai/agents zod writerslogic-warm
+npm install @writerslogic/warm-openai-agents @openai/agents zod warm-sdk
 ```
 
 ## Quickstart
@@ -46,7 +46,7 @@ Pass any `WarmStoreOptions` of the core to `new WarmStore(...)`:
 
 | Knob | Option |
 |---|---|
-| Encoder | `embedder` (default: dependency-free hashing, lexical; `createLocalEmbedder(...)` from `writerslogic-warm/semantic` works directly) |
+| Encoder | `embedder` (default: dependency-free hashing, lexical; `createLocalEmbedder(...)` from `warm-sdk/semantic` works directly) |
 | BM25 | `bm25K1`, `bm25B` |
 | Title weight | `titleWeight` |
 | Hybrid | `lexicalWeight`, `semanticWeight`, `fusion` |

@@ -1,7 +1,7 @@
 {
   "name": "writerslogic-warm-models",
   "version": "0.1.0",
-  "description": "Offline model packs for the local embedder of writerslogic-warm",
+  "description": "Offline model packs for the local embedder of warm-sdk",
   "license": "Apache-2.0",
   "main": "index.js",
   "files": ["index.js", "packs/*.hmsemb"],

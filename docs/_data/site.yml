@@ -51,7 +51,7 @@ runtimes:
   - id: node
     name: Node
     status: available
-    install: npm install writerslogic-warm
+    install: npm install warm-sdk
     requires: [index.d.ts, examples/quickstart/node/quickstart.mjs]
     snippets:
       - examples/quickstart/node/quickstart.mjs:ingest

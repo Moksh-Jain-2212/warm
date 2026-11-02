@@ -79,7 +79,7 @@ updates:
     # The platform packages are published by release.yml together with the root package; until
     # a version exists on the registry, dependabot's lookup of them fails with a 404.
     ignore:
-      - dependency-name: "writerslogic-warm-*"
+      - dependency-name: "warm-sdk-*"
     labels: ["dependencies", "javascript", "automated"]
     commit-message:
       prefix: "deps(npm)"

@@ -187,7 +187,7 @@ entire checkpoint or hold store locks during text I/O.
 Install the Node.js package and its platform-specific native binary:
 
 ```sh
-npm install writerslogic-warm
+npm install warm-sdk
 ```
 
 To build from source, run `npm ci --omit=optional && npm run build` with Rust installed.
@@ -196,8 +196,8 @@ The WARM release includes `listDocuments` for scoped pruning. See the
 provenance, namespace isolation, dry runs and deletion limits.
 
 ```js quickstart-check
-const { WarmMemorySystem } = require('writerslogic-warm')
-const { DocumentMemory } = require('writerslogic-warm/semantic')
+const { WarmMemorySystem } = require('warm-sdk')
+const { DocumentMemory } = require('warm-sdk/semantic')
 
 async function main() {
   const dir = require('node:fs').mkdtempSync(require('node:path').join(require('node:os').tmpdir(), 'warm-readme-'))

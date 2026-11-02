@@ -1,5 +1,5 @@
-import { WarmMemorySystem, type DocumentInput } from '../../index.js'
-import { DocumentMemory, createLocalEmbedder, type Embedder } from '../../semantic.js'
+import { WarmMemorySystem, type DocumentInput } from 'warm-sdk'
+import { DocumentMemory, createLocalEmbedder, type Embedder } from 'warm-sdk/semantic'
 
 const input: DocumentInput = {
   id: 'guide', text: 'Restore verified backups.', metadata: { project: 'alpha' },

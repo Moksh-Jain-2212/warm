@@ -16,10 +16,10 @@ try {
   execFileSync(process.execPath, ['-e', `
     const assert = require('node:assert/strict');
     (async () => {
-      const cjs = require('writerslogic-warm');
-      const esm = await import('writerslogic-warm');
+      const cjs = require('warm-sdk');
+      const esm = await import('warm-sdk');
       assert.equal(cjs.WarmMemorySystem, esm.WarmMemorySystem);
-      const { DocumentMemory } = await import('writerslogic-warm/semantic');
+      const { DocumentMemory } = await import('warm-sdk/semantic');
       const warm = new cjs.WarmMemorySystem(4096, './store');
       const memory = new DocumentMemory(warm);
       await memory.memorize({ id: 'manual', text: 'Backups protect stored documents.', sourceUri: 'manual.md' });

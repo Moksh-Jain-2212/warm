@@ -8,5 +8,5 @@ export default defineConfig({
   dts: true,
   clean: true,
   shims: true,
-  external: ['@writerslogic/warm-core', '@openai/agents', 'zod', 'writerslogic-warm'],
+  external: ['@writerslogic/warm-core', '@openai/agents', 'zod', 'warm-sdk'],
 })

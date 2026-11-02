@@ -48,11 +48,11 @@ let why = memory.explain("where does Alice live", "home-1", &RecallOptions::defa
 memory.forget(&ForgetScope::Subject { subject: "alice/city".into() }, &ForgetOptions::default())?;
 ```
 
-Node (`writerslogic-warm/memory`):
+Node (`warm-sdk/memory`):
 
 ```js
-const { WarmMemorySystem } = require('writerslogic-warm')
-const { Memory } = require('writerslogic-warm/memory')
+const { WarmMemorySystem } = require('warm-sdk')
+const { Memory } = require('warm-sdk/memory')
 
 const memory = new Memory(new WarmMemorySystem(4096, './store'), { supersession: 'latest-by-subject' })
 await memory.remember('Alice lives in Paris', { id: 'home-1', subject: 'alice/city', validFrom: new Date('2020-01-01') })
@@ -337,7 +337,7 @@ body limits as the document routes. Errors: 422 `invalid_request`, 404 `not_foun
 lexical-only. Policies for every tenant come from `--memory-config <file.json>` (or
 `WARM_MEMORY_CONFIG`), a `MemoryConfig` in JSON, validated at startup.
 
-Node: `new Memory(system, config)` from `writerslogic-warm/memory`; times are `Date` or integer
+Node: `new Memory(system, config)` from `warm-sdk/memory`; times are `Date` or integer
 milliseconds, results carry milliseconds, errors are `MemoryError` with `code`. Python:
 `WarmClient(...).memory` / `AsyncWarmClient(...).memory` (or `MemoryClient`),
 fully typed with a `memory.pyi` stub; times are `datetime` or integer milliseconds;

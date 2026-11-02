@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto'
 
 /**
  * The encoder knob. `space` identifies the embedding space; the engine refuses a store reopened
- * with a different one. This is the same shape as `Embedder` in `writerslogic-warm/semantic`, so
+ * with a different one. This is the same shape as `Embedder` in `warm-sdk/semantic`, so
  * `createLocalEmbedder(...)` results can be passed directly.
  */
 export interface Embedder {

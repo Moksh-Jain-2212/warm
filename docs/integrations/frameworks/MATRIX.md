@@ -37,7 +37,7 @@ They come from `warm-server` (see `docs/SERVER.md`), and each adapter's page lis
 
 ## JavaScript / TypeScript (`integrations/js`, npm workspace; Node 26.8, TypeScript 5.9)
 
-All packages run against the real native addon (`writerslogic-warm`), no mocks of WARM.
+All packages run against the real native addon (`warm-sdk`), no mocks of WARM.
 
 | Package | Adapter docs | Tested version | Verification |
 |---|---|---|---|
