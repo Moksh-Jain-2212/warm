@@ -16,6 +16,7 @@ use tokio::sync::{OwnedSemaphorePermit, Semaphore, TryAcquireError};
 
 use crate::error::ApiError;
 
+#[path = "limits/durable.rs"]
 mod durable;
 
 #[cfg(test)]

@@ -25,6 +25,7 @@ const MAX_HEADER: usize = 1024;
 const QUEUE: usize = 64;
 
 #[cfg(test)]
+#[path = "durable/tests.rs"]
 mod tests;
 
 #[derive(Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

@@ -1889,6 +1889,15 @@ All four followups now have integrated implementation and acceptance evidence.
 The complete feature/platform PR gate and merge remain pending; no release or
 ToIP publication is implied.
 
+PR #375's first CI head exposed a compile-time module-resolution failure in the
+server fuzz target, which includes production modules by path. Explicit paths for
+the durable retry implementation and its tests fix both inclusion contexts. The
+focused pinned-nightly fuzz-target check, all 94 server tests, strict server Clippy
+and repository formatting pass; see
+[fuzz module validation](recovery-query-completion-20261101/fuzz-module-validation.json).
+The qualified core source and benchmark workloads are unchanged. Full CI, including
+actual fuzz execution, remains required on the revised PR head.
+
 ## Next authorized phase: changing agent memory and Vectra migration
 
 The user queued this phase after the four recovery/query followups are completed.

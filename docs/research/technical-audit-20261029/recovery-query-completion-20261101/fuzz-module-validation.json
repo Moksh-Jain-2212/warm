@@ -1,0 +1,57 @@
+{
+  "baseline_pr_head": "81f9a126ead5617e4bdfae3be7d69b0bb6f79d1e",
+  "failed_ci_job": "https://github.com/writerslogic/warm/actions/runs/41389123631/job/125096415115",
+  "failure": "E0583 resolving durable from limits.rs when the server modules are included by path in the fuzz target; compilation failed before fuzz execution.",
+  "change": "Explicit source-relative module paths for durable implementation and tests; no algorithm, format or threshold change.",
+  "source_sha256": {
+    "src/bin/warm-server/limits.rs": "4d00336e211f72c5b159fbfd8326c1f82cd5ce3c2589d81dfa7c7e710393f240",
+    "src/bin/warm-server/limits/durable.rs": "66ab36920ae152ab407e38821fbec29a66f7bbd7b127bf862b6fe3df4cdbebbc"
+  },
+  "focused_checks": [
+    {
+      "command": "CARGO_TARGET_DIR=target/recovery-fuzz CARGO_BUILD_JOBS=2 cargo +nightly-2026-05-27 check --offline --manifest-path fuzz/Cargo.toml --bin server_requests --features server",
+      "exit_code": 0
+    },
+    {
+      "command": "CARGO_TARGET_DIR=target/readiness-build CARGO_BUILD_JOBS=2 cargo +1.99.0 test --locked --features security,experimental,server,mcp --bin warm-server",
+      "exit_code": 0,
+      "passed": 94,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "command": "CARGO_TARGET_DIR=target/readiness-build CARGO_BUILD_JOBS=2 cargo +1.99.0 clippy --locked --features security,experimental,server,mcp --bin warm-server -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo +1.99.0 fmt -- --check",
+      "exit_code": 0
+    }
+  ],
+  "fuzz_lock_note": "The fuzz workspace lock is ignored by the repository and the workflow resolves it. An initial --locked check stopped before compilation; the project-compatible local check resolved cached dependencies offline.",
+  "fuzz_lock_sha256": "dd4d840b4ad5fbf183a29d1d2a4f74f06e18cb20e1aae19f09f8ca737048ac6d",
+  "production_core_unchanged_from_qualified_source": "b4fc1ba634e1cca0ae8024f259fa6bcb8ef73954",
+  "limits": "Local focused compile and server checks; the full PR gate and actual hosted fuzz execution remain required on the revised head.",
+  "logs": {
+    "fuzz-module-ci-failure.log.gz": {
+      "raw_sha256": "eff20e03c28f7d017e6103fe2ffd55d967497d22f8446254ebf810f4a0e5755c",
+      "gzip_sha256": "d03915ebdc2d09b1c5267b51e91f595254169d0df2e823e217bafce217bcfd56"
+    },
+    "fuzz-module-check.log.gz": {
+      "raw_sha256": "07cdfaf3e52aff6b2a1f44f7f402b5828fb8969d2b6b478a16879770887ba99e",
+      "gzip_sha256": "7d434acdbbcc0759e19c3bb9718fac51cfb0408d59f8cd3dc9e24cbeba2f12b7"
+    },
+    "fuzz-module-server.log.gz": {
+      "raw_sha256": "592c7da792d5d78489732273911148b91dc6e512e9dcf98dac34bdd2a5f8f6dc",
+      "gzip_sha256": "1ede37fc9ed59910cfa94ba5bf7ad4058c385ac5941a222b0c4132ee8f397e52"
+    },
+    "fuzz-module-clippy.log.gz": {
+      "raw_sha256": "eb679f8b4afc67d43abd590d6749b153476058b3dece19e773716be81544618f",
+      "gzip_sha256": "6941a616e72e2b4b5ca57cc02227aa9c7b34c858175aed60cb94a5b4568614a5"
+    },
+    "fuzz-module-format.log.gz": {
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    }
+  }
+}
