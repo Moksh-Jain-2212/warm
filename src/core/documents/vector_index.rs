@@ -748,8 +748,8 @@ fn capture_stale_exact(
 }
 
 /// The hits with their text, or `None` when the text of one was scrubbed since the ranking
-/// (its document replaced or deleted). `_store` is the store's read guard: a scrub happens
-/// under its write lock, so a read never overlaps one.
+/// (its document replaced or deleted). `_store` is the store's read guard: logical hiding
+/// is published under its write lock before physical erasure, preventing reads of hidden text.
 pub(crate) fn read_vector_hits(
     ranked: RankedVectorHits,
     _store: &DocumentStore,
@@ -797,7 +797,7 @@ pub(crate) fn rank_vector_snapshot(
         "minScore must be in [-1,1]"
     );
     let index = snapshot.index(options.mode)?;
-    let (generation, mut segment) = {
+    let (generation, segment) = {
         let store = store.read();
         (store.generation, store.text_segment())
     };
@@ -805,6 +805,16 @@ pub(crate) fn rank_vector_snapshot(
     let exact_index = index.kind() == VectorIndexKind::Exact;
     let extra = usize::try_from(stale).unwrap_or(usize::MAX).min(4 * k);
     let fetch = (k + extra + 8).min(snapshot.rows());
+    if stale != 0 && exact_index {
+        return rank_stale_exact_snapshot(
+            snapshot,
+            store,
+            exact_query,
+            k,
+            fetch,
+            options.min_score,
+        );
+    }
     let graph_hits = if exact_index {
         Vec::new()
     } else {
@@ -829,44 +839,6 @@ pub(crate) fn rank_vector_snapshot(
                 chunk: row.chunk,
                 score,
             });
-        }
-    } else if exact_index {
-        let captured = {
-            let store = store.read();
-            capture_stale_exact(snapshot, &store)?
-        };
-        let Some(captured) = captured else {
-            return Ok(None);
-        };
-        segment = captured.segment;
-        let hits = snapshot.exact.search_canonical(exact_query, k, |row| {
-            captured.live_rows[row / 64] & (1 << (row % 64)) != 0
-        });
-        for (row, score) in hits {
-            let row = &snapshot.rows[row as usize];
-            found.push(Hit {
-                document: Arc::clone(&row.document),
-                chunk: row.chunk,
-                score,
-            });
-        }
-        for document in &captured.delta {
-            for (chunk, stored) in document.chunks.iter().enumerate() {
-                if stored
-                    .embedding
-                    .as_ref()
-                    .is_some_and(|embedding| embedding.len() == snapshot.dim)
-                {
-                    found.push(Hit {
-                        document: Arc::clone(document),
-                        chunk: u32::try_from(chunk).context("chunk index over u32")?,
-                        score: 0.0,
-                    });
-                }
-            }
-        }
-        if found.len() < k.min(snapshot.rows()) {
-            return Ok(None);
         }
     } else {
         let store = store.read();
@@ -906,6 +878,79 @@ pub(crate) fn rank_vector_snapshot(
             return Ok(None);
         }
     }
+    Ok(Some(finish_vector_hits(
+        found,
+        segment,
+        exact_query,
+        k,
+        options.min_score,
+    )))
+}
+
+#[inline(never)]
+fn rank_stale_exact_snapshot(
+    snapshot: &VectorSnapshot,
+    store: &RwLock<DocumentStore>,
+    exact_query: &[f64],
+    k: usize,
+    fetch: usize,
+    min_score: f64,
+) -> Result<Option<RankedVectorHits>> {
+    let captured = {
+        let store = store.read();
+        capture_stale_exact(snapshot, &store)?
+    };
+    let Some(captured) = captured else {
+        return Ok(None);
+    };
+    let segment = captured.segment;
+    let mut found = Vec::with_capacity(fetch);
+    let hits = snapshot.exact.search_canonical(exact_query, k, |row| {
+        captured.live_rows[row / 64] & (1 << (row % 64)) != 0
+    });
+    for (row, score) in hits {
+        let row = &snapshot.rows[row as usize];
+        found.push(Hit {
+            document: Arc::clone(&row.document),
+            chunk: row.chunk,
+            score,
+        });
+    }
+    for document in &captured.delta {
+        for (chunk, stored) in document.chunks.iter().enumerate() {
+            if stored
+                .embedding
+                .as_ref()
+                .is_some_and(|embedding| embedding.len() == snapshot.dim)
+            {
+                found.push(Hit {
+                    document: Arc::clone(document),
+                    chunk: u32::try_from(chunk).context("chunk index over u32")?,
+                    score: 0.0,
+                });
+            }
+        }
+    }
+    if found.len() < k.min(snapshot.rows()) {
+        return Ok(None);
+    }
+
+    Ok(Some(finish_vector_hits(
+        found,
+        segment,
+        exact_query,
+        k,
+        min_score,
+    )))
+}
+
+fn finish_vector_hits(
+    mut found: Vec<Hit>,
+    segment: Option<Arc<TextSegment>>,
+    exact_query: &[f64],
+    k: usize,
+    min_score: f64,
+) -> RankedVectorHits {
     for hit in &mut found {
         if let Some(embedding) = hit
             .document
@@ -917,12 +962,12 @@ pub(crate) fn rank_vector_snapshot(
         }
     }
     found.sort_by(compare_hits);
-    found.retain(|hit| hit.score >= options.min_score);
+    found.retain(|hit| hit.score >= min_score);
     found.truncate(k);
-    Ok(Some(RankedVectorHits {
+    RankedVectorHits {
         hits: found,
         segment,
-    }))
+    }
 }
 
 /// The engine's published snapshot and the build lock.
