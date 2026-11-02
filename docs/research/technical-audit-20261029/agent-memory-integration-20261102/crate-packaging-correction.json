@@ -1,0 +1,48 @@
+{
+  "recorded_at": "2026-11-02T06:55:40.590697+00:00",
+  "base_commit": "1e066c06fc72010c0a9173534bcc857b096b9da8",
+  "hosted_failure": {
+    "run": 41402013501,
+    "job": 125135661906,
+    "archive_bytes": 21858747,
+    "gate_bytes_exclusive": 9500000
+  },
+  "change": "Exclude only docs/research gzip, JSON, JSONL, log and bundle artifacts from Cargo package membership; repository evidence, research Markdown/drivers/images, all other docs/source/tests/fixtures remain unchanged.",
+  "membership": {
+    "before_file_count": 1907,
+    "after_file_count": 974,
+    "removed_count": 933,
+    "removed_raw_bytes": 24981653,
+    "all_other_paths_preserved": true
+  },
+  "source_reference_review": "Reviewed all include_str!, include_bytes!, include!, #[path], CARGO_MANIFEST_DIR references in src/tests/examples/benches and manifest-declared out-of-tree targets; no excluded research artifact is required at this revision.",
+  "command": "CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/Volumes/A/warm-agent-memory/target/crate-packaging-correction/build cargo +1.99.0 package --locked --offline --no-default-features --allow-dirty",
+  "command_note": "Release package/build command with offline cached dependencies, pinned local Rust and allow-dirty for the prepared manifest change; no no-verify or feature bypass.",
+  "package_verification_exit_code": 0,
+  "archive_members_equal_after_list": true,
+  "archive_bytes": 3200245,
+  "archive_sha256": "574406f080ce4fd90a67f24e0c53391e4586b85f0b9c59133c3c6bfddfe3bff4",
+  "gate_pass": true,
+  "archives": {
+    "crate-package.log.gz": {
+      "bytes": 798,
+      "sha256": "b96aecf0f505e76f01ce196b6cb3ceef43f23770d17103789b8917813e83b1ee"
+    },
+    "crate-membership-audit.json.gz": {
+      "bytes": 6557,
+      "sha256": "959c0f6bfdeb7816f3ddd3aaa9a985bd0ce6c9e83362b6b9cec2875453a256d8"
+    },
+    "crate-before.list.gz": {
+      "bytes": 13326,
+      "sha256": "1f83fb62f63a20b7e4522cc2e5407ee7fee515d23874d209a372adf5b3ee9eb6"
+    },
+    "crate-after.list.gz": {
+      "bytes": 7013,
+      "sha256": "773a16b4162cd433ef3724c618b8ffee8a3150cee2172e62add19b3dfb328979"
+    },
+    "crate-hosted-failure.log.gz": {
+      "bytes": 10540,
+      "sha256": "1461aff2142195d705963b1bc8308222c0eea840a24322839d0ee15d6d6a6141"
+    }
+  }
+}

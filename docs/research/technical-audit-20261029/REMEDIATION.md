@@ -2069,3 +2069,21 @@ protected environments are unchanged. The [gate correction receipt](agent-memory
 preserves the failed run and local workflow checks. The corrected head still requires
 hosted validation. The required `check` context is the existing CI aggregate, which
 waits for the Windows test job; it was not missing from the workflow configuration.
+
+### Crate package scope correction
+
+The repaired Release workflow exposed a separate packaging failure at `1e066c06`:
+the crate archive was 21,858,747 bytes, above the unchanged 9,500,000-byte gate.
+Cargo's broad documentation include had picked up research archives and result
+receipts. Only research gzip, JSON, JSONL, log and bundle files are now omitted
+from the crate; the repository retains all evidence. Other package members,
+including source, tests, fixtures, user documentation and research Markdown,
+drivers and images, are unchanged. Declared targets and compile-time file
+references were checked before exclusion.
+
+The offline package/build verification from the actual tarball passes with Rust
+1.99 and two jobs; the corrected archive is 3,200,245 bytes. The exact member diff,
+archive hash, original hosted failure and local build log are preserved in the
+[package correction receipt](agent-memory-integration-20261102/crate-packaging-correction.json).
+Hosted checks must still pass on the resulting PR head; no upload or publication
+was performed.
