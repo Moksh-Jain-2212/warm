@@ -1,0 +1,105 @@
+{
+  "status": "preparation only; no benchmark run",
+  "hash_provenance": "SciFact hashes are copied from the completed native generation receipt independently verified by the coordinator. GloVe full/prefix byte hashes were checked during this preparation without running search or inference. Revalidate inputs once at execution freeze.",
+  "scifact": {
+    "directory": "/Volumes/A/.hms-bench-cache/matryoshka-native-20261102-22559c12",
+    "mapping_manifest": "../matryoshka-native-20261102/inputs.json",
+    "mapping_manifest_sha256": "e0389dd3de52db820741fb3b405094582045e064ecddedc71fad8d87c4758630",
+    "source_directory": "/Volumes/A/.hms-bench-cache/downloads/scifact",
+    "sources": {
+      "corpus.jsonl": {
+        "sha256": "dec31c8182f3d744c7d2c09423756fd1d17cbef75808db13ba01cc0aab4d1ac6",
+        "bytes": 8106566
+      },
+      "queries.jsonl": {
+        "sha256": "8ff84a7c903f722981cd8d595c022660140c51867b27608a6d4910db86080313",
+        "bytes": 209731
+      },
+      "qrels/test.tsv": {
+        "sha256": "0864bb985e0ca2367ba217977e72004d549054b2b06666ed9d4825ac7c21284c",
+        "bytes": 5389
+      }
+    },
+    "query_instruction": "Instruct: Given a web search query, retrieve relevant passages that answer the query\nQuery:",
+    "embedding_model": "Qwen/Qwen3-Embedding-0.6B",
+    "model_revision": "97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3",
+    "effective_revision": "hms-embedding-v1:752e3391eac1ccf5e16ba4b79ab914c9f696eebef2ebf5c76552f85b77b88061",
+    "files": {
+      "input.json": {
+        "sha256": "87fb9d1e9c67885d40786a5102d604db5e352ba1d80727f155c27e2522cfccef"
+      },
+      "generated/corpus.f32": {
+        "shape": [
+          5183,
+          1024
+        ],
+        "bytes": 21229568,
+        "sha256": "8d97f1becfa987563838db9276f983339c0e0c293f463a978cd26f3f8e96a71f"
+      },
+      "generated/queries.f32": {
+        "shape": [
+          300,
+          1024
+        ],
+        "bytes": 1228800,
+        "sha256": "83bf98219bd3936d9b1bf84b55b3b34d69c25f0725bb39c3b1dae9e14c2cb850"
+      }
+    }
+  },
+  "glove": {
+    "directory": "/Volumes/A/.hms-bench-cache/competitive/data/glove-100-angular-n100000-q1000",
+    "source": "https://ann-benchmarks.com/glove-100-angular.hdf5",
+    "source_archive_sha256": "544af1d5e84e112cd4749571dcfd8ca109818a572f850af75a3a09e093a953c4",
+    "files": {
+      "train.f32": {
+        "shape": [
+          100000,
+          100
+        ],
+        "bytes": 40000000,
+        "sha256": "119360a40fed67fd92d9a16ff15b21e5566ecaef1865f93ff07efc53e2bca8e7"
+      },
+      "test.f32": {
+        "shape": [
+          1000,
+          100
+        ],
+        "bytes": 400000,
+        "sha256": "d834585869aac11aba8de8dffe22ec50006b22d223ed1cce1ad357611091d613"
+      },
+      "neighbors.i32": {
+        "shape": [
+          1000,
+          100
+        ],
+        "bytes": 400000,
+        "sha256": "dae32b62ae923c34a8d46e17c48c7a375dddf42f2c1aadae961c115fd63d9717",
+        "used_as_oracle": false
+      }
+    },
+    "prefixes": [
+      {
+        "rows": 128,
+        "bytes": 51200,
+        "sha256": "bb1926de095722c02f4ee20d4e555f390018a1c01f1d8edee4916af916931a4d"
+      },
+      {
+        "rows": 1000,
+        "bytes": 400000,
+        "sha256": "d6bbb2ade5bf8046e7d52bdc9e8f3a94a45bc5f51b0b3390ba41f9d19ff3cfba"
+      },
+      {
+        "rows": 10000,
+        "bytes": 4000000,
+        "sha256": "56320b152afa016aa33e176738b8bcb3fdf128c1b2db5bf50a68ca59d8b26820"
+      },
+      {
+        "rows": 100000,
+        "bytes": 40000000,
+        "sha256": "119360a40fed67fd92d9a16ff15b21e5566ecaef1865f93ff07efc53e2bca8e7"
+      }
+    ],
+    "row_ids": "zero-based original ordinal, stable within each prefix; no text mapping",
+    "truth": "fresh normalized-f64 cosine truth per eligibility state; existing neighbors not reused"
+  }
+}
