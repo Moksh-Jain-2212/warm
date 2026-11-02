@@ -32,6 +32,11 @@ use super::vnni::query_sum;
 use super::{invalid, prepare_rows, upper_bytes, BuildParams, Graph, GraphView, Metric, NONE};
 use crate::core::error::WarmError;
 
+#[cfg(not(target_arch = "wasm32"))]
+thread_local! {
+    static SNAPSHOT_SCRATCH: std::cell::RefCell<Option<SearchScratch>> = const { std::cell::RefCell::new(None) };
+}
+
 mod file;
 mod gated;
 pub use file::Residency;
@@ -1880,6 +1885,7 @@ impl VGraph {
                 dim: self.dim,
                 knobs,
                 visited: Marks::new(self.n, self.has_blocks()),
+                expanded_hops: None,
                 qf: vec![0.0; self.padded],
                 qc: vec![0; self.padded],
                 qsum: 0,
@@ -1938,6 +1944,12 @@ impl VGraph {
         params: VSearchParams,
         out: &mut Vec<u32>,
     ) -> Result<usize, WarmError> {
+        self.reusable_scratch(cache)
+            .search_validated(self, query, k, params, out)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    fn reusable_scratch<'a>(&self, cache: &'a mut Option<SearchScratch>) -> &'a mut SearchScratch {
         let compatible = cache.as_ref().is_some_and(|s| {
             s.dim == self.dim
                 && s.visited.n == self.n
@@ -1950,10 +1962,30 @@ impl VGraph {
         if !compatible {
             *cache = Some(self.searcher().scratch);
         }
-        cache
-            .as_mut()
-            .expect("initialized search scratch")
-            .search_validated(self, query, k, params, out)
+        cache.as_mut().expect("initialized search scratch")
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn search_two_hop_cached(
+        &self,
+        query: &[f32],
+        k: usize,
+        params: VSearchParams,
+        out: &mut Vec<u32>,
+    ) -> Result<usize, WarmError> {
+        const MAX_CACHED_ROWS: usize = 1 << 20;
+        if self.n > MAX_CACHED_ROWS {
+            return self.searcher().search_two_hop(query, k, params, out);
+        }
+        SNAPSHOT_SCRATCH
+            .try_with(|slot| {
+                let Ok(mut cache) = slot.try_borrow_mut() else {
+                    return self.searcher().search_two_hop(query, k, params, out);
+                };
+                self.reusable_scratch(&mut cache)
+                    .search_two_hop(self, query, k, params, out)
+            })
+            .unwrap_or_else(|_| self.searcher().search_two_hop(query, k, params, out))
     }
 }
 
@@ -2291,6 +2323,7 @@ pub(super) struct SearchScratch {
     #[cfg(not(target_arch = "wasm32"))]
     dim: usize,
     visited: Marks,
+    expanded_hops: Option<Marks>,
     qf: Vec<f32>,
     /// Query code in the traversal kernel's layout, and its coordinate sum.
     qc: Vec<i8>,
@@ -2351,14 +2384,28 @@ impl VSearcher<'_> {
         params: VSearchParams,
         out: &mut Vec<u32>,
     ) -> Result<usize, WarmError> {
-        SearchScratch::validate_query(self.index, query)?;
-        self.scratch.search_inner::<
+        self.scratch
+            .search_two_hop(self.index, query, k, params, out)
+    }
+}
+
+impl SearchScratch {
+    fn search_two_hop(
+        &mut self,
+        index: &VGraph,
+        query: &[f32],
+        k: usize,
+        params: VSearchParams,
+        out: &mut Vec<u32>,
+    ) -> Result<usize, WarmError> {
+        Self::validate_query(index, query)?;
+        self.search_inner::<
             false,
             { cfg!(feature = "experimental-batch-pool") },
             { cfg!(feature = "experimental-query-x4") },
             true,
         >(
-            self.index,
+            index,
             query,
             k,
             params,
@@ -2366,9 +2413,7 @@ impl VSearcher<'_> {
             &mut QueryProfile::default(),
         )
     }
-}
 
-impl SearchScratch {
     /// Row estimates of the admitted neighbours in `fresh`, inserted into the pool in list
     /// order (four rows at a time with `batch_est`; the same values either way); returns the
     /// number of estimates. `stale` resets on an insert among the `k` best when `patience`
@@ -2596,6 +2641,15 @@ impl SearchScratch {
         self.screened = 0;
 
         self.visited.next();
+        if TWO_HOP {
+            let expanded = self
+                .expanded_hops
+                .get_or_insert_with(|| Marks::new(g.n, false));
+            if expanded.n != g.n {
+                *expanded = Marks::new(g.n, false);
+            }
+            expanded.next();
+        }
         let entry_started = PROFILE.then(Instant::now);
         let (entry, mut evals) = g.descend(qc, self.qsum, w, &mut self.reservoir);
         if let Some(started) = entry_started {
@@ -2881,8 +2935,10 @@ impl SearchScratch {
                 continue;
             }
             self.fresh.clear();
-            let (visited, fresh) = (&mut self.visited, &mut self.fresh);
+            let (visited, fresh, expanded_hops) =
+                (&mut self.visited, &mut self.fresh, &mut self.expanded_hops);
             let neighbors_read = if TWO_HOP {
+                let expanded = expanded_hops.as_mut().expect("two-hop marks initialized");
                 let mut neighbors_read = 0;
                 let admit = |u: u32, visited: &mut Marks, fresh: &mut Vec<u32>| {
                     if visited.insert(u) {
@@ -2900,12 +2956,15 @@ impl SearchScratch {
                         neighbors_read += 1;
                     }
                     admit(u, visited, fresh);
-                    g.for_each_neighbour(u as usize, |v| {
-                        if PROFILE {
-                            neighbors_read += 1;
-                        }
-                        admit(v, visited, fresh);
-                    });
+                    // Every neighbor stays visited for the rest of this query, including screened candidates.
+                    if expanded.insert(u) {
+                        g.for_each_neighbour(u as usize, |v| {
+                            if PROFILE {
+                                neighbors_read += 1;
+                            }
+                            admit(v, visited, fresh);
+                        });
+                    }
                 });
                 neighbors_read
             } else {
@@ -3866,6 +3925,87 @@ mod serving_tests {
         };
         assert!(searcher
             .search_two_hop(&[1.0, 0.0], 1, capped, &mut out)
+            .is_err());
+    }
+
+    #[test]
+    fn two_hop_search_handles_cycles_and_repeated_queries() {
+        let mut graph = lifted(&[0.0, 0.0, 0.6, 0.0, 0.3, 0.0, 0.8, 0.0, 1.0, 0.0], 2);
+        graph.entry = 0;
+        graph.layers.clear();
+        graph.upper_ids.clear();
+        graph.adj.set(0, &[1, 2]);
+        graph.adj.set(1, &[2, 3]);
+        graph.adj.set(2, &[1, 3]);
+        graph.adj.set(3, &[1, 4]);
+        graph.adj.set(4, &[]);
+        let index = VGraph::from_lifted_ip_graph(&graph, 8, 8, false, false, 4).unwrap();
+        let mut searcher = index.searcher_with(SearchKnobs::OFF);
+        let params = VSearchParams {
+            ef: 1,
+            rerank: 1,
+            ..Default::default()
+        };
+        let mut out = Vec::new();
+        for _ in 0..3 {
+            searcher
+                .search_two_hop(&[1.0, 0.0], 1, params, &mut out)
+                .unwrap();
+            assert_eq!(out, [4]);
+        }
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn cached_two_hop_search_matches_fresh_search_across_indexes() {
+        let build = |rows, seed| {
+            let data = crate::core::qgraph::tests::clustered(rows, 16, seed);
+            let graph = Graph::build(
+                &data,
+                16,
+                &BuildParams {
+                    degree: 8,
+                    build_ef: 32,
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+            VGraph::from_graph(&graph, true).unwrap()
+        };
+        let (first, larger, different) = (build(65, 1), build(127, 2), build(65, 3));
+        let queries = crate::core::qgraph::tests::clustered(3, 16, 4);
+        for index in [&first, &larger, &different, &first] {
+            for query in queries.chunks_exact(16) {
+                for k in [1, 4, 17] {
+                    let params = VSearchParams {
+                        ef: 32,
+                        rerank: 32,
+                        ..Default::default()
+                    };
+                    let (mut expected, mut actual) = (Vec::new(), Vec::new());
+                    let evaluations = index
+                        .searcher()
+                        .search_two_hop(query, k, params, &mut expected)
+                        .unwrap();
+                    assert_eq!(
+                        index
+                            .search_two_hop_cached(query, k, params, &mut actual)
+                            .unwrap(),
+                        evaluations
+                    );
+                    assert_eq!(actual, expected);
+                    SNAPSHOT_SCRATCH.with(|slot| {
+                        let _held = slot.borrow_mut();
+                        index
+                            .search_two_hop_cached(query, k, params, &mut actual)
+                            .unwrap();
+                        assert_eq!(actual, expected);
+                    });
+                }
+            }
+        }
+        assert!(first
+            .search_two_hop_cached(&[0.0; 16], 1, VSearchParams::default(), &mut Vec::new())
             .is_err());
     }
 

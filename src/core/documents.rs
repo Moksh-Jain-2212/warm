@@ -704,19 +704,24 @@ pub(crate) fn normalize_embedding<T: Copy + Into<f64>>(
     values: &[T],
     dimensions: usize,
 ) -> Result<Vec<f64>> {
-    let values: Vec<f64> = values.iter().map(|&x| x.into()).collect();
     ensure!(
-        values.len() == dimensions && values.iter().all(|x| x.is_finite()),
+        values.len() == dimensions && values.iter().all(|&x| Into::<f64>::into(x).is_finite()),
         "embedding dimensions must match the store and values must be finite"
     );
-    let scale = values.iter().map(|x| x.abs()).fold(0.0_f64, f64::max);
+    let scale = values
+        .iter()
+        .map(|&x| Into::<f64>::into(x).abs())
+        .fold(0.0_f64, f64::max);
     ensure!(scale > 0.0, "zero embeddings are not supported");
     let norm = values
         .iter()
-        .map(|x| (x / scale).powi(2))
+        .map(|&x| (Into::<f64>::into(x) / scale).powi(2))
         .sum::<f64>()
         .sqrt();
-    Ok(values.iter().map(|x| (x / scale) / norm).collect())
+    Ok(values
+        .iter()
+        .map(|&x| (Into::<f64>::into(x) / scale) / norm)
+        .collect())
 }
 
 fn stemmer() -> &'static rust_stemmers::Stemmer {
@@ -2026,6 +2031,27 @@ mod tests {
         single.insert(document.id.clone(), document);
         assert_eq!(count_matches(&single, "ghost").unwrap(), 0);
         assert_eq!(count_matches(&single, "ghost common").unwrap(), 1);
+    }
+
+    #[test]
+    fn embedding_normalization_checks_dimensions_and_extreme_values() {
+        for dimensions in [1, 2, 3] {
+            let normalized = normalize_embedding(&[3.0_f64, 4.0], dimensions);
+            if dimensions == 2 {
+                assert_eq!(normalized.unwrap(), [0.6, 0.8]);
+            } else {
+                assert!(normalized.is_err());
+            }
+        }
+        assert_eq!(normalize_embedding(&[3.0_f32, 4.0], 2).unwrap(), [0.6, 0.8]);
+        assert_eq!(
+            normalize_embedding(&[f64::MAX, f64::MIN_POSITIVE], 2).unwrap(),
+            [1.0, 0.0]
+        );
+        for value in [f64::NAN, f64::INFINITY, f64::NEG_INFINITY] {
+            assert!(normalize_embedding(&[value, 1.0], 2).is_err());
+        }
+        assert!(normalize_embedding(&[0.0_f64, -0.0], 2).is_err());
     }
 
     #[test]

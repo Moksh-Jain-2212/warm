@@ -2185,3 +2185,16 @@ The Vectra preparation has since started and was stopped at the user's request.
 Its completed 100,000-row unfiltered graph results fell below the frozen oracle
 gates at ef=128 and ef=256. They do not establish a timing comparison, and the
 eligibility optimization above does not address those recall results.
+
+### Retrieval follow-up (2026-11-02)
+
+The vector snapshot path reuses bounded per-thread search scratch, avoids
+repeated scans of already explored two-hop adjacency lists, and rejects invalid
+graph row IDs. Stale graph searches use the generation-covered change ledger
+when available, retain the full-scan fallback, and recheck store identity after
+graph traversal. Embedding normalization validates dimensions before allocating
+and no longer copies its input. These changes have not been benchmarked.
+
+The all-features library compile check passed. Regression cases were added for
+the changed search and normalization paths; the user asked that tests and
+comparisons not be run at this stage.

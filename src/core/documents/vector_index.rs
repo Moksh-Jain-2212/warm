@@ -34,8 +34,8 @@
 //!   generic exact path. Every captured row is scored outside the lock, retaining the best
 //!   `k` eligible base rows before merging bounded delta chunks. Graph queries retain their
 //!   approximate candidate contract and validate owners against the live store; their delta
-//!   discovery still scans the live collection and scores uncovered chunks under its read
-//!   lock. Exact capture holds a bit per snapshot row and at most the dense index's delta
+//!   discovery uses the covered change ledger or scans the live collection if coverage is
+//!   unavailable. Exact capture holds a bit per snapshot row and at most the dense index's delta
 //!   document/chunk limits. When fewer than `k` hits survive, the caller takes the generic exact path.
 //!   `rebuild_recommended` asks maintenance for a fresh capture
 //!   after [`REBUILD_AFTER_MUTATIONS`] mutations, so the stale window is bounded by the
@@ -463,12 +463,14 @@ impl GraphIndex {
             query
         };
         self.graph
-            .searcher()
-            .search_two_hop(candidate_query, k, params, &mut ids)
+            .search_two_hop_cached(candidate_query, k, params, &mut ids)
             .map_err(|e| anyhow::anyhow!("graph search: {e}"))?;
+        ensure!(
+            ids.iter().all(|&id| (id as usize) < self.rows()),
+            "graph search returned a vertex outside the snapshot"
+        );
         let mut hits: Vec<(u32, f32)> = ids
             .into_iter()
-            .filter(|&id| (id as usize) < self.rows())
             .map(|id| (id, dot(query, self.exact.row(id))))
             .collect();
         hits.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
@@ -815,6 +817,31 @@ fn compare_hits(a: &Hit, b: &Hit) -> Ordering {
         .then(a.chunk.cmp(&b.chunk))
 }
 
+fn append_graph_delta(
+    snapshot: &VectorSnapshot,
+    document: &Arc<StoredDocument>,
+    query: &[f32],
+    found: &mut Vec<Hit>,
+) -> Result<()> {
+    if snapshot.members.contains(&(Arc::as_ptr(document) as usize)) {
+        return Ok(());
+    }
+    for (chunk, stored) in document.chunks.iter().enumerate() {
+        let Some(embedding) = &stored.embedding else {
+            continue;
+        };
+        if embedding.len() != snapshot.dim {
+            continue;
+        }
+        found.push(Hit {
+            document: Arc::clone(document),
+            chunk: u32::try_from(chunk).context("chunk index over u32")?,
+            score: f64::from(dot(query, embedding)),
+        });
+    }
+    Ok(())
+}
+
 fn to_result(hit: &Hit, segment: Option<&TextSegment>) -> Result<DocumentResult> {
     let document = &hit.document;
     let chunk = &document.chunks[hit.chunk as usize];
@@ -1070,7 +1097,12 @@ pub(crate) fn rank_vector_snapshot(
             });
         }
     } else {
+        #[cfg(test)]
+        tests::before_stale_graph_capture();
         let store = store.read();
+        if snapshot.identity != store.identity {
+            return Ok(None);
+        }
         for (row, score) in graph_hits {
             let row = &snapshot.rows[row as usize];
             let live = store
@@ -1084,22 +1116,22 @@ pub(crate) fn rank_vector_snapshot(
                 });
             }
         }
-        for document in store.documents.values() {
-            if snapshot.members.contains(&(Arc::as_ptr(document) as usize)) {
-                continue;
+        let changed = {
+            let changes = store.vector_changes.read();
+            changes
+                .since(snapshot.generation, store.generation)
+                .map(|ids| {
+                    ids.filter_map(|id| store.get(id).cloned())
+                        .collect::<Vec<_>>()
+                })
+        };
+        if let Some(changed) = changed {
+            for document in &changed {
+                append_graph_delta(snapshot, document, query, &mut found)?;
             }
-            for (chunk, stored) in document.chunks.iter().enumerate() {
-                let Some(embedding) = &stored.embedding else {
-                    continue;
-                };
-                if embedding.len() != snapshot.dim {
-                    continue;
-                }
-                found.push(Hit {
-                    document: Arc::clone(document),
-                    chunk: u32::try_from(chunk).context("chunk index over u32")?,
-                    score: f64::from(dot(query, embedding)),
-                });
+        } else {
+            for document in store.documents.values() {
+                append_graph_delta(snapshot, document, query, &mut found)?;
             }
         }
         drop(store);
@@ -1264,10 +1296,17 @@ mod tests {
 
     thread_local! {
         static CANONICAL_HOOK: RefCell<Option<Box<dyn FnOnce()>>> = const { RefCell::new(None) };
+        static STALE_GRAPH_HOOK: RefCell<Option<Box<dyn FnOnce()>>> = const { RefCell::new(None) };
     }
 
     pub(super) fn before_canonical_scoring() {
         if let Some(hook) = CANONICAL_HOOK.with(|slot| slot.borrow_mut().take()) {
+            hook();
+        }
+    }
+
+    pub(super) fn before_stale_graph_capture() {
+        if let Some(hook) = STALE_GRAPH_HOOK.with(|slot| slot.borrow_mut().take()) {
             hook();
         }
     }
@@ -1437,6 +1476,136 @@ mod tests {
                 (id, row.id.clone(), score.clamp(-1.0, 1.0))
             })
             .collect()
+    }
+
+    fn graph_snapshot_results(
+        snapshot: &VectorSnapshot,
+        store: &RwLock<DocumentStore>,
+        k: usize,
+    ) -> Vec<(String, String, f64)> {
+        search_vector_snapshot(
+            snapshot,
+            store,
+            &[1.0, 0.0],
+            &[1.0, 0.0],
+            k,
+            &VectorQueryOptions {
+                mode: VectorIndexMode::Graph,
+                ef: 64,
+                ..Default::default()
+            },
+        )
+        .unwrap()
+        .unwrap()
+        .into_iter()
+        .map(|hit| (hit.document_id, hit.id, hit.semantic_score.unwrap()))
+        .collect()
+    }
+
+    #[test]
+    fn stale_graph_uses_tracked_changes_or_complete_fallback() {
+        for changed in [
+            MAX_DELTA_DOCUMENTS - 1,
+            MAX_DELTA_DOCUMENTS,
+            MAX_DELTA_DOCUMENTS + 1,
+        ] {
+            let mut store = DocumentStore::default();
+            for i in 0..8 {
+                put_vector(
+                    &mut store,
+                    &format!("base-{i:02}"),
+                    "base",
+                    vec![vec![0.6, 0.8]],
+                );
+            }
+            let snapshot =
+                build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), 1).unwrap();
+            for i in 0..changed {
+                put_vector(
+                    &mut store,
+                    &format!("delta-{i:03}"),
+                    "delta",
+                    vec![vec![1.0, i as f64 / 1000.0]],
+                );
+            }
+            assert_eq!(
+                store
+                    .vector_changes
+                    .read()
+                    .since(snapshot.generation, store.generation)
+                    .is_some(),
+                changed <= MAX_DELTA_DOCUMENTS
+            );
+            let expected = live_scan_results(&store, &[1.0, 0.0], 8, -1.0);
+            let store = RwLock::new(store);
+            assert_eq!(
+                graph_snapshot_results(&snapshot, &store, 8),
+                expected,
+                "changed={changed}"
+            );
+        }
+    }
+
+    #[test]
+    fn stale_graph_tracks_replacements_deletions_and_reinsertions() {
+        let mut store = DocumentStore::default();
+        for i in 0..8 {
+            put_vector(
+                &mut store,
+                &format!("base-{i:02}"),
+                "base",
+                vec![vec![0.6, 0.8]],
+            );
+        }
+        let snapshot =
+            build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), 1).unwrap();
+        let store = RwLock::new(store);
+        for stage in 0..4 {
+            {
+                let mut live = store.write();
+                match stage {
+                    0 => put_vector(&mut live, "base-00", "replaced", vec![vec![1.0, 0.0]]),
+                    1 => delete_vector(&mut live, "base-01"),
+                    2 => put_vector(&mut live, "base-01", "reinserted", vec![vec![0.9, 0.1]]),
+                    _ => put_vector(&mut live, "new", "inserted", vec![vec![0.8, 0.2]]),
+                }
+            }
+            assert_eq!(
+                graph_snapshot_results(&snapshot, &store, 4),
+                live_scan_results(&store.read(), &[1.0, 0.0], 4, -1.0),
+                "stage={stage}"
+            );
+        }
+    }
+
+    #[test]
+    fn stale_graph_rejects_store_replacement_during_search() {
+        let mut original = DocumentStore::default();
+        put_vector(&mut original, "old", "old", vec![vec![1.0, 0.0]]);
+        let snapshot =
+            build_vector_snapshot(capture_vector_rows(&original, 2).unwrap().unwrap(), 1).unwrap();
+        put_vector(&mut original, "changed", "changed", vec![vec![0.8, 0.6]]);
+        let store = Arc::new(RwLock::new(original));
+        let mut replacement = DocumentStore::default();
+        put_vector(&mut replacement, "new", "new", vec![vec![1.0, 0.0]]);
+        let changed = Arc::clone(&store);
+        STALE_GRAPH_HOOK.with(|slot| {
+            *slot.borrow_mut() = Some(Box::new(move || *changed.write() = replacement));
+        });
+        assert!(rank_vector_snapshot(
+            &snapshot,
+            &store,
+            &[1.0, 0.0],
+            &[1.0, 0.0],
+            1,
+            &VectorQueryOptions {
+                mode: VectorIndexMode::Graph,
+                ef: 64,
+                ..Default::default()
+            },
+        )
+        .unwrap()
+        .is_none());
     }
 
     #[test]
