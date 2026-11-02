@@ -1,0 +1,65 @@
+{
+  "source_commit": "5b3b4c61d0adeb39f7373fa19c4da00cfc4a5108",
+  "source_blob": "93914b66f3cf718ed6f7fa78ea8150d489a12cf3",
+  "source_sha256": "9ff1475b24391f345c3717aedc73c292b53c56e6e2a48660c5726e2d28ff0105",
+  "platform": "darwin",
+  "settings": {
+    "CARGO_TARGET_DIR": "/Users/davidcondrey/.cache/warm-query-memory-target",
+    "CARGO_BUILD_JOBS": "2"
+  },
+  "checks": [
+    {
+      "name": "selected-clippy",
+      "command": [
+        "cargo",
+        "+1.99.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--tests",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "seconds": 17.230791124980897,
+      "finished_at": "2026-11-02T02:35:21.589978+00:00",
+      "log": "selected-clippy.log.gz",
+      "log_sha256": "929da6cd24cf31e6aa09f70a0fbcd3a71cd835ead4e683782f9f2e56b1a01542"
+    },
+    {
+      "name": "selected-dense-tests",
+      "command": [
+        "cargo",
+        "+1.99.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--lib",
+        "core::documents::dense::tests"
+      ],
+      "exit_code": 0,
+      "seconds": 33.886018791934475,
+      "finished_at": "2026-11-02T02:35:55.550140+00:00",
+      "log": "selected-dense-tests.log.gz",
+      "log_sha256": "58f5a6fe0f33cb5f019282bbb89ed30fb298307d2dd071c5b4c8befdd4b2138c"
+    },
+    {
+      "name": "selected-format",
+      "command": [
+        "rustfmt",
+        "+1.99.0",
+        "--edition",
+        "2021",
+        "--check",
+        "src/core/documents/search.rs"
+      ],
+      "exit_code": 0,
+      "seconds": 0.06782570795621723,
+      "finished_at": "2026-11-02T02:35:55.618295+00:00",
+      "log": "selected-format.log.gz",
+      "log_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    }
+  ]
+}

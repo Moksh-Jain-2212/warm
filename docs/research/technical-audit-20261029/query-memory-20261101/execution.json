@@ -1,0 +1,479 @@
+{
+  "budget_seconds": 600,
+  "execution_seconds": 99.22705133294221,
+  "runs": [
+    {
+      "name": "baseline-1",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/baseline-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        3.96142578125,
+        3.79345703125,
+        3.23193359375
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 5.355882958974689,
+      "load_after": [
+        4.20458984375,
+        3.8466796875,
+        3.25390625
+      ],
+      ".json_sha256": "1d4cd640f5f9aef496cb4b866c9c53566377972564f2ffb0a2c34d4c79b13a9c",
+      ".log_sha256": "8863d10d06db579cfa042f5ffb93ff62afe81606b0f9e36b5feece18258406ef"
+    },
+    {
+      "name": "sorted-1",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/sorted-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        4.20458984375,
+        3.8466796875,
+        3.25390625
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 4.220997957978398,
+      "load_after": [
+        3.94775390625,
+        3.79931640625,
+        3.240234375
+      ],
+      ".json_sha256": "2c47a244e206a294484d71f81393000b84f734332ca8f85a70ab957a62dd547e",
+      ".log_sha256": "5d68f84b142201640e50e3d82acf7a165e355fdd7b0acd7be19c0fec08f095a3"
+    },
+    {
+      "name": "current-1",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/current-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        3.94775390625,
+        3.79931640625,
+        3.240234375
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 4.307299125008285,
+      "load_after": [
+        4.35205078125,
+        3.88525390625,
+        3.27392578125
+      ],
+      ".json_sha256": "b93efb50186ce90f4e87ce683eee729cd5db8be73f1b4ef54b093b4c10ccf62e",
+      ".log_sha256": "e6bbfb7b02733bcb2dcffe927fbca2dc3406fc93e379607654938030d49eabba"
+    },
+    {
+      "name": "current-2",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/current-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        4.35205078125,
+        3.88525390625,
+        3.27392578125
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 4.012649334035814,
+      "load_after": [
+        4.08349609375,
+        3.8369140625,
+        3.26025390625
+      ],
+      ".json_sha256": "16753a7d02902b600674c6cb57b8312d3be90e2606a1e206c3dd30957ff0face",
+      ".log_sha256": "5ade9b6eed39369278fe2b82b1fab2be8a0fd7a5cb4aa107b58f962dd844828e"
+    },
+    {
+      "name": "sorted-2",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/sorted-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        4.08349609375,
+        3.8369140625,
+        3.26025390625
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 5.283532499917783,
+      "load_after": [
+        4.71728515625,
+        3.97216796875,
+        3.31103515625
+      ],
+      ".json_sha256": "e89711f51c4360c6ae7333973851a9a87556413f8993414e368ed283b55b5a08",
+      ".log_sha256": "04226823e450f9118715c6477fa77a1a11ba00ca078331c7d1c769870f514b55"
+    },
+    {
+      "name": "baseline-2",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/baseline-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        4.71728515625,
+        3.97216796875,
+        3.31103515625
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 6.8379385829903185,
+      "load_after": [
+        4.41943359375,
+        3.92236328125,
+        3.29736328125
+      ],
+      ".json_sha256": "8924cf7c2d69a571c2ff0dd23d63fdc0a3d908d48f8a396678cc7266a23d088c",
+      ".log_sha256": "cf5408e66315c6c18a78864656f44f850e7d87782dfe652e2a55dbd6ecbc7d03"
+    },
+    {
+      "name": "sorted-3",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/sorted-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        4.41943359375,
+        3.92236328125,
+        3.29736328125
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 11.964513291954063,
+      "load_after": [
+        3.88330078125,
+        3.8271484375,
+        3.27392578125
+      ],
+      ".json_sha256": "a78ecdf5d9755e3514ab543c1ad38bbdfc4f629a78a5c345b388dc34a807d8db",
+      ".log_sha256": "af5023e7cbf53a47cab9585eb88ba80d65ecd31eb16745b16534072df99de148"
+    },
+    {
+      "name": "current-3",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/current-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        3.88330078125,
+        3.8271484375,
+        3.27392578125
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 12.688498000032268,
+      "load_after": [
+        3.2861328125,
+        3.70068359375,
+        3.23486328125
+      ],
+      ".json_sha256": "32efa81abe96a74bf338ce1be6c8c16a5c77d2486581fd5bdd4db5f161ff2a2b",
+      ".log_sha256": "a6cad92cdd752c7351c4c1585e9495b5609e52fb5f39977956c1215b326b498e"
+    },
+    {
+      "name": "baseline-3",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/baseline-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        3.2861328125,
+        3.70068359375,
+        3.23486328125
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 11.132051708060317,
+      "load_after": [
+        2.77294921875,
+        3.56787109375,
+        3.1953125
+      ],
+      ".json_sha256": "7b63bd9075ea81a7911b634d9a3f7bbfb9a99bc19b0982c23e30ef8daf056434",
+      ".log_sha256": "818be56376920e784fd2b9080fca878565a5beeb3cf1ec007da57de837240d37"
+    },
+    {
+      "name": "baseline-4",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/baseline-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        2.77294921875,
+        3.56787109375,
+        3.1953125
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 6.765468750032596,
+      "load_after": [
+        2.630859375,
+        3.52490234375,
+        3.18212890625
+      ],
+      ".json_sha256": "994fa6363c0b8737d09fdab9a8f6e48bc38128b1a5878ff4337ed179945a5381",
+      ".log_sha256": "d1993f0b9a89fb89e6acc22bd03fe2a934cea2c04c73a368efa1ed2b842c56c9"
+    },
+    {
+      "name": "current-4",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/current-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        2.630859375,
+        3.52490234375,
+        3.18212890625
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 5.584888124954887,
+      "load_after": [
+        2.66015625,
+        3.51611328125,
+        3.1806640625
+      ],
+      ".json_sha256": "10679a6e4e172b611e8309bbb881789fcc6af97e2cd6153e781aefa1fb586c24",
+      ".log_sha256": "e1d9f9031b9d760daed51873628aa3a4ceade8969ae71dedc810ea19bfccc8b2"
+    },
+    {
+      "name": "sorted-4",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/sorted-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        2.66015625,
+        3.51611328125,
+        3.1806640625
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 4.347596000065096,
+      "load_after": [
+        2.76708984375,
+        3.52392578125,
+        3.18505859375
+      ],
+      ".json_sha256": "036fb394bf2083a02623533005e8e8499698576f628eed27524db5569c5d7573",
+      ".log_sha256": "b18bd1da83902c3f38cbfa62e030b29d2fe3d0757c983fe06e07882eae5b8d95"
+    },
+    {
+      "name": "current-5",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/current-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        2.76708984375,
+        3.52392578125,
+        3.18505859375
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 5.314226915943436,
+      "load_after": [
+        2.62548828125,
+        3.48193359375,
+        3.171875
+      ],
+      ".json_sha256": "619826706b74c47e5a9b0dc639b83b4eb685fbe913a83cf9736f406816281f70",
+      ".log_sha256": "bf35517a22b0e151f94a89d2ad0efda5889b63188467c452f536e81ac5b45817"
+    },
+    {
+      "name": "baseline-5",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/baseline-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        2.62548828125,
+        3.48193359375,
+        3.171875
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 5.533833208028227,
+      "load_after": [
+        2.6552734375,
+        3.4736328125,
+        3.17041015625
+      ],
+      ".json_sha256": "8de4bebe32f963891e4cb0e91c5e2e5f14aeb76f3164e2ba1398e83bc93079c4",
+      ".log_sha256": "cc77dcc36e674dc9b2327d18a745e067de65af0c69947fc4fa2095064477a00c"
+    },
+    {
+      "name": "sorted-5",
+      "command": [
+        "/Volumes/A/warm-query-memory/target/query-memory-validation/sorted-probe",
+        "--exact",
+        "core::documents::search::campaign_probe::campaign_retrieval_probe",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1"
+      ],
+      "load_before": [
+        2.6552734375,
+        3.4736328125,
+        3.17041015625
+      ],
+      "status": 0,
+      "cross_revision_equal": true,
+      "seconds": 5.877674874966033,
+      "load_after": [
+        2.6025390625,
+        3.44873046875,
+        3.1630859375
+      ],
+      ".json_sha256": "ec5bd26fa041da168735cc5ee3e36eee5372d5dcfa03d65015f3c530934612b1",
+      ".log_sha256": "ce195cf21f29a22e47915df4ceedf4c85f0e6212686c2206da45462e53285385"
+    }
+  ],
+  "complete": true,
+  "orders": [
+    [
+      "baseline",
+      "sorted",
+      "current"
+    ],
+    [
+      "current",
+      "sorted",
+      "baseline"
+    ],
+    [
+      "sorted",
+      "current",
+      "baseline"
+    ],
+    [
+      "baseline",
+      "current",
+      "sorted"
+    ],
+    [
+      "current",
+      "baseline",
+      "sorted"
+    ]
+  ],
+  "plan": {
+    "objective": "Reduce proven filtered lexical/hybrid query scratch requested-byte peak while preserving exact results and rare/hot latency.",
+    "revisions": {
+      "baseline": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+      "sorted": "5b3b4c61d0adeb39f7373fa19c4da00cfc4a5108",
+      "current": "64af5a4804717562c48922cee1776e1bb0d4cf5b"
+    },
+    "workload": {
+      "rows": 10000,
+      "dimensions": 16,
+      "mutations": 32,
+      "groups": [
+        "initial rare",
+        "initial hot",
+        "updated rare",
+        "updated hot"
+      ],
+      "samples_per_group_per_round": 128,
+      "rounds": 5,
+      "workers": 1,
+      "candidate_limit": 32,
+      "k": 10
+    },
+    "method": [
+      "Profile source allocation stages in an isolated baseline archive before production edits; profiling times are not performance evidence.",
+      "Reuse exact inherited retrieval probe workload, System counting allocator and exhaustive oracle; compare complete ordered payloads across revisions and rounds.",
+      "Freeze candidate source commit before build. Bind source, probe, harness, plan, executable and raw report hashes; no automatic retries.",
+      "Run five alternating process rounds serially only in root-approved quiet window after unrelated builds/tests stop.",
+      "Compare sorted-address and compact-offset owner membership in one frozen three-variant study; alternate and reverse orders across five rounds."
+    ],
+    "acceptance": [
+      "All exhaustive per-query and complete cross-revision ordered-result payload comparisons match, including floating-point scores.",
+      "Rare-query median requested-byte peak decreases in both initial and updated phases; retain cold first-query peaks and persistent scratch limits.",
+      "No sustained >5% p50 or empirical p99 regression in either rare or hot group versus baseline.",
+      "Retain unfavorable observations and failures; no weakening query limits, ownership, text scrub/error handling, or scoring semantics."
+    ],
+    "sustained_regression_rule": "Median current round quantile exceeds baseline median by over 5%, and at least four of five paired rounds are slower; descriptive investigation trigger, not statistical significance.",
+    "execution_budget_seconds": 600,
+    "limits": [
+      "Free local synthetic development only; no paid API/cloud/models.",
+      "Requested-byte accounting excludes allocator internal storage and process RSS. The probe uses one worker; no production or population-tail guarantee.",
+      "Historical timing comparison remains the separate retained study; this study compares current main to one scoped optimization."
+    ],
+    "candidate_designs": {
+      "sorted": "Reuse document-reference Vec storage for sorted exact owner addresses after dropping slot mask.",
+      "current": "Use exact u32 owner-address offsets in existing FastSet, with checked full-width fallback; drop slot mask first."
+    },
+    "selection_rule": "Require correctness and lower rare-query median requested-byte peaks, and no sustained >5% p50/p99 regression in all four groups. Among qualifying candidates prefer the lower rare-query peak; retain all candidate observations even if rejected."
+  },
+  "plan_sha256": "681fc9aa2ad9dd120ebdb621e510f1ab2c0428f444340abd3dde9aba064a1393",
+  "build_sha256": {
+    "baseline": "bda2c61931d0e84a0d6bd4d7ce94887f29d8072af4a2e1176d3a86c641c362a3",
+    "sorted": "c4b6b01f988f2b0bfd31514d9b98b6d54a1141d69b1e485ddf44c60899155af1",
+    "current": "cb5d4aa15bfa187aa072058ea1c376e546fe4258607244ce1daf442b2774b3b5"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "variant": "profile",
+  "revision": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+  "source_sha256": "9fc2d788f430efdaf36c6c95c2ab322f3f3915829666ed4cbfd4bea9028b3064",
+  "probe_sha256": "e01ac96c3ff77808f4457704364514e27ecc35c6552e83a61d87a903c4119e88",
+  "command": [
+    "cargo",
+    "+1.99.0",
+    "test",
+    "--offline",
+    "--locked",
+    "--lib",
+    "--no-run",
+    "--message-format=json"
+  ],
+  "plan_sha256": "0229833e491d57ca6dd353d5c5f182a8537c1bba942ed1cc661663f5274cf5f0",
+  "plan_source": "{\n  \"objective\": \"Reduce proven filtered lexical/hybrid query scratch requested-byte peak while preserving exact results and rare/hot latency.\",\n  \"revisions\": {\n    \"baseline\": \"ba980ffc16e01981bf1d025debfb83d6e7334aac\",\n    \"current\": \"pending-source-freeze\"\n  },\n  \"workload\": {\n    \"rows\": 10000,\n    \"dimensions\": 16,\n    \"mutations\": 32,\n    \"groups\": [\n      \"initial rare\",\n      \"initial hot\",\n      \"updated rare\",\n      \"updated hot\"\n    ],\n    \"samples_per_group_per_round\": 128,\n    \"rounds\": 5,\n    \"workers\": 1,\n    \"candidate_limit\": 32,\n    \"k\": 10\n  },\n  \"method\": [\n    \"Profile source allocation stages in an isolated baseline archive before production edits; profiling times are not performance evidence.\",\n    \"Reuse exact inherited retrieval probe workload, System counting allocator and exhaustive oracle; compare complete ordered payloads across revisions and rounds.\",\n    \"Freeze candidate source commit before build. Bind source, probe, harness, plan, executable and raw report hashes; no automatic retries.\",\n    \"Run five alternating process rounds serially only in root-approved quiet window after unrelated builds/tests stop.\"\n  ],\n  \"acceptance\": [\n    \"All exhaustive per-query and complete cross-revision ordered-result payload comparisons match, including floating-point scores.\",\n    \"Rare-query median requested-byte peak decreases in both initial and updated phases; retain cold first-query peaks and persistent scratch limits.\",\n    \"No sustained >5% p50 or empirical p99 regression in either rare or hot group versus baseline.\",\n    \"Retain unfavorable observations and failures; no weakening query limits, ownership, text scrub/error handling, or scoring semantics.\"\n  ],\n  \"sustained_regression_rule\": \"Median current round quantile exceeds baseline median by over 5%, and at least four of five paired rounds are slower; descriptive investigation trigger, not statistical significance.\",\n  \"execution_budget_seconds\": 600,\n  \"limits\": [\n    \"Free local synthetic development only; no paid API/cloud/models.\",\n    \"Requested-byte accounting excludes allocator internal storage and process RSS. The probe uses one worker; no production or population-tail guarantee.\",\n    \"Historical timing comparison remains the separate retained study; this study compares current main to one scoped optimization.\"\n  ]\n}\n",
+  "harness_sha256": "cf83c4a55587857b2e2e8225c9215ad8416a3e9b392c97aa2986a3e5f22c5929",
+  "settings": {
+    "CARGO_TARGET_DIR": "/Users/davidcondrey/.cache/warm-query-memory-target",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_PROFILE_DEV_OPT_LEVEL": "3",
+    "CARGO_PROFILE_TEST_OPT_LEVEL": "3",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "RAYON_NUM_THREADS": "1",
+    "TMPDIR": "/Volumes/A/warm-query-memory/target/query-memory-validation/tmp"
+  },
+  "default_features": [],
+  "status": "built",
+  "started_at": "2026-11-02T01:38:46.939104+00:00",
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+  "exit_code": 0,
+  "binary": "/Volumes/A/warm-query-memory/target/query-memory-validation/profile-probe",
+  "binary_sha256": "eeee09aeb6e4081b1863c8bc3d65c2dbc777cc0990376794c94c485621f3f324"
+}

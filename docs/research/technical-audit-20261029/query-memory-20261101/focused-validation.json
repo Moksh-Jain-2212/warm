@@ -1,0 +1,50 @@
+{
+  "platform": "Darwin arm64",
+  "toolchain": "Rust1.99.0",
+  "checks": [
+    {
+      "check": "sorted-tests",
+      "source": "5b3b4c61d0adeb39f7373fa19c4da00cfc4a5108",
+      "passed": true,
+      "tests_passed": 15,
+      "log": "sorted-tests.log.gz",
+      "log_sha256": "906d2b842657179468262aea7061f024f4bc45db415ecd67679a353fd5519d0f"
+    },
+    {
+      "check": "compact-tests",
+      "source": "64af5a4804717562c48922cee1776e1bb0d4cf5b",
+      "passed": true,
+      "tests_passed": 15,
+      "log": "compact-tests.log.gz",
+      "log_sha256": "ee64db47e84936458b543ce1c00cf32f2b0f4436667167a2b87c8a0d279db0ef"
+    },
+    {
+      "check": "dense-tests",
+      "source": "64af5a4804717562c48922cee1776e1bb0d4cf5b",
+      "passed": true,
+      "tests_passed": 12,
+      "log": "dense-tests.log.gz",
+      "log_sha256": "76fa487093d3dddf343cef0b32c38cdd5007fa210a3ce900c2fc4184464cfac1"
+    },
+    {
+      "check": "clippy",
+      "source": "64af5a4804717562c48922cee1776e1bb0d4cf5b",
+      "passed": true,
+      "tests_passed": null,
+      "log": "clippy.log.gz",
+      "log_sha256": "c95f5f26857e148bcd3f542bd0df3cc18dc27c5d3ea52bfc5eb32d7768ca6ba0"
+    },
+    {
+      "check": "harness-tests",
+      "source": null,
+      "passed": true,
+      "tests_passed": 4,
+      "log": "harness-tests.log.gz",
+      "log_sha256": "edfebf3d9db105d6196c8762d81be8bb4a2dfdf9e8a0236a864674eb20308d07"
+    }
+  ],
+  "limits": [
+    "Tests use local macOS arm64; no 32-bit runtime execution.",
+    "Sorted candidate has focused search tests; dense tests and strict library Clippy currently correspond to compact candidate. Final selected-source lint is recorded separately after selection."
+  ]
+}
