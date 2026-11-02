@@ -33,5 +33,8 @@
   "resultFile": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/results/preparation-0037-glove-100000-warm-quality.ndjson",
   "oracleFile": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/results/preparation-0030-glove-100000-oracle-oracle.ndjson",
   "oracleSha256": "d3d9b337c191f8c2ff628a2af63d206367dcfcb05e016017797b62576bfc8ae8",
-  "note": "All unfiltered rows independently recomputed against oracle IDs. The result file is still being appended; its final hash and worker receipt are pending."
+  "note": "All unfiltered rows independently recomputed against oracle IDs; completed result file and worker receipt are bound by hash.",
+  "resultSha256": "66c70355e55f2a33f10f912c05ff9b169284caca34c18776f1a14c4ca9ddd109",
+  "workerReceipt": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/receipts/preparation-0037-glove-100000-warm-quality.json",
+  "workerReceiptSha256": "0d81274443335b55a7ef9a61a677c6fcb7a67ef81ac08ae214408d62b1e4e2a6"
 }
