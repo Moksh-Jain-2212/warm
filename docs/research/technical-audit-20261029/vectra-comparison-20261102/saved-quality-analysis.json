@@ -1,0 +1,330 @@
+{
+  "scope": "Offline analysis of already saved, hash-verified unfiltered query outputs; no search, new tests, model or timing.",
+  "freezeHash": "bdc3c2b02e1b93b48895280da89d434a3fd9570bb09770f96a5b67ceea37d4b6",
+  "stopReceiptSha256": "74bc4f414697eafa665653f5cdd128d377f238409262329748e6f98bfe5470cd",
+  "reports": [
+    {
+      "dataset": "glove-10000",
+      "ef": 128,
+      "queries": 1000,
+      "oracle": {
+        "mean": 0.9847,
+        "worst": 0.7,
+        "below90": 22,
+        "below100": 129
+      },
+      "warmExact": {
+        "mean": 0.9847,
+        "worst": 0.7,
+        "below90": 22,
+        "below100": 129
+      },
+      "exactVsOracle": {
+        "mean": 1,
+        "worst": 1,
+        "below90": 0,
+        "below100": 0
+      },
+      "worstQueries": [
+        {
+          "query": 225,
+          "queryId": "query-225",
+          "oracleRecall": 0.7,
+          "warmExactRecall": 0.7
+        },
+        {
+          "query": 241,
+          "queryId": "query-241",
+          "oracleRecall": 0.7,
+          "warmExactRecall": 0.7
+        },
+        {
+          "query": 201,
+          "queryId": "query-201",
+          "oracleRecall": 0.8,
+          "warmExactRecall": 0.8
+        },
+        {
+          "query": 228,
+          "queryId": "query-228",
+          "oracleRecall": 0.8,
+          "warmExactRecall": 0.8
+        },
+        {
+          "query": 337,
+          "queryId": "query-337",
+          "oracleRecall": 0.8,
+          "warmExactRecall": 0.8
+        },
+        {
+          "query": 342,
+          "queryId": "query-342",
+          "oracleRecall": 0.8,
+          "warmExactRecall": 0.8
+        },
+        {
+          "query": 355,
+          "queryId": "query-355",
+          "oracleRecall": 0.8,
+          "warmExactRecall": 0.8
+        },
+        {
+          "query": 366,
+          "queryId": "query-366",
+          "oracleRecall": 0.8,
+          "warmExactRecall": 0.8
+        },
+        {
+          "query": 368,
+          "queryId": "query-368",
+          "oracleRecall": 0.8,
+          "warmExactRecall": 0.8
+        },
+        {
+          "query": 373,
+          "queryId": "query-373",
+          "oracleRecall": 0.8,
+          "warmExactRecall": 0.8
+        }
+      ],
+      "completeWorker": true,
+      "sourceSha256": "54e1d8e2cf95e5dfb797d60f3decafd8eea5dbbd399a9558efead623327f0290",
+      "exactSha256": "944ce4b9e9b6ec9e8b859626072ceab3360405432baeac9ede3986f89e0e0c2b",
+      "oracleSha256": "a4b91500c62d94d71c6f965dc2ac5f48ce928a6e50df7dec426bbc234391aa94"
+    },
+    {
+      "dataset": "glove-10000",
+      "ef": 256,
+      "queries": 1000,
+      "oracle": {
+        "mean": 0.9976,
+        "worst": 0.9,
+        "below90": 0,
+        "below100": 24
+      },
+      "warmExact": {
+        "mean": 0.9976,
+        "worst": 0.9,
+        "below90": 0,
+        "below100": 24
+      },
+      "exactVsOracle": {
+        "mean": 1,
+        "worst": 1,
+        "below90": 0,
+        "below100": 0
+      },
+      "worstQueries": [],
+      "completeWorker": true,
+      "sourceSha256": "4e1b0474b9e49e0572a614e81cfe331bf88b8df00e27e5920214c976e1ab072b",
+      "exactSha256": "944ce4b9e9b6ec9e8b859626072ceab3360405432baeac9ede3986f89e0e0c2b",
+      "oracleSha256": "a4b91500c62d94d71c6f965dc2ac5f48ce928a6e50df7dec426bbc234391aa94"
+    },
+    {
+      "dataset": "glove-10000",
+      "ef": 512,
+      "queries": 1000,
+      "oracle": {
+        "mean": 0.9999,
+        "worst": 0.9,
+        "below90": 0,
+        "below100": 1
+      },
+      "warmExact": {
+        "mean": 0.9999,
+        "worst": 0.9,
+        "below90": 0,
+        "below100": 1
+      },
+      "exactVsOracle": {
+        "mean": 1,
+        "worst": 1,
+        "below90": 0,
+        "below100": 0
+      },
+      "worstQueries": [],
+      "completeWorker": true,
+      "sourceSha256": "2775669228960eed416abb8a0f6591dd7cc944b50fc3a6b47a47a60eb82b765e",
+      "exactSha256": "944ce4b9e9b6ec9e8b859626072ceab3360405432baeac9ede3986f89e0e0c2b",
+      "oracleSha256": "a4b91500c62d94d71c6f965dc2ac5f48ce928a6e50df7dec426bbc234391aa94"
+    },
+    {
+      "dataset": "glove-100000",
+      "ef": 128,
+      "queries": 1000,
+      "oracle": {
+        "mean": 0.9235,
+        "worst": 0.1,
+        "below90": 210,
+        "below100": 363
+      },
+      "warmExact": {
+        "mean": 0.9235,
+        "worst": 0.1,
+        "below90": 210,
+        "below100": 363
+      },
+      "exactVsOracle": {
+        "mean": 1,
+        "worst": 1,
+        "below90": 0,
+        "below100": 0
+      },
+      "worstQueries": [
+        {
+          "query": 241,
+          "queryId": "query-241",
+          "oracleRecall": 0.1,
+          "warmExactRecall": 0.1
+        },
+        {
+          "query": 849,
+          "queryId": "query-849",
+          "oracleRecall": 0.2,
+          "warmExactRecall": 0.2
+        },
+        {
+          "query": 69,
+          "queryId": "query-69",
+          "oracleRecall": 0.4,
+          "warmExactRecall": 0.4
+        },
+        {
+          "query": 101,
+          "queryId": "query-101",
+          "oracleRecall": 0.4,
+          "warmExactRecall": 0.4
+        },
+        {
+          "query": 482,
+          "queryId": "query-482",
+          "oracleRecall": 0.4,
+          "warmExactRecall": 0.4
+        },
+        {
+          "query": 594,
+          "queryId": "query-594",
+          "oracleRecall": 0.4,
+          "warmExactRecall": 0.4
+        },
+        {
+          "query": 683,
+          "queryId": "query-683",
+          "oracleRecall": 0.4,
+          "warmExactRecall": 0.4
+        },
+        {
+          "query": 953,
+          "queryId": "query-953",
+          "oracleRecall": 0.4,
+          "warmExactRecall": 0.4
+        },
+        {
+          "query": 123,
+          "queryId": "query-123",
+          "oracleRecall": 0.5,
+          "warmExactRecall": 0.5
+        },
+        {
+          "query": 127,
+          "queryId": "query-127",
+          "oracleRecall": 0.5,
+          "warmExactRecall": 0.5
+        }
+      ],
+      "completeWorker": true,
+      "sourceSha256": "66c70355e55f2a33f10f912c05ff9b169284caca34c18776f1a14c4ca9ddd109",
+      "exactSha256": "ef1202cea44662d6c4d0929fac1c473da5bc1c0f96cf553a84fd639326d8055d",
+      "oracleSha256": "d3d9b337c191f8c2ff628a2af63d206367dcfcb05e016017797b62576bfc8ae8"
+    },
+    {
+      "dataset": "glove-100000",
+      "ef": 256,
+      "queries": 1000,
+      "oracle": {
+        "mean": 0.9634,
+        "worst": 0.5,
+        "below90": 95,
+        "below100": 232
+      },
+      "warmExact": {
+        "mean": 0.9634,
+        "worst": 0.5,
+        "below90": 95,
+        "below100": 232
+      },
+      "exactVsOracle": {
+        "mean": 1,
+        "worst": 1,
+        "below90": 0,
+        "below100": 0
+      },
+      "worstQueries": [
+        {
+          "query": 123,
+          "queryId": "query-123",
+          "oracleRecall": 0.5,
+          "warmExactRecall": 0.5
+        },
+        {
+          "query": 241,
+          "queryId": "query-241",
+          "oracleRecall": 0.5,
+          "warmExactRecall": 0.5
+        },
+        {
+          "query": 482,
+          "queryId": "query-482",
+          "oracleRecall": 0.5,
+          "warmExactRecall": 0.5
+        },
+        {
+          "query": 849,
+          "queryId": "query-849",
+          "oracleRecall": 0.5,
+          "warmExactRecall": 0.5
+        },
+        {
+          "query": 127,
+          "queryId": "query-127",
+          "oracleRecall": 0.6,
+          "warmExactRecall": 0.6
+        },
+        {
+          "query": 172,
+          "queryId": "query-172",
+          "oracleRecall": 0.6,
+          "warmExactRecall": 0.6
+        },
+        {
+          "query": 274,
+          "queryId": "query-274",
+          "oracleRecall": 0.6,
+          "warmExactRecall": 0.6
+        },
+        {
+          "query": 922,
+          "queryId": "query-922",
+          "oracleRecall": 0.6,
+          "warmExactRecall": 0.6
+        },
+        {
+          "query": 70,
+          "queryId": "query-70",
+          "oracleRecall": 0.7,
+          "warmExactRecall": 0.7
+        },
+        {
+          "query": 94,
+          "queryId": "query-94",
+          "oracleRecall": 0.7,
+          "warmExactRecall": 0.7
+        }
+      ],
+      "completeWorker": false,
+      "sourceSha256": "be43fa2a3ec444540e88dfc1a7b87cca70942534235747ff67562ddf9d061611",
+      "exactSha256": "ef1202cea44662d6c4d0929fac1c473da5bc1c0f96cf553a84fd639326d8055d",
+      "oracleSha256": "d3d9b337c191f8c2ff628a2af63d206367dcfcb05e016017797b62576bfc8ae8"
+    }
+  ]
+}

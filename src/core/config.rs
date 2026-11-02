@@ -23,6 +23,8 @@ pub struct WarmConfig {
     pub embedding_space: Option<super::schema::EmbeddingSpace>,
     /// Optional normalized-prefix graph candidates; stored embeddings remain full width.
     pub vector_candidates: Option<VectorCandidateConfig>,
+    /// Opt-in denser vector graph; increases construction work and retained graph memory.
+    pub vector_high_recall: bool,
     pub document_checkpoint: DocumentCheckpointConfig,
     /// Options of the local embedder `TextEncoder::LocalEmbedV1` loads (default options when
     /// absent). Ignored by the other encoders.
@@ -326,6 +328,10 @@ impl WarmConfig {
             })?;
             candidates.validate(space)?;
         }
+        anyhow::ensure!(
+            !self.vector_high_recall || self.embedding_space.is_some(),
+            "high-recall vector graphs require an embedding space"
+        );
         if let Some(space) = &self.embedding_space {
             anyhow::ensure!(!space.model.is_empty() && !space.revision.is_empty() && (1..=65536).contains(&space.dimensions)
                 && space.metric == "cosine" && matches!(space.normalization.as_str(), "l2" | "none"),

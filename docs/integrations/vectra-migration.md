@@ -85,7 +85,15 @@ Selectors follow the pinned [`ItemSelector`](https://github.com/Stevenic/vectra/
 
 Accepted metadata and filters are bounded, finite, acyclic plain JSON with valid Unicode strings. Object-reference equality, functions, accessors, `undefined`, sparse arrays, NaN and infinity are not a supported migration contract. Empty or omitted `indexedMetadata` means all metadata is indexed; a nonempty list projects only existing named keys. Imported explicit filter views are retained; later upserts derive their view from the persisted key list.
 
-Native exact search is the default. For ANN comparisons, call `await index.maintainIndices()` outside measured queries and use `{mode:'graph', ef:128}` only after a graph exists (the current preparation threshold is 4096 vector rows). Explicit graph requests report an unavailable graph rather than silently training one. Filtered/ownership-restricted routes may use full exact search; inspect returned diagnostics and do not label that work a graph speedup. Experimental `candidateDimensions` and `rerankCandidates` must be configured together when creating the store; full-width candidates are allowed as a control. Neither projection nor a different model is enabled automatically.
+Native exact search is the default. For ANN comparisons, call `await index.maintainIndices()` outside measured queries (the current graph preparation threshold is 4096 vector rows). A cold exact query can build an exact snapshot and defer its graph; a later unfiltered graph or auto query completes that deferred build on demand. Otherwise an explicit graph request reports an unavailable graph if none exists. Set `ef` from 1 to 4096 to trade search effort against approximate recall; validate quality on your own workload. Filtered/ownership-restricted routes use full exact search; inspect returned diagnostics and do not label that work a graph speedup. Experimental `candidateDimensions` and `rerankCandidates` must be configured together when creating the store; full-width candidates are allowed as a control. Neither projection nor a different model is enabled automatically.
+
+For an opt-in denser graph, create the migration index with `highRecall: true`.
+This selects degree 64 and construction effort 500 instead of degree 32 and effort
+128, and persists the choice in the migration profile. It increases graph build
+work and memory, supports at most 2,097,152 embedded rows, and does not guarantee
+any recall or latency target. Full-graph query diagnostics report the actual
+`graphDegree` and `graphBuildEf`. Native `WarmMemorySystem` callers can set
+`vectorHighRecall: true` and should reapply their runtime configuration on reopen.
 
 ## Storage and bounds
 

@@ -5,7 +5,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
-import { FILTERS, latency, recallAtK } from './oracle-vector.mjs'
+import { FILTERS, atLeast, latency, mean, recallAtK } from './oracle-vector.mjs'
 import { hybridTimingSchedule, runHybridJob, compareHybridPair } from './hybrid-run.mjs'
 import { LIMITS, exec, sha256, hashValue, manifest, packageFiles, storageReceipt, writeOnce, readJson, append, preflight, cloneStore, runMonitored, watchPhase } from './vector-receipts.mjs'
 const HERE = path.dirname(fileURLToPath(import.meta.url))
@@ -14,7 +14,10 @@ const THREAD_ENVIRONMENT = ['RAYON_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THR
 const threadEnvironment = () => Object.fromEntries(THREAD_ENVIRONMENT.map(name => [name, process.env[name] ?? null]))
 export function hostInfo() { return { platform: process.platform, release: os.release(), architecture: os.arch(), logicalCpus: os.cpus().length, cpuModels: [...new Set(os.cpus().map(cpu => cpu.model))], memoryBytes: os.totalmem() } }
 export function verifyHost(expected, actual = hostInfo()) { assert.deepEqual(actual, expected, 'host changed after freeze') }
-export const ARMS = Object.freeze([{ name: 'vectra-exact', engine: 'vectra', mode: 'exact' }, { name: 'warm-exact', engine: 'warm', mode: 'exact' }, ...[128, 256, 512].map(ef => ({ name: `warm-graph-${ef}`, engine: 'warm', mode: 'graph', ef }))])
+export function verifyGraphEnvironment(environment = process.env) {
+  assert.ok(!Object.keys(environment).some(name => name.startsWith('WARM_QGRAPH_')), 'unset experimental graph environment knobs')
+}
+export const ARMS = Object.freeze([{ name: 'vectra-exact', engine: 'vectra', mode: 'exact' }, { name: 'warm-exact', engine: 'warm', mode: 'exact' }, ...[128, 256, 512, 2048].map(ef => ({ name: `warm-graph-${ef}`, engine: 'warm', mode: 'graph', ef })), { name: 'warm-graph-high-recall-512', engine: 'warm', mode: 'graph', ef: 512, highRecall: true }])
 export function timingSchedule(datasets) {
   const jobs = []
   for (let repetition = 0; repetition < 3; repetition++) for (const dataset of datasets) {
@@ -82,6 +85,7 @@ print(json.dumps({'executable': os.path.realpath(sys.executable), 'python': plat
 }
 
 export async function freeze(configuration, output) {
+  verifyGraphEnvironment()
   assert.ok(!process.env.NODE_OPTIONS, 'unset NODE_OPTIONS for the pinned default worker runtime')
   assert.ok(path.isAbsolute(configuration) && path.isAbsolute(output), 'absolute freeze paths required')
   const config = await readJson(configuration)
@@ -123,6 +127,7 @@ export async function freeze(configuration, output) {
   return frozen
 }
 export async function verifyFreeze(root) {
+  verifyGraphEnvironment()
   for (const name of ['PYTHONPATH', 'PYTHONHOME', 'VIRTUAL_ENV']) assert.ok(!process.env[name], `unset ${name} for the frozen tokenizer runtime`)
   assert.ok(!process.env.NODE_OPTIONS, 'unset NODE_OPTIONS for the pinned default worker runtime')
   const file = path.join(root, 'freeze.json'), frozen = await readJson(file), receipt = await readJson(path.join(root, 'freeze-receipt.json'))
@@ -186,8 +191,8 @@ export async function runPhase(root, phase, grantPath) {
   }
   const hybridFixture = engine => path.join(root, 'hybrid-fixtures', engine)
   const hybridCopy = async (engine, name) => { watcher?.check(); const destination = path.join(root, 'hybrid-stores', name); await fs.mkdir(path.dirname(destination), { recursive: true }); await cloneStore(root, hybridFixture(engine), destination); watcher?.check(); return destination }
-  const fixture = (dataset, engine) => path.join(root, 'fixtures', dataset.name, engine)
-  const copy = async (dataset, engine, name) => { watcher?.check(); const destination = path.join(root, 'stores', name); await fs.mkdir(path.dirname(destination), { recursive: true }); await cloneStore(root, fixture(dataset, engine), destination); watcher?.check(); return destination }
+  const fixture = (dataset, engine, highRecall = false) => path.join(root, 'fixtures', dataset.name, highRecall ? `${engine}-high-recall` : engine)
+  const copy = async (dataset, engine, name, highRecall = false) => { watcher?.check(); const destination = path.join(root, 'stores', name); await fs.mkdir(path.dirname(destination), { recursive: true }); await cloneStore(root, fixture(dataset, engine, highRecall), destination); watcher?.check(); return destination }
   try {
     frozen = (await verifyFreeze(root)).frozen
     watcher.check()
@@ -202,9 +207,14 @@ export async function runPhase(root, phase, grantPath) {
           assert.ok((await run({ action: 'prepare', dataset, engine, store })).complete, 'failed import is not benchmarkable')
           assert.ok((await run({ action: 'validate', dataset, engine, store })).complete, 'reopen validation failed')
         }
+        if (dataset.rows >= 4096) {
+          const store = fixture(dataset, 'warm', true)
+          assert.ok((await run({ action: 'prepare', dataset, engine: 'warm', highRecall: true, store })).complete, 'high-recall import failed')
+          assert.ok((await run({ action: 'validate', dataset, engine: 'warm', store })).complete, 'high-recall reopen validation failed')
+        }
         const oraclePath = (await readJson(path.join(root, 'oracles', `${dataset.name}.json`))).output
         for (const arm of ARMS) {
-          const store = await copy(dataset, arm.engine, `quality-${dataset.name}-${arm.name}`)
+          const store = await copy(dataset, arm.engine, `quality-${dataset.name}-${arm.name}`, !!arm.highRecall && dataset.rows >= 4096)
           await run({ action: arm.mode === 'graph' && dataset.rows < 4096 ? 'unavailable' : 'quality', dataset, engine: arm.engine, arm, store, oracle: oraclePath })
         }
       }
@@ -231,7 +241,7 @@ export async function runPhase(root, phase, grantPath) {
       }
       for (const scheduled of frozen.timingSchedule) {
         const dataset = frozen.datasets.find(dataset => dataset.name === scheduled.dataset), arm = ARMS.find(arm => arm.name === scheduled.arm)
-        const store = await copy(dataset, arm.engine, `timing-${dataset.name}-${arm.name}-${scheduled.filter}-${scheduled.repetition}`), oracle = (await readJson(path.join(root, 'oracles', `${dataset.name}.json`))).output
+        const store = await copy(dataset, arm.engine, `timing-${dataset.name}-${arm.name}-${scheduled.filter}-${scheduled.repetition}`, !!arm.highRecall), oracle = (await readJson(path.join(root, 'oracles', `${dataset.name}.json`))).output
         await run({ action: 'timing', dataset, engine: arm.engine, arm, filter: scheduled.filter, repetition: scheduled.repetition, store, oracle })
       }
       for (const scheduled of frozen.hybrid.timingSchedule) {
@@ -245,7 +255,7 @@ export async function runPhase(root, phase, grantPath) {
           await run({ action: 'churn', dataset, engine, arm: ARMS.find(arm => arm.engine === engine && arm.mode === 'exact'), writeStyle: 'single', store, oracle })
         }
         for (const arm of ARMS.filter(arm => arm.mode === 'exact' || dataset.rows >= 4096)) {
-          const store = await copy(dataset, arm.engine, `churn-batch-${dataset.name}-${arm.name}`)
+          const store = await copy(dataset, arm.engine, `churn-batch-${dataset.name}-${arm.name}`, !!arm.highRecall)
           await run({ action: 'churn', dataset, engine: arm.engine, arm, writeStyle: 'batch', store, oracle })
           await run({ action: 'reopen', dataset, engine: arm.engine, arm, state: 'churn', store, oracle })
         }
@@ -271,7 +281,6 @@ export async function runPhase(root, phase, grantPath) {
   }
 }
 async function records(file) { return (await fs.readFile(file, 'utf8')).trim().split('\n').filter(Boolean).map(line => JSON.parse(line)) }
-const mean = values => values.length ? values.reduce((a, b) => a + b, 0) / values.length : null
 export function qualityGate(rows, exactRows, exact = false, expectedQueries = exactRows.map(row => row.query)) {
   const identities = items => {
     const ids = items.map(row => row.query), expected = new Set(expectedQueries)
@@ -292,7 +301,7 @@ export function qualityGate(rows, exactRows, exact = false, expectedQueries = ex
   }
   const result = { queries: rows.length, emptyEligibleQueries: rows.filter(row => row.eligibleCount === 0).length, identitiesPass, missingReference, missingMetrics, meanRecallWarmExact: mean(recall), worstRecallWarmExact: recall.length ? Math.min(...recall) : null, meanRecallOracle: mean(oracle), worstRecallOracle: oracle.length ? Math.min(...oracle) : null, meanNdcgDelta: mean(ndcg), meanQrelRecallDelta: mean(qrel), queriesWithEligibleJudgments: ndcg.length, queriesWithoutEligibleJudgments: rows.filter(row => row.qrel?.eligibleJudgments === 0).length }
   result.basis = exact ? 'Exact per-query score and cutoff-boundary audit; recall differences within accepted ties are descriptive.' : 'ANN recall and relevance thresholds against full exact and independent oracle.'
-  result.pass = rows.length > 0 && identitiesPass && !missingReference && !missingMetrics && rows.every(row => row.correctness) && (exact || ((!recall.length || (result.meanRecallWarmExact >= .99 && result.worstRecallWarmExact >= .90 && result.meanRecallOracle >= .99 && result.worstRecallOracle >= .90)) && (!ndcg.length || (result.meanNdcgDelta >= -.01 && result.meanQrelRecallDelta >= -.01))))
+  result.pass = rows.length > 0 && identitiesPass && !missingReference && !missingMetrics && rows.every(row => row.correctness) && (exact || ((!recall.length || (atLeast(result.meanRecallWarmExact, .99) && atLeast(result.worstRecallWarmExact, .90) && atLeast(result.meanRecallOracle, .99) && atLeast(result.worstRecallOracle, .90))) && (!ndcg.length || (atLeast(result.meanNdcgDelta, -.01) && atLeast(result.meanQrelRecallDelta, -.01)))))
   return result
 }
 export async function preparationGate(frozen, entries) {

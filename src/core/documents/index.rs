@@ -648,9 +648,15 @@ impl DocumentStore {
         self.documents.get(id)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(test, not(target_arch = "wasm32")))]
     pub(crate) fn only_vector_records(&self) -> bool {
         self.base.is_none() && self.vector_record_count == self.documents.len()
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn vector_search_only_records(&self) -> bool {
+        // Checkpoint images have no embeddings; all searchable rows are in the overlay.
+        self.vector_record_count == self.documents.len()
     }
 
     pub(crate) fn metadata_candidates(

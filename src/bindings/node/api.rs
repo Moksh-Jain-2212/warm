@@ -90,7 +90,7 @@ impl WarmMemorySystem {
     }
 
     #[napi(
-        ts_return_type = "Promise<{ revision: string; results: VectorRecordHit[]; diagnostics: { route: string; candidateDimensions: number; shortlistLimit?: number | null } }>"
+        ts_return_type = "Promise<{ revision: string; results: VectorRecordHit[]; diagnostics: { route: string; candidateDimensions: number; shortlistLimit?: number | null; graphDegree?: number | null; graphBuildEf?: number | null } }>"
     )]
     pub async fn query_vector_records(
         &self,

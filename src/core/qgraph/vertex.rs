@@ -1955,6 +1955,32 @@ impl VGraph {
             .expect("initialized search scratch")
             .search_validated(self, query, k, params, out)
     }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn search_cached(
+        &self,
+        query: &[f32],
+        k: usize,
+        params: VSearchParams,
+        out: &mut Vec<u32>,
+    ) -> Result<usize, WarmError> {
+        thread_local! {
+            static CACHE: std::cell::RefCell<Option<SearchScratch>> = const { std::cell::RefCell::new(None) };
+        }
+        if self.n <= 1_048_576 && self.dim <= 4096 && params.ef <= 1024 && !self.has_blocks() {
+            SearchScratch::validate_query(self, query)?;
+            return CACHE.with(|cache| match cache.try_borrow_mut() {
+                Ok(mut cache) => {
+                    if let Some(scratch) = cache.as_mut() {
+                        scratch.knobs = SearchKnobs::from_env();
+                    }
+                    self.search_reusing(&mut cache, query, k, params, out)
+                }
+                Err(_) => self.searcher().search(query, k, params, out),
+            });
+        }
+        self.searcher().search(query, k, params, out)
+    }
 }
 
 /// Visited marks of one search: a bit per vertex, with an 8-bit epoch for the trace records of

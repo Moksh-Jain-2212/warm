@@ -7,10 +7,10 @@ import os from 'node:os'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
-import { normalize, normalizeRows, scalarCosine, oracleTopK, liveState, auditExact, qrelMetrics, latency, FILTERS, metadata } from './oracle-vector.mjs'
-import { ARMS, timingSchedule, qualityGate, preparationGate, dependencyInventory, hostInfo, verifyHost, runPhase, summarize } from './vector.mjs'
+import { atLeast, normalize, normalizeRows, scalarCosine, oracleTopK, liveState, auditExact, qrelMetrics, latency, FILTERS, metadata } from './oracle-vector.mjs'
+import { ARMS, timingSchedule, qualityGate, preparationGate, dependencyInventory, hostInfo, verifyHost, verifyGraphEnvironment, runPhase, summarize } from './vector.mjs'
 import { parseProcesses, descendants, externalCpuFraction, preflight, writeOnce, readJson, manifest, cloneStore, assertOwnedPath, runMonitored, watchPhase, sha256, exec } from './vector-receipts.mjs'
-import { provider, routeCheck, scoreOrderPass, loadTruth } from './vector-worker.mjs'
+import { provider, graphProfileCheck, routeCheck, scoreOrderPass, loadTruth } from './vector-worker.mjs'
 const require = createRequire(import.meta.url), HERE = path.dirname(fileURLToPath(import.meta.url))
 const sources = { vectraPath: process.env.VECTRA_TEST_PACKAGE, warmPath: process.env.WARM_TEST_PACKAGE, nativeAddon: process.env.WARM_TEST_ADDON }
 for (const [name, value] of Object.entries(sources)) assert.ok(value, `${name} test path is required; actual API checks must not silently skip`)
@@ -51,10 +51,13 @@ test('quality gates distinguish exact numerical ties from ANN misses and fail mi
   assert.deepEqual(latency([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), { count: 10, p50: 5, p95: 10, p99: 10 })
   assert.deepEqual(qrelMetrics(['a'], new Map([['a', 1]]), new Set()), { ndcg10: null, recall10: null, eligibleJudgments: 0 })
   const schedule = timingSchedule([{ name: 'glove-128', rows: 128 }, { name: 'scifact', rows: 5183 }])
-  assert.equal(schedule.length, 3 * 4 * (2 + 5)); assert.equal(schedule.filter(job => job.dataset === 'scifact' && job.queryStride === 3).length, 3 * 3 * 5)
+  assert.equal(schedule.length, 3 * 4 * (2 + 7)); assert.equal(schedule.filter(job => job.dataset === 'scifact' && job.queryStride === 3).length, 3 * 3 * 7)
   for (const repetition of [0, 1, 2]) assert.equal(schedule.filter(job => job.repetition === repetition && job.filter === 'all' && job.dataset === 'scifact')[0].arm, ARMS[repetition].name)
   assert.equal(routeCheck('warm', { mode: 'graph' }, 'all', 'filteredExact', 'prepared'), false)
   assert.equal(routeCheck('warm', { mode: 'graph' }, '10pct', 'filteredExact', 'prepared'), true)
+  assert.equal(graphProfileCheck({ highRecall: true }, 'fullGraph', { graphDegree: 64, graphBuildEf: 500 }), true)
+  assert.equal(graphProfileCheck({ highRecall: true }, 'fullGraph', { graphDegree: 32, graphBuildEf: 128 }), false)
+  assert.equal(graphProfileCheck({}, 'fullGraph', undefined), false)
 })
 
 test('quality requires complete unique expected queries on both sides and gates timed ANN results', () => {
@@ -71,6 +74,24 @@ test('quality requires complete unique expected queries on both sides and gates 
   assert.equal(qualityGate(missingOracle, reference, false, expected).pass, false)
   const missingRelevance = reference.map(item => ({ ...item, qrel: null }))
   assert.equal(qualityGate(missingRelevance, reference, false, expected).pass, false)
+})
+
+test('ANN recall gate handles exact mean threshold without accumulated rounding error', () => {
+  for (const invalid of [NaN, Infinity, -Infinity]) assert.equal(atLeast(invalid, .99), false)
+  const hits = Array.from({ length: 10 }, (_, ordinal) => ({ ordinal }))
+  const reference = Array.from({ length: 1000 }, (_, query) => ({ query, hits, correctness: true, eligibleCount: 10, oracleRecall: 1, qrel: null }))
+  for (const belowPerfect of [99, 100, 101]) {
+    const rows = reference.map((row, query) => query >= 1000 - belowPerfect
+      ? { ...row, hits: [...hits.slice(0, 9), { ordinal: 10 }], oracleRecall: 0.9 }
+      : row)
+    const result = qualityGate(rows, reference)
+    assert.equal(result.pass, belowPerfect <= 100, `below-perfect queries: ${belowPerfect}`)
+  }
+  const referenceQrel = [{ ...reference[0], qrel: { ndcg10: 0.9, recall10: 0.9, eligibleJudgments: 1 } }]
+  for (const [score, pass] of [[0.890000001, true], [0.89, true], [0.889999999, false]]) {
+    const rows = [{ ...referenceQrel[0], qrel: { ndcg10: score, recall10: score, eligibleJudgments: 1 } }]
+    assert.equal(qualityGate(rows, referenceQrel).pass, pass)
+  }
 })
 
 test('graph results must retain descending returned and canonical score order', () => {
@@ -107,6 +128,8 @@ test('frozen dependency inventory detects installed code changes and refuses sym
 })
 
 test('host drift cannot reuse the frozen hardware receipt', () => {
+  assert.doesNotThrow(() => verifyGraphEnvironment({ RAYON_NUM_THREADS: '1' }))
+  assert.throws(() => verifyGraphEnvironment({ WARM_QGRAPH_FRONTIER: '0.5' }), /unset experimental graph/)
   const original = hostInfo()
   verifyHost(original, structuredClone(original))
   assert.throws(() => verifyHost(original, { ...original, logicalCpus: original.logicalCpus + 1 }), /host changed/)
@@ -264,6 +287,10 @@ test('actual engines pass tiny oracle, filter, churn, separate-process reopen an
       else { assert.equal(stopped.result.stop.boundary, boundary); const recovered = await run({ action: 'crash-reopen', engine, store: crashStore, boundary }); assert.equal(recovered.rows.find(row => row.type === 'crash-recovery').state, 'new') }
     }
   }
+  const highRecallStore = path.join(root, 'warm-high-recall')
+  await run({ action: 'prepare', engine: 'warm', highRecall: true, store: highRecallStore })
+  assert.equal((await readJson(path.join(highRecallStore, 'vectra-migration.json'))).highRecall, true)
+  await run({ action: 'validate', engine: 'warm', store: highRecallStore })
   const { LocalIndex } = require(path.join(sources.vectraPath, 'lib/index.js')), source = new LocalIndex(path.join(root, 'vectra'))
   await source.getIndexStats()
   const { importVectraIndex } = require(path.join(packagePath, 'vectra.js'))

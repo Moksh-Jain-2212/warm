@@ -104,6 +104,19 @@ export function nearestRank(values, probability) {
   const sorted = [...values].sort((a, b) => a - b)
   return sorted[Math.max(0, Math.ceil(probability * sorted.length) - 1)]
 }
+export function mean(values) {
+  if (!values.length) return null
+  let sum = 0, correction = 0
+  for (const value of values) {
+    const adjusted = value - correction, next = sum + adjusted
+    correction = (next - sum) - adjusted
+    sum = next
+  }
+  return sum / values.length
+}
+export function atLeast(value, threshold) {
+  return Number.isFinite(value) && Number.isFinite(threshold) && (value >= threshold || threshold - value <= 4 * Number.EPSILON * Math.max(1, Math.abs(value), Math.abs(threshold)))
+}
 export function latency(values) {
   return { count: values.length, p50: nearestRank(values, .5), p95: nearestRank(values, .95), p99: nearestRank(values, .99) }
 }

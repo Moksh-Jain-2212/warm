@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 import assert from 'node:assert/strict'
 import { fileURLToPath } from 'node:url'
+import { atLeast, mean } from './oracle-vector.mjs'
 
 export function hybridTimingSchedule() {
   return Array.from({ length: 3 }, (_, repetition) => {
@@ -21,7 +22,7 @@ export async function runHybridJob({ job, ...monitorOptions }) {
 
 function average(values) {
   const finite = values.filter(value => value !== null)
-  return finite.length ? finite.reduce((a, b) => a + b, 0) / finite.length : null
+  return mean(finite)
 }
 
 function percentiles(values) {
@@ -57,7 +58,7 @@ export function compareHybridPair(vectra, warm, eligibility, expectedQueryIds) {
   const quality = Object.fromEntries([['ndcg10', row => row.ranked.ndcg], ['recall10', row => row.ranked.recall],
     ['packedRecall', row => row.packed.recall]].map(([name, get]) => {
     const a = metric(vs, get), b = metric(ws, get)
-    return [name, { vectra: a, warm: b, pass: a !== null && b !== null && b >= a - .01 }]
+    return [name, { vectra: a, warm: b, pass: a !== null && b !== null && atLeast(b, a - .01) }]
   }))
   const timing = vectra.timingsCollected && warm.timingsCollected
   const latency = timing ? Object.fromEntries(['rankingMs', 'packingMs', 'rankingAndPackingMs'].map(field => {

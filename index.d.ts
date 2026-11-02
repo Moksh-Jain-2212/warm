@@ -5,7 +5,7 @@ export declare class WarmMemorySystem {
   mutateVectorRecords(operations: Array<{ op: 'insert' | 'upsert'; record: VectorRecordInput } | { op: 'delete'; id: string }>, options?: VectorRecordRevisionOptions): Promise<VectorRecordMutationResult>
   getVectorRecord(id: string, options?: VectorRecordRevisionOptions | undefined | null): Promise<VectorRecordGetResult>
   listVectorRecords(options?: VectorRecordListOptions | undefined | null): Promise<VectorRecordListResult>
-  queryVectorRecords(vector: Array<number>, k: number, options?: VectorRecordQueryOptions | undefined | null): Promise<{ revision: string; results: VectorRecordHit[]; diagnostics: { route: string; candidateDimensions: number; shortlistLimit?: number | null } }>
+  queryVectorRecords(vector: Array<number>, k: number, options?: VectorRecordQueryOptions | undefined | null): Promise<{ revision: string; results: VectorRecordHit[]; diagnostics: { route: string; candidateDimensions: number; shortlistLimit?: number | null; graphDegree?: number | null; graphBuildEf?: number | null } }>
   constructor(dimensions: number, storagePath?: string | undefined | null, config?: WarmConfigJs | undefined | null)
   /**
    * Replaces the memory API's configuration (policies and defaults; see
@@ -463,6 +463,8 @@ export interface WarmConfigJs {
   vectorCandidateDimensions?: number
   /** Full-vector rerank shortlist (1..=4096); must cover the requested k. */
   vectorRerankCandidates?: number
+  /** Opt-in denser vector graph; increases construction work and retained graph memory. */
+  vectorHighRecall?: boolean
   nsgMaxDegree?: number
   nsgEfConstruction?: number
   nsgAutoThreshold?: number

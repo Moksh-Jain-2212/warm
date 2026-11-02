@@ -103,6 +103,68 @@ async function main() {
     assert.ok(await index.getItem('uncertain'))
     assert.equal(await index.getItem('new'), undefined)
     assert.equal(await index.getItem('staged'), undefined)
+  } else if (phase === 'high-recall' || phase === 'high-recall-reopen') {
+    let index
+    if (phase === 'high-recall') {
+      const items = Array.from({ length: 4096 }, (_, i) => record(`row-${String(i).padStart(4, '0')}`, [1, i / 4096, 0.1], { ordinal: i }))
+      index = (await importVectraItems(items, { ...options, highRecall: true })).index
+    } else index = await VectraMigrationIndex.open({ path: directory })
+    await index.maintainIndices()
+    const result = await index.queryItems([1, 0, 0.1], { k: 1, mode: 'graph', ef: 128 })
+    assert.equal(result.diagnostics.route, 'fullGraph')
+    assert.equal(result.diagnostics.graphDegree, 64)
+    assert.equal(result.diagnostics.graphBuildEf, 500)
+    assert.equal(result.results[0].item.id, 'row-0000')
+    await index.flush()
+  } else if (phase === 'read-concurrency') {
+    const index = await VectraMigrationIndex.create(options)
+    await index.insertItem(record('one', [1, 0, 0], { version: 1 }))
+    const originalGet = WarmMemorySystem.prototype.getVectorRecord
+    const originalMutate = WarmMemorySystem.prototype.mutateVectorRecords
+    let entered = 0
+    let notifyEntered
+    let release
+    const bothEntered = new Promise(resolve => { notifyEntered = resolve })
+    const gate = new Promise(resolve => { release = resolve })
+    let wrote = false
+    WarmMemorySystem.prototype.getVectorRecord = async function (...args) {
+      if (args[0] === 'fail') throw new Error('simulated read failure')
+      if (++entered <= 2) {
+        if (entered === 2) notifyEntered()
+        await gate
+      }
+      return originalGet.apply(this, args)
+    }
+    WarmMemorySystem.prototype.mutateVectorRecords = async function (...args) {
+      wrote = true
+      return originalMutate.apply(this, args)
+    }
+    try {
+      const first = index.getItem('one')
+      const second = index.getItem('one')
+      const write = index.upsertItem(record('one', [0, 1, 0], { version: 2 }))
+      const after = index.getItem('one')
+      await bothEntered
+      assert.equal(wrote, false)
+      release()
+      assert.equal((await first).metadata.version, 1)
+      assert.equal((await second).metadata.version, 1)
+      await write
+      assert.equal((await after).metadata.version, 2)
+      await index.beginUpdate()
+      await assert.rejects(index.getItem('one'), /commit or cancel/)
+      await index.cancelUpdate()
+      assert.equal((await index.getItem('one')).metadata.version, 2)
+      const failed = index.getItem('fail')
+      const nextWrite = index.upsertItem(record('one', [1, 0, 0], { version: 3 }))
+      await assert.rejects(failed, /simulated read failure/)
+      await nextWrite
+      assert.equal((await index.getItem('one')).metadata.version, 3)
+    } finally {
+      release()
+      WarmMemorySystem.prototype.getVectorRecord = originalGet
+      WarmMemorySystem.prototype.mutateVectorRecords = originalMutate
+    }
   } else if (phase === 'paging') {
     const items = Array.from({ length: 1001 }, (_, n) => record(`a${String(n).padStart(4, '0')}`, [1, 0, 0], { group: 'excluded' }))
     items.push(record('z-negative', [-1, 0, 0], { group: 'eligible' }))
@@ -122,6 +184,17 @@ async function main() {
     await assert.rejects(index.queryItems([1, 0, 0], { mode: 'graph' }), /graph|Graph/)
 
     const list = WarmMemorySystem.prototype.listVectorRecords
+    let cachedLists = 0
+    WarmMemorySystem.prototype.listVectorRecords = async function (...args) { cachedLists++; return list.apply(this, args) }
+    try {
+      assert.deepEqual(hitIds(await index.queryItems([1, 0, 0], query)), ['z-negative'])
+      assert.equal(cachedLists, 0)
+      await index.upsertItem(record('z-negative', [-1, 0, 0], { group: 'excluded' }))
+      assert.deepEqual(hitIds(await index.queryItems([1, 0, 0], query)), [])
+      assert.ok(cachedLists > 0, 'a revision change forces a complete rescan')
+      await index.upsertItem(record('z-negative', [-1, 0, 0], { group: 'eligible' }))
+    } finally { WarmMemorySystem.prototype.listVectorRecords = list }
+
     let calls = 0
     let changed = false
     WarmMemorySystem.prototype.listVectorRecords = async function (args) {
@@ -136,7 +209,7 @@ async function main() {
       return page
     }
     try {
-      assert.deepEqual(hitIds(await index.queryItems([1, 0, 0], query)), [])
+      assert.deepEqual(hitIds(await index.queryItems([1, 0, 0], { ...query, filter: { $and: [query.filter] } })), [])
       assert.equal(calls, 4)
     } finally { WarmMemorySystem.prototype.listVectorRecords = list }
 
@@ -152,11 +225,12 @@ async function main() {
       return page
     }
     try {
-      await assert.rejects(index.queryItems([1, 0, 0], query), /vector record revision conflict/)
+      await assert.rejects(index.queryItems([1, 0, 0], { ...query, filter: { $and: [{ $and: [query.filter] }] } }), /vector record revision conflict/)
       assert.equal(calls, 6, 'three complete attempts, then stop')
     } finally { WarmMemorySystem.prototype.listVectorRecords = list }
     await index.flush()
   } else if (phase === 'bounds') {
+    await assert.rejects(VectraMigrationIndex.create({ ...options, highRecall: 'yes' }), /boolean/)
     const index = await VectraMigrationIndex.create({ ...options, maxPending: 1 })
     await index.insertItem(record('kept'))
     for (const k of [1, 999, 1000]) assert.equal((await index.queryItems([1, 0, 0], { k })).results.length, 1)

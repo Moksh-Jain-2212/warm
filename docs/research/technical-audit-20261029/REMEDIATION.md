@@ -2330,8 +2330,180 @@ cache directory. No timing preflight or measurement phase was started.
 The completed unfiltered `ef=256` subset at 100,000 GloVe rows had previously
 reported mean oracle recall 0.9634 and worst recall 0.50, both below the required
 0.99/0.90 thresholds. These values were read from the worker output before the
-stop and have not been independently recomputed; the selected rows are retained
-and hashed. Earlier independently recomputed `ef=128` failures are preserved in
+stop; the selected rows are retained and hashed. The later offline review below
+independently recomputes them. Earlier independently recomputed `ef=128` failures are preserved in
 the linked interim receipts above. No speedup or overall comparison result is
 established. Do not resume testing without a new explicit user request; any future
 work must respect the frozen protocol's no-retry rule and preserve this attempt.
+
+### Offline retrieval review after the user-requested test stop
+
+Scope: read-only review of native vector search, graph construction/traversal,
+Vectra migration and saved study outputs. No tests, retrieval queries, benchmarks,
+model calls or downloads were started. [The analysis](vectra-comparison-20261102/saved-quality-analysis.json)
+is reproducible with `node docs/research/technical-audit-20261029/vectra-comparison-20261102/analyze-saved-quality.mjs`;
+it verifies every source result against the stop receipt and compares saved IDs.
+These GloVe queries have already informed development and are not held-out proof.
+
+| Rows | Graph ef | Mean / worst recall against both WARM exact and oracle | Queries below 90% | Scope |
+|---:|---:|---:|---:|---|
+| 10,000 | 128 | 0.9847 / 0.70 | 22 / 1,000 | Complete quality job |
+| 10,000 | 256 | 0.9976 / 0.90 | 0 / 1,000 | Complete quality job |
+| 10,000 | 512 | 0.9999 / 0.90 | 0 / 1,000 | Complete quality job |
+| 100,000 | 128 | 0.9235 / 0.10 | 210 / 1,000 | Complete quality job |
+| 100,000 | 256 | 0.9634 / 0.50 | 95 / 1,000 | Unfiltered subset complete; job stopped during later filters |
+
+All 1,000 WARM exact top-10 ID sets at each size match the independent oracle.
+This localizes these observed misses to the approximate path for this data, but
+not to a particular graph, quantization or shortlist mechanism. Query 241 is a
+worst-recall case at both sizes with ef=128. No study timing was collected and
+these data establish no speed or competitor advantage.
+
+Review opportunities, in order of practical importance:
+
+1. **Diagnose and improve graph candidate recall.** Fresh graph search fetches
+   `k + 8` candidates for final canonical rescoring (18 at k=10); the graph's
+   residual-code rerank considers up to `ef` before returning that smaller set.
+   `qgraph::VGraph::diagnose` already distinguishes evaluated, retained and
+   rerank candidates and can compare coded with exact traversal. A future isolated
+   investigation can separate traversal misses from cutoff/reranking losses,
+   then evaluate a wider full-dimensional final shortlist, independent retention,
+   and larger `ef`. The API's experimental full-width candidate configuration
+   permits a shortlist control, but it rebuilds a configured graph and is not a
+   proven fix. Reject any setting that fails the fixed mean and worst-query gates;
+   final rescoring cannot recover an unvisited candidate.
+2. **Investigate graph construction quality.** Shipping document snapshots use
+   `BuildParams::default()` (degree 32, construction ef 128). A historical
+   standalone x86 qgraph experiment favored denser graphs, but used a different
+   build/search configuration and workload; it does not establish a WARM or
+   Vectra speedup. Compare degree/construction effort and traversal work at matched
+   quality on separate development and held-out inputs, including build time,
+   total memory and updates before exposing or changing defaults.
+3. **Reduce filtered vector-record work.** The migration adapter reads every
+   metadata page at one revision and computes the complete Vectra selector before
+   native ranking. Even `includeVectors: false` validates and clones the envelope
+   containing the base64 f64 archive. For this 100,000-by-100-dimensional input,
+   that archive alone is 1,068 bytes per record, or 106.8 MB of encoded material
+   visited per full metadata scan; this is source-derived accounting, not an RSS
+   or timing measurement. Explore a revision-consistent indexed filter view and
+   metadata-only access that avoids copying vector payloads. Preserve selector
+   quirks, exact pre-top-k eligibility, conflict retries and corruption checks.
+4. **Short-circuit empty eligibility.** An explicit empty ID set still reaches
+   a full live-document walk before ranking. A validated, revision-consistent
+   empty result could avoid that work, while preserving all vector, option and
+   revision errors. The adapter must still establish eligibility correctly.
+5. **Remove adapter read serialization where safe.** `#enqueue` currently
+   serializes reads and writes on one promise chain. Explore bounded concurrent
+   read-only operations while preserving transaction barriers, linearizability,
+   revision checks, admission limits and no locks across async work. Impact on
+   throughput is unmeasured.
+6. **Avoid graph work on a cold exact-only query.** With no snapshot, an
+   unfiltered exact query currently invokes the normal snapshot builder, which
+   builds a graph at the row threshold. Consider an exact-only snapshot followed
+   by explicit/background graph maintenance; update rebuild-status semantics so
+   maintenance still constructs a graph and preserve route/error contracts.
+7. **Reuse graph search scratch safely.** The document graph creates a fresh
+   searcher per request, while the updatable graph already has a compatible
+   reusable scratch mechanism. Evaluate bounded per-thread or pooled reuse,
+   including concurrency, reentrancy, stale snapshots and memory retention.
+8. **Reduce materialization and duplicate work.** Vector-record search first
+   materializes document results and then reads vector records again; the graph
+   candidate path computes f32 dots before canonical rescoring, and fresh exact
+   mode rescans its small retained set. Investigate an internal ID/score path,
+   eliminating redundant scoring and optional ID-only results without changing
+   defaults, canonical f64 ordering, score/tie behavior or Vectra's returned
+   original f64 values. Batch mutation also clones each input record before
+   preparation; ownership restructuring may reduce temporary copies.
+9. **Bound and expose lifecycle costs.** Full-width graph queries on stale
+   snapshots still walk live documents to discover deltas; the changed-ID ledger
+   already helps stale exact queries. Explore sharing its bounded generation
+   tracking, with complete fallback on overflow and unchanged owner safety.
+   Checkpoint-served vector operations hydrate the document store before use;
+   a lazy vector-aware checkpoint path may reduce cold cost but needs equivalent
+   ownership, recovery and revision guarantees.
+10. **Harden impossible-result handling.** Graph candidate IDs outside the
+    snapshot are silently filtered. No such case was observed, but treating this
+    internal invariant violation as an error would avoid presenting a silently
+    short result if an index invariant ever breaks.
+
+The experimental short-prefix settings already failed their declared quality
+criteria, and prior query-memory work showed a confounded p99 increase despite
+lower requested allocations. Neither is a basis for a speed claim. Any future
+experiments require a new user request, a separate preregistered attempt and
+quiet-window checks; the stopped attempt and all failures remain unchanged.
+
+### Follow-on implementation (user authorized a new test attempt)
+
+The user requested implementation of the review opportunities, additional
+competitors and a restarted study. This is a new attempt, not a retry of the
+stopped frozen run. The implementation includes stale-graph change-ledger capture,
+bounded graph scratch reuse, deferred cold exact graph construction, metadata-only
+envelope projection, direct filtered ranking, revision-checked filter-result caching
+and concurrent adapter reads with write barriers. Checkpoint overlays can serve
+vector-record writes, metadata reads and searches without hydrating unrelated
+lexical documents in the covered paths. Invariant and mutation-allocation changes
+are included. These are not measured performance claims. An opt-in degree-64 /
+build-ef-500 graph profile is included as a separate public-API comparison
+arm; the shipping default remains degree 32 / build-ef 128. The added Node
+competitors are hnswlib-node 3.0.0 and USearch 2.26.5. Their separately scoped
+index-only harness is in `benchmarks/public/vectra_comparison/competitors/`; do
+not conflate its timings with the migration API or unqualified results. A
+persistent metadata index and an ID-only return path remain research proposals,
+not delivered or proven improvements. The original stopped attempt and failed
+prefix experiments remain preserved.
+
+Follow-on validation: the final `cargo test --lib` passed 760 tests (12 ignored),
+the full-width/prefix integration suite passed eight tests, and 40 combined harness
+checks passed, and scoped Node/security Clippy passed with warnings denied. These
+cover both added engines, save/reopen, cosine scores, query
+identities, rounding at quality boundaries, duplicate oracle rejection and monitored
+workers. The final release addon passed 27 Node tests (three optional local-embedding
+tests skipped), including the high-recall profile across reopen. Untimed graph development
+diagnostics are documented in [DEVELOPMENT.md](vectra-comparison-followup-20261102/DEVELOPMENT.md).
+The first standalone competitor freeze at
+`/Volumes/A/.hms-bench-cache/warm-competitors-20261102-v1` was never started and
+is invalidated by subsequent harness changes; retain it as a preparatory artifact
+and create a new freeze after final validation. The follow-up protocol is in
+[vectra-comparison-followup-20261102/PLAN.md](vectra-comparison-followup-20261102/PLAN.md).
+
+The [wide-shortlist development receipt](vectra-comparison-followup-20261102/wide-shortlist-development.json)
+reports 6,000 GloVe queries using the temporary `fetch = max(k + 8, ef)` policy.
+For the 5,000 queries with saved previous graph results, every ordered top-10 ID
+list was unchanged ([hash-verified comparison](vectra-comparison-followup-20261102/wide-shortlist-comparison.json)).
+At 100,000 rows and ef 512, the newly recorded mean/worst
+recall was 0.9859/0.60, still below the 0.99/0.90 requirements. No latency was
+measured. This supports rejecting the wider default shortlist for these exposed
+inputs, not a claim about other inputs or a proof of traversal root cause; the
+temporary policy has been reverted. Raw query IDs, hashes and cloned fixture
+receipts remain in `/Volumes/A/.hms-bench-cache/warm-graph-development-20261102-v1`.
+
+The [reservoir development receipt](vectra-comparison-followup-20261102/reservoir-development.json)
+records the existing independent reservoir at capacity `ef`, with the original
+shortlist and unchanged traversal. The [saved-query comparison](vectra-comparison-followup-20261102/reservoir-comparison.json)
+again found zero changes in all 5,000 comparable ordered rankings; the 1,000
+100,000-row ef=512 rankings also matched the wider-shortlist diagnostic. These
+are development observations on exposed data, not timing results or a general
+claim. The reservoir default has been reverted. The raw results and the exact
+addon are retained under `/Volumes/A/.hms-bench-cache/warm-graph-development-20261102-v2`.
+
+The [higher-ef development receipt](vectra-comparison-followup-20261102/high-ef-development.json)
+records mean/worst recall on the same exposed 100,000-row GloVe queries as
+0.9951/0.80 at ef 1024, 0.9993/0.90 at ef 2048 and 1.00/1.00 at ef 4096.
+Only the last two pass the stated quality gates on this data. These are untimed
+development results, not held-out proof or a speed recommendation. The follow-up
+comparison predeclares an ef 2048 arm selected from this development evidence and
+reports it alongside all original arms. Raw results and the exact addon are retained
+under `/Volumes/A/.hms-bench-cache/warm-graph-high-ef-20261102-v1`.
+
+The [graph topology development receipt](vectra-comparison-followup-20261102/topology-development.json)
+reconstructed the default graph and matched all 3,000 saved ordered rankings before
+testing denser configurations on the same exposed 100,000-row GloVe data. At ef 512,
+degree 32/build-ef 128 achieved mean/worst recall 0.9859/0.60; degree 48/build-ef 400
+achieved 0.9969/0.80; degree 64/build-ef 500 achieved 0.9985/0.90. Only the final
+configuration passed both quality gates in this local diagnostic. Graph hashes,
+all query IDs, source patch, binary and resource observations are retained under
+`/Volumes/A/.hms-bench-cache/warm-vector-topology-development-20261102-v1`; the
+[diagnostic instructions](../../../benchmarks/research/vector_topology/README.md)
+describe reproduction. This
+measures recall only on previously exposed input; it does not establish public-API
+latency, total memory, update cost, held-out quality or a competitor advantage.

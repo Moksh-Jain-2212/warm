@@ -74,7 +74,7 @@ export async function provider(engine, config, directory, create = false, dimens
   assert.ok(loaded, 'native binding provenance unavailable')
   assert.equal(await fs.realpath(loaded.filename), await fs.realpath(config.nativeAddon), 'public loader selected a different native addon')
   const { VectraMigrationIndex } = require(path.join(config.warmPath, 'vectra.js'))
-  const index = create ? await VectraMigrationIndex.create({ path: directory, dimensions: 1024, embeddingSpace: { model: config.embeddingModel ?? 'vectra-comparison-existing-vectors', revision: config.embeddingRevision ?? config.inputIdentity, dimensions } }) : await VectraMigrationIndex.open({ path: directory })
+  const index = create ? await VectraMigrationIndex.create({ path: directory, dimensions: 1024, highRecall: config.highRecall, embeddingSpace: { model: config.embeddingModel ?? 'vectra-comparison-existing-vectors', revision: config.embeddingRevision ?? config.inputIdentity, dimensions } }) : await VectraMigrationIndex.open({ path: directory })
   return {
     raw: index,
     batch: operations => index.applyBatch(operations),
@@ -114,6 +114,9 @@ export function routeCheck(engine, arm, filter, route, phase) {
   if (phase === 'before-maintenance') return ['fullGraph', 'staleExact', 'fallbackExact'].includes(route)
   return route === 'fullGraph'
 }
+export function graphProfileCheck(arm, route, diagnostics) {
+  return route !== 'fullGraph' || (diagnostics?.graphDegree === (arm.highRecall ? 64 : 32) && diagnostics?.graphBuildEf === (arm.highRecall ? 500 : 128))
+}
 async function stage(job, name, callback) {
   send({ type: 'stage', name, rssBytes: rss() }); const start = now()
   const value = await callback()
@@ -140,7 +143,7 @@ export async function loadTruth(file, dataset, queryIds) {
 export async function runWorker(job) {
   await fs.writeFile(job.output, '', { flag: 'wx' })
   await append(job.output, { type: 'worker-start', pid: process.pid, rssBytes: rss(), job: { action: job.action, dataset: job.dataset.name, engine: job.engine, arm: job.arm, repetition: job.repetition, development: !!job.development } })
-  const config = { ...await readJson(job.config), embeddingModel: job.dataset.embeddingModel, embeddingRevision: job.dataset.embeddingRevision }
+  const config = { ...await readJson(job.config), embeddingModel: job.dataset.embeddingModel, embeddingRevision: job.dataset.embeddingRevision, highRecall: job.highRecall }
   if (job.action === 'oracle') {
     const data = await loadDataset(job.dataset), rows = normalizeRows(data.values, job.dataset.dimensions)
     for (const stateName of ['baseline', 'churn']) {
@@ -224,12 +227,13 @@ export async function runWorker(job) {
     const exact = job.arm.mode === 'exact' || found.route !== 'fullGraph'
     const audit = exact ? auditExact(hits, expected, score, new Set([...ids].map(id => data.ordinal.get(id)))) : null
     const routePass = routeCheck(job.engine, job.arm, filter.name, found.route, phase)
+    const graphProfilePass = graphProfileCheck(job.arm, found.route, found.diagnostics)
     const metrics = stateName === 'baseline' && data.qrels.has(data.queryIds[query]) ? qrelMetrics(hits.map(hit => hit.id), data.qrels.get(data.queryIds[query]), ids) : null
-    await append(job.output, { type: 'query', role, phase, query, queryId: data.queryIds[query], state: stateName, filter: filter.name, eligibleCount: expected.eligibleCount, elapsedMs, hits, route: found.route, routeEvidence: found.routeEvidence, diagnostics: found.diagnostics, routePass, orderPass, payload, payloadHash: hashValue(found.hits), audit, oracleRecall: recallAtK(hits.map(hit => hit.ordinal), expected.hits.map(hit => hit.ordinal)), qrel: metrics, correctness: payload.pass && routePass && orderPass && (audit?.pass ?? (hits.length === Math.min(10, expected.eligibleCount) && new Set(hits.map(hit => hit.id)).size === hits.length)), rssBytes: rss() })
+    await append(job.output, { type: 'query', role, phase, query, queryId: data.queryIds[query], state: stateName, filter: filter.name, eligibleCount: expected.eligibleCount, elapsedMs, hits, route: found.route, routeEvidence: found.routeEvidence, diagnostics: found.diagnostics, routePass, graphProfilePass, orderPass, payload, payloadHash: hashValue(found.hits), audit, oracleRecall: recallAtK(hits.map(hit => hit.ordinal), expected.hits.map(hit => hit.ordinal)), qrel: metrics, correctness: payload.pass && routePass && graphProfilePass && orderPass && (audit?.pass ?? (hits.length === Math.min(10, expected.eligibleCount) && new Set(hits.map(hit => hit.id)).size === hits.length)), rssBytes: rss() })
   }
   if (job.action === 'cold') {
     await recordQuery(0, FILTERS[0], 'baseline', 'cold-first-exact-including-actual-lazy-initialization', 'cold')
-    return { complete: true, note: 'Page cache uncontrolled. Missing native exact snapshot may build a graph; this initialization remains included.' }
+    return { complete: true, note: 'Page cache uncontrolled. A cold native exact query may build an exact snapshot and defer graph construction; this initialization remains included.' }
   }
   if (job.action === 'unavailable') {
     try { await index.query(data.query(0), job.arm, undefined); await append(job.output, { type: 'graph-unavailable', pass: false, unexpectedSuccess: true }) }

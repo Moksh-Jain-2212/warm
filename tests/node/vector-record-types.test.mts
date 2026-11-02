@@ -4,7 +4,7 @@
 import { WarmMemorySystem, type VectorRecordInput } from '../../index.js'
 
 const warm = new WarmMemorySystem(1024, undefined, {
-  vectorRecords: true, embeddingModel: 'records', embeddingRevision: '1', embeddingDimensions: 3,
+  vectorRecords: true, embeddingModel: 'records', embeddingRevision: '1', embeddingDimensions: 3, vectorHighRecall: true,
 })
 const item: VectorRecordInput = { id: 'one', vector: [-0, 0.1, Number.MIN_VALUE], metadata: { selected: true } }
 const committed = await warm.mutateVectorRecords([{ op: 'insert', record: item }, { op: 'delete', id: 'absent' }])

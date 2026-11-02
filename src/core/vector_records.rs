@@ -138,7 +138,7 @@ pub(crate) fn is_record(document: &StoredDocument) -> bool {
     document.vector_record
 }
 
-fn envelope(document: &StoredDocument) -> Result<Envelope> {
+fn envelope(document: &StoredDocument) -> Result<(&str, &Value)> {
     ensure!(document.version == VERSION, "invalid vector record version");
     ensure!(
         document
@@ -148,24 +148,31 @@ fn envelope(document: &StoredDocument) -> Result<Envelope> {
         "invalid vector record envelope"
     );
     super::documents::serialized_size(&document.metadata, MAX_RECORD_BYTES)?;
-    let envelope: Envelope = serde_json::from_value(
-        document
-            .metadata
-            .get(ENVELOPE)
-            .context("missing vector record envelope")?
-            .clone(),
-    )?;
+    let envelope = document
+        .metadata
+        .get(ENVELOPE)
+        .context("missing vector record envelope")?
+        .as_object()
+        .context("invalid vector record envelope")?;
     ensure!(
-        envelope.version == 1 && envelope.metadata.is_object(),
+        envelope.len() == 3 && envelope.get("version").and_then(Value::as_u64) == Some(1),
         "invalid vector record envelope version or metadata"
     );
-    Ok(envelope)
+    let f64le = envelope
+        .get("f64le")
+        .and_then(Value::as_str)
+        .context("invalid vector record f64 encoding")?;
+    let metadata = envelope
+        .get("metadata")
+        .filter(|metadata| metadata.is_object())
+        .context("invalid vector record envelope version or metadata")?;
+    Ok((f64le, metadata))
 }
 
 pub(crate) fn read(document: &StoredDocument, include_vector: bool) -> Result<ListedVectorRecord> {
-    let envelope = envelope(document)?;
+    let (f64le, metadata) = envelope(document)?;
     let vector = if include_vector {
-        let bytes = STANDARD.decode(envelope.f64le)?;
+        let bytes = STANDARD.decode(f64le)?;
         ensure!(
             !bytes.is_empty() && bytes.len() % 8 == 0,
             "invalid vector record f64 byte length"
@@ -186,7 +193,7 @@ pub(crate) fn read(document: &StoredDocument, include_vector: bool) -> Result<Li
     };
     Ok(ListedVectorRecord {
         id: document.id.clone(),
-        metadata: envelope.metadata,
+        metadata: metadata.clone(),
         vector,
     })
 }

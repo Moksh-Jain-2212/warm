@@ -159,6 +159,10 @@ function configuration(options) {
     profile.candidateDimensions = integer(options.candidateDimensions, 1, space.dimensions, 'candidate dimensions')
     profile.rerankCandidates = integer(options.rerankCandidates, 1, 4096, 'rerank candidates')
   }
+  if (options.highRecall !== undefined) {
+    if (typeof options.highRecall !== 'boolean') throw new TypeError('highRecall must be boolean')
+    profile.highRecall = options.highRecall
+  }
   return json(profile, 'migration profile', 16384)
 }
 function nativeSystem(directory, profile, native) {
@@ -171,6 +175,7 @@ function nativeSystem(directory, profile, native) {
     ...native, vectorRecords: true,
     embeddingModel: space.model, embeddingRevision: space.revision, embeddingDimensions: space.dimensions,
     vectorCandidateDimensions: profile.candidateDimensions, vectorRerankCandidates: profile.rerankCandidates,
+    vectorHighRecall: profile.highRecall,
   })
 }
 
@@ -180,6 +185,8 @@ class VectraMigrationIndex {
   #path
   #pending = 0
   #tail = Promise.resolve()
+  #readers = new Set()
+  #filterCache
   #maxPending
   #transaction
 
@@ -261,11 +268,18 @@ class VectraMigrationIndex {
     }
   }
   get path() { return this.#path }
-  #enqueue(operation) {
+  #enqueue(operation, read = false) {
     if (this.#pending >= this.#maxPending) return Promise.reject(new Error('migration queue is full; await pending operations'))
     this.#pending++
-    const result = this.#tail.then(operation)
-    this.#tail = result.then(() => undefined, () => undefined)
+    const result = (read ? this.#tail : Promise.all([this.#tail, ...this.#readers])).then(operation)
+    const settled = result.then(() => undefined, () => undefined)
+    if (read) {
+      this.#readers.add(settled)
+      settled.then(() => this.#readers.delete(settled))
+    } else {
+      this.#readers.clear()
+      this.#tail = settled
+    }
     return result.finally(() => { this.#pending-- })
   }
   #committed() {
@@ -335,7 +349,7 @@ class VectraMigrationIndex {
       this.#committed()
       const result = await this.#system.getVectorRecord(itemId, { ifRevision })
       return result.record ? unwrap(result.record) : undefined
-    })
+    }, true)
   }
   listItems(options = {}) {
     const limit = integer(options.limit ?? 100, 1, 1000, 'page limit')
@@ -347,7 +361,7 @@ class VectraMigrationIndex {
       this.#committed()
       const page = await this.#system.listVectorRecords({ from, limit, includeVectors, ifRevision })
       return { revision: page.revision, items: page.records.map(record => unwrap(record, includeVectors)), nextFrom: page.nextFrom }
-    })
+    }, true)
   }
   queryItems(query, options = {}) {
     const queryVector = vector(query, this.#profile.embeddingSpace.dimensions)
@@ -380,8 +394,13 @@ class VectraMigrationIndex {
       const nativeOptions = { k, mode, ef, minScore, documentIds: explicit, ifRevision }
       if (!filter || Object.keys(filter).length === 0 || explicit?.length === 0) return this.#query(queryVector, nativeOptions)
       const allowed = explicit && new Set(explicit)
+      const filterKey = explicit ? undefined : JSON.stringify(filter)
       for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
         try {
+          const cached = this.#filterCache
+          if (filterKey !== undefined && cached?.key === filterKey && (ifRevision === undefined || ifRevision === cached.revision)) {
+            return await this.#query(queryVector, { ...nativeOptions, documentIds: cached.ids, ifRevision: cached.revision })
+          }
           let revision = ifRevision
           let from
           let totalBytes = 0
@@ -401,13 +420,17 @@ class VectraMigrationIndex {
             if (page.nextFrom !== null && (typeof page.nextFrom !== 'string' || page.nextFrom === from)) throw new Error('native listing cursor did not advance')
             from = page.nextFrom
           } while (from !== null)
+          if (filterKey !== undefined && eligible.length <= 100_000 && totalBytes <= 2 * 1024 * 1024) {
+            this.#filterCache = { key: filterKey, revision, ids: eligible }
+          }
           return await this.#query(queryVector, { ...nativeOptions, documentIds: eligible, ifRevision: revision })
         } catch (error) {
+          if (cleanConflict(error)) this.#filterCache = undefined
           if (ifRevision !== undefined || !cleanConflict(error) || attempt === ATTEMPTS - 1) throw error
         }
       }
       throw new Error('unreachable query retry state')
-    })
+    }, true)
   }
   async #query(query, options) {
     const { k, ...nativeOptions } = options

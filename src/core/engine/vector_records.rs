@@ -56,16 +56,21 @@ impl WarmCore {
             "vector record transaction requires 1..=4096 operations"
         );
         let mut mutations = Vec::with_capacity(operations.len());
+        let mut actions = Vec::with_capacity(operations.len());
         let mut metadata_bytes = 0usize;
         let mut embedding_values = 0usize;
         let mut id_bytes = 0usize;
-        for operation in &operations {
-            let (id, record) = match operation {
-                VectorRecordOperation::Insert { record }
-                | VectorRecordOperation::Upsert { record } => (&record.id, Some(record)),
-                VectorRecordOperation::Delete { id } => (id, None),
+        for operation in operations {
+            let (op, id, record) = match operation {
+                VectorRecordOperation::Insert { record } => {
+                    ("insert", record.id.clone(), Some(record))
+                }
+                VectorRecordOperation::Upsert { record } => {
+                    ("upsert", record.id.clone(), Some(record))
+                }
+                VectorRecordOperation::Delete { id } => ("delete", id, None),
             };
-            validate_public_id(id)?;
+            validate_public_id(&id)?;
             ensure!(
                 id.len() <= u16::MAX as usize - "hms:chunk::0".len(),
                 "vector record ID exceeds chunk ID bound"
@@ -82,8 +87,7 @@ impl WarmCore {
                     .ok_or_else(|| {
                         anyhow::anyhow!("vector record batch exceeds 1048576 embedding values")
                     })?;
-                let document =
-                    records::prepare(record.clone(), self.dimensions, embedding_dimensions)?;
+                let document = records::prepare(record, self.dimensions, embedding_dimensions)?;
                 metadata_bytes = metadata_bytes
                     .checked_add(documents::serialized_size(
                         &document.metadata,
@@ -95,30 +99,31 @@ impl WarmCore {
             } else {
                 mutations.push(Mutation::DeleteDocument { id: id.clone() });
             }
+            actions.push((op, id));
         }
         let payload = self.transaction_payload(&mutations)?;
         ensure!(
             payload.len() <= MAX_TRANSACTION_BYTES,
             "vector record transaction exceeds 32 MiB"
         );
-        self.hydrate_documents()?;
         let (revision, outcomes) = self.commit_serialized_checked(&mutations, &payload, || {
             self.check_vector_record_revision(options.if_revision.as_deref())?;
             let store = self.documents.read();
             let mut staged: BTreeMap<&str, bool> = BTreeMap::new();
-            let mut outcomes = Vec::with_capacity(operations.len());
-            for operation in &operations {
-                let (op, id) = match operation {
-                    VectorRecordOperation::Insert { record } => ("insert", record.id.as_str()),
-                    VectorRecordOperation::Upsert { record } => ("upsert", record.id.as_str()),
-                    VectorRecordOperation::Delete { id } => ("delete", id.as_str()),
-                };
+            let mut outcomes = Vec::with_capacity(actions.len());
+            for (op, id) in &actions {
+                let op = *op;
+                let id = id.as_str();
                 let exists = if let Some(exists) = staged.get(id) {
                     *exists
                 } else {
+                    // Checkpoints contain ordinary documents, which `get` does not expose.
                     let previous = store.get(id);
                     ensure!(
-                        previous.is_none_or(|document| records::is_record(document)),
+                        previous.map_or_else(
+                            || !store.contains_key(id),
+                            |document| records::is_record(document)
+                        ),
                         "vector record ID belongs to an ordinary document"
                     );
                     previous.is_some()
@@ -150,7 +155,7 @@ impl WarmCore {
     ) -> Result<VectorRecordGetResult> {
         self.require_vector_records()?;
         validate_public_id(id)?;
-        self.hydrate_documents()?;
+        // Checkpoints cannot contain vector records; every record is in the overlay.
         let _read = self.mutation_gate.read();
         let revision = self.check_vector_record_revision(options.if_revision.as_deref())?;
         let store = self.documents.read();
@@ -179,7 +184,6 @@ impl WarmCore {
         if let Some(from) = &options.from {
             validate_public_id(from)?;
         }
-        self.hydrate_documents()?;
         let _read = self.mutation_gate.read();
         let revision = self.check_vector_record_revision(options.if_revision.as_deref())?;
         let store = self.documents.read();
@@ -205,7 +209,7 @@ impl WarmCore {
         k: usize,
         options: &VectorRecordQueryOptions,
     ) -> Result<VectorRecordQueryResult> {
-        self.require_vector_records()?;
+        let dimensions = self.require_vector_records()?;
         let mode = options
             .mode
             .as_deref()
@@ -242,41 +246,67 @@ impl WarmCore {
                 Ok(unique)
             })
             .transpose()?;
-        self.hydrate_documents()?;
         for attempt in 0..3 {
-            let (revision, document_ids) = {
+            let (revision, candidates) = {
                 let _read = self.mutation_gate.read();
                 let revision = self.check_vector_record_revision(options.if_revision.as_deref())?;
                 let store = self.documents.read();
-                let ids = if requested.is_none() && store.only_vector_records() {
+                let candidates = if let Some(requested) = &requested {
+                    Some(
+                        requested
+                            .iter()
+                            .filter_map(|id| {
+                                store
+                                    .get(id)
+                                    .filter(|document| records::is_record(document))
+                                    .cloned()
+                            })
+                            .collect(),
+                    )
+                } else if store.vector_search_only_records() {
                     None
                 } else {
                     Some(
                         store
                             .shared_values()
-                            .filter_map(|document| {
-                                (records::is_record(&document)
-                                    && requested
-                                        .as_ref()
-                                        .is_none_or(|ids| ids.contains(document.id.as_str())))
-                                .then(|| document.id.clone())
-                            })
-                            .collect::<Vec<_>>(),
+                            .filter(|document| records::is_record(document))
+                            .collect(),
                     )
                 };
-                (revision, ids)
+                (revision, candidates)
             };
-            let found = self.search_vectors_with_report(
-                vector,
-                k,
-                &VectorQueryOptions {
-                    mode,
-                    ef: ef as usize,
-                    min_score: options.min_score.unwrap_or(-1.0),
-                    document_ids,
-                    ..Default::default()
-                },
-            )?;
+            let min_score = options.min_score.unwrap_or(-1.0);
+            let (hits, diagnostics) = if let Some(candidates) = candidates {
+                (
+                    rank_records(candidates, vector, dimensions, k, min_score)?,
+                    documents::VectorSearchDiagnostics {
+                        route: documents::VectorSearchRoute::FilteredExact,
+                        candidate_dimensions: dimensions,
+                        shortlist_limit: None,
+                        graph_degree: None,
+                        graph_build_ef: None,
+                    },
+                )
+            } else {
+                let found = self.search_vectors_with_report(
+                    vector,
+                    k,
+                    &VectorQueryOptions {
+                        mode,
+                        ef: ef as usize,
+                        min_score,
+                        ..Default::default()
+                    },
+                )?;
+                (
+                    found
+                        .results
+                        .into_iter()
+                        .map(|hit| (hit.document_id, hit.score))
+                        .collect(),
+                    found.diagnostics,
+                )
+            };
             #[cfg(test)]
             tests::after_ranking();
             let _read = self.mutation_gate.read();
@@ -287,9 +317,9 @@ impl WarmCore {
                 continue;
             }
             let store = self.documents.read();
-            let mut results = Vec::with_capacity(found.results.len());
-            for hit in found.results {
-                let document = store.get(&hit.document_id).ok_or_else(|| {
+            let mut results = Vec::with_capacity(hits.len());
+            for (id, score) in hits {
+                let document = store.get(&id).ok_or_else(|| {
                     anyhow::anyhow!("ranked vector record disappeared without a revision change")
                 })?;
                 ensure!(
@@ -298,17 +328,87 @@ impl WarmCore {
                 );
                 results.push(VectorRecordHit {
                     item: read_input(document)?,
-                    score: hit.score,
+                    score,
                 });
             }
             return Ok(VectorRecordQueryResult {
                 revision: self.vector_record_revision(revision),
                 results,
-                diagnostics: found.diagnostics,
+                diagnostics,
             });
         }
         unreachable!("last changed attempt returns conflict")
     }
+}
+
+fn rank_records(
+    candidates: Vec<Arc<documents::StoredDocument>>,
+    vector: &[f64],
+    dimensions: usize,
+    k: usize,
+    min_score: f64,
+) -> Result<Vec<(String, f64)>> {
+    struct Candidate<'a> {
+        document: &'a documents::StoredDocument,
+        score: f64,
+    }
+    impl PartialEq for Candidate<'_> {
+        fn eq(&self, other: &Self) -> bool {
+            self.cmp(other).is_eq()
+        }
+    }
+    impl Eq for Candidate<'_> {}
+    impl PartialOrd for Candidate<'_> {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            Some(self.cmp(other))
+        }
+    }
+    impl Ord for Candidate<'_> {
+        fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+            other
+                .score
+                .total_cmp(&self.score)
+                .then_with(|| self.document.id.cmp(&other.document.id))
+        }
+    }
+    ensure!(
+        (1..=documents::MAX_K).contains(&k),
+        "require 1 <= k <= {}",
+        documents::MAX_K
+    );
+    ensure!(
+        min_score.is_finite() && (-1.0..=1.0).contains(&min_score),
+        "minScore must be in [-1,1]"
+    );
+    let query = documents::normalize_embedding(vector, dimensions)?;
+    let mut hits = std::collections::BinaryHeap::with_capacity(k.min(candidates.len()));
+    for document in &candidates {
+        let embedding = document
+            .chunks
+            .first()
+            .and_then(|chunk| chunk.embedding.as_ref())
+            .ok_or_else(|| anyhow::anyhow!("vector record is missing its embedding"))?;
+        ensure!(
+            document.chunks.len() == 1 && embedding.len() == dimensions,
+            "invalid vector record embedding"
+        );
+        let score = embedding.cosine(&query);
+        if score >= min_score {
+            let candidate = Candidate { document, score };
+            if hits.len() < k {
+                hits.push(candidate);
+            } else if let Some(mut worst) = hits.peek_mut() {
+                if candidate < *worst {
+                    *worst = candidate;
+                }
+            }
+        }
+    }
+    Ok(hits
+        .into_sorted_vec()
+        .into_iter()
+        .map(|candidate| (candidate.document.id.clone(), candidate.score))
+        .collect())
 }
 
 fn read_input(document: &documents::StoredDocument) -> Result<VectorRecordInput> {

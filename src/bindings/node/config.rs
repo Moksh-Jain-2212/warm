@@ -16,6 +16,8 @@ pub struct WarmConfigJs {
     pub vector_candidate_dimensions: Option<f64>,
     /// Full-vector rerank shortlist (1..=4096); must cover the requested k.
     pub vector_rerank_candidates: Option<f64>,
+    /// Opt-in denser vector graph; increases construction work and retained graph memory.
+    pub vector_high_recall: Option<bool>,
     pub nsg_max_degree: Option<u32>,
     pub nsg_ef_construction: Option<u32>,
     pub nsg_auto_threshold: Option<u32>,
@@ -91,6 +93,7 @@ impl WarmConfigJs {
         let mut cfg = WarmConfig {
             vector_records: self.vector_records.unwrap_or(false),
             vector_candidates,
+            vector_high_recall: self.vector_high_recall.unwrap_or(false),
             ..WarmConfig::default()
         };
         if self.embedding_model.is_some()

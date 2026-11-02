@@ -1,0 +1,10 @@
+{
+  "name": "warm-vector-comparison-competitors",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Pinned Node competitors for the WARM retrieval comparison",
+  "dependencies": {
+    "hnswlib-node": "3.0.0",
+    "usearch": "2.26.5"
+  }
+}

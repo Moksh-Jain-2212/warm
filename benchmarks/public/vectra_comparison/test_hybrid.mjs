@@ -220,6 +220,16 @@ test('matched hybrid comparisons reject shared omissions and mismatched eligible
   assert.equal(compareHybridPair(vectra, failedWarmup, 'all', ['q1']).complete, false)
 })
 
+test('hybrid quality accepts the exact relevance boundary only within floating-point precision', () => {
+  const row = score => ({ queryId: 'q1', eligibility: 'all', ranked: { ndcg: score, recall: score, eligiblePositiveCount: 1 }, packed: { recall: score, eligiblePositiveCount: 1 } })
+  const base = { phase: 'quality', freezeSha256: 'same', timingsCollected: false, complete: true, querySetComplete: true }
+  const vectra = { ...base, engine: 'vectra', observations: [row(0.9)] }
+  for (const [score, pass] of [[0.890000001, true], [0.89, true], [0.889999999, false]]) {
+    const warm = { ...base, engine: 'warm', observations: [row(score)] }
+    assert.equal(Object.values(compareHybridPair(vectra, warm, 'all', ['q1']).quality).every(metric => metric.pass), pass)
+  }
+})
+
 test('hybrid preparation admission requires every scheduled query while preserving engine errors', async () => temporary(async root => {
   const ids = ['q0', 'q1'], filters = ['all', 'ten-percent', 'one-percent', 'empty'], entries = []
   const frozen = { hybrid: { queryIds: ids }, hybridFreezeHash: 'frozen' }
