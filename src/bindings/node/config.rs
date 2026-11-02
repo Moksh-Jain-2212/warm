@@ -10,6 +10,10 @@ pub struct WarmConfigJs {
     pub embedding_model: Option<String>,
     pub embedding_revision: Option<String>,
     pub embedding_dimensions: Option<u32>,
+    /// Opt-in normalized graph prefix; supply together with vectorRerankCandidates.
+    pub vector_candidate_dimensions: Option<f64>,
+    /// Full-vector rerank shortlist (1..=4096); must cover the requested k.
+    pub vector_rerank_candidates: Option<f64>,
     pub nsg_max_degree: Option<u32>,
     pub nsg_ef_construction: Option<u32>,
     pub nsg_auto_threshold: Option<u32>,
@@ -53,9 +57,39 @@ pub struct WarmConfigJs {
 }
 
 impl WarmConfigJs {
-    pub(super) fn into_config(self) -> crate::core::config::WarmConfig {
+    pub(super) fn into_config(self) -> anyhow::Result<crate::core::config::WarmConfig> {
         use crate::core::config::*;
-        let mut cfg = WarmConfig::default();
+        let vector_candidates = match (
+            self.vector_candidate_dimensions,
+            self.vector_rerank_candidates,
+        ) {
+            (None, None) => None,
+            (Some(dimensions), Some(rerank_candidates)) => {
+                anyhow::ensure!(
+                    dimensions.is_finite()
+                        && dimensions.fract() == 0.0
+                        && (1.0..=65536.0).contains(&dimensions),
+                    "vectorCandidateDimensions must be an integer in 1..=65536"
+                );
+                anyhow::ensure!(
+                    rerank_candidates.is_finite()
+                        && rerank_candidates.fract() == 0.0
+                        && (1.0..=4096.0).contains(&rerank_candidates),
+                    "vectorRerankCandidates must be an integer in 1..=4096"
+                );
+                Some(VectorCandidateConfig {
+                    dimensions: dimensions as usize,
+                    rerank_candidates: rerank_candidates as usize,
+                })
+            }
+            _ => anyhow::bail!(
+                "vectorCandidateDimensions and vectorRerankCandidates must be supplied together"
+            ),
+        };
+        let mut cfg = WarmConfig {
+            vector_candidates,
+            ..WarmConfig::default()
+        };
         if self.embedding_model.is_some()
             || self.embedding_revision.is_some()
             || self.embedding_dimensions.is_some()
@@ -188,6 +222,6 @@ impl WarmConfigJs {
         if let Some(v) = self.cognition_min_hypothesis_confidence {
             cfg.cognition.min_hypothesis_confidence = v;
         }
-        cfg
+        Ok(cfg)
     }
 }

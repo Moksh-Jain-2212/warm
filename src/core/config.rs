@@ -19,11 +19,34 @@ pub struct WarmConfig {
     pub cognition: CognitionConfig,
     pub hopfield: super::hopfield::HopfieldConfig,
     pub embedding_space: Option<super::schema::EmbeddingSpace>,
+    /// Optional normalized-prefix graph candidates; stored embeddings remain full width.
+    pub vector_candidates: Option<VectorCandidateConfig>,
     pub document_checkpoint: DocumentCheckpointConfig,
     /// Options of the local embedder `TextEncoder::LocalEmbedV1` loads (default options when
     /// absent). Ignored by the other encoders.
     #[cfg(feature = "local-embed")]
     pub local_embed: Option<super::embed::EmbedOptions>,
+}
+
+/// Opt-in graph candidate projection and the number of candidates fully reranked.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct VectorCandidateConfig {
+    pub dimensions: usize,
+    pub rerank_candidates: usize,
+}
+
+impl VectorCandidateConfig {
+    pub(crate) fn validate(&self, space: &super::schema::EmbeddingSpace) -> anyhow::Result<()> {
+        anyhow::ensure!(
+            (1..=space.dimensions).contains(&self.dimensions),
+            "vector candidate dimensions must be 1..=embedding space dimensions"
+        );
+        anyhow::ensure!(
+            (1..=4096).contains(&self.rerank_candidates),
+            "vector rerank candidates must be 1..=4096"
+        );
+        Ok(())
+    }
 }
 
 /// Journal checkpoints (`documents.ckpt`, see `docs/file-format/CHECKPOINT.md`): a compaction
@@ -295,6 +318,12 @@ impl WarmConfig {
             self.meaning.beta.is_finite() && self.meaning.beta > 0.0,
             "meaning beta must be finite and positive"
         );
+        if let Some(candidates) = &self.vector_candidates {
+            let space = self.embedding_space.as_ref().ok_or_else(|| {
+                anyhow::anyhow!("vector candidates require a full embedding space")
+            })?;
+            candidates.validate(space)?;
+        }
         if let Some(space) = &self.embedding_space {
             anyhow::ensure!(!space.model.is_empty() && !space.revision.is_empty() && (1..=65536).contains(&space.dimensions)
                 && space.metric == "cosine" && matches!(space.normalization.as_str(), "l2" | "none"),
