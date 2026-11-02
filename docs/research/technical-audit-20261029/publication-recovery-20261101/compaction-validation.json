@@ -1,0 +1,45 @@
+{
+  "source_commit": "75b136c71f2db18e00860e69789d3d96608a63d2",
+  "integrated_commit": "4d725e67",
+  "baseline": "c7f497e7",
+  "scope": "Retain and finish pending scrub cleanup before canonical compaction replaces its owner.",
+  "source_sha256": {
+    "src/core/documents/index.rs": "f78afb384ad62e70f1c962a801c917b2513c48e7a402fa286f77fee89bb6bc59",
+    "src/core/engine/compaction.rs": "02ced488ea1c44690d418d0c5b2be6813695c4d4731360e5972840ea3b6eb683"
+  },
+  "environment": {
+    "rust": "1.99.0",
+    "features": "security,experimental,server,mcp",
+    "CARGO_TARGET_DIR": "/Volumes/A/holographic-memory/target/readiness-build",
+    "CARGO_BUILD_JOBS": 2
+  },
+  "checks": {
+    "baseline": {
+      "log": "compaction-baseline.log.gz",
+      "uncompressed_sha256": "39d011cc4818294c4f3ca238d11f1536940c0dd2971e4bbd44173212d266c04d",
+      "exit_code": 101,
+      "results": [
+        "test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 828 filtered out; finished in 0.17s"
+      ]
+    },
+    "compaction": {
+      "log": "compaction-compaction.log.gz",
+      "uncompressed_sha256": "f422b79fe07681752fc8adcbde9f3764850aa2659a3acd7b5d35d75f48ea536d",
+      "exit_code": 0,
+      "results": [
+        "test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 816 filtered out; finished in 5.52s"
+      ]
+    },
+    "clippy": {
+      "log": "compaction-clippy.log.gz",
+      "uncompressed_sha256": "ede9275522447fc96ed48f61019becab2936ece2a67a8e2f585bb04389447acb",
+      "exit_code": 0,
+      "results": []
+    }
+  },
+  "format": "Touched-file rustfmt and git diff --check pass.",
+  "reproduction_commands": [
+    "cargo +1.99.0 test --locked --features security,experimental,server,mcp --lib core::engine::compaction::tests",
+    "cargo +1.99.0 clippy --locked --features security,experimental,server,mcp --lib --tests -- -D warnings"
+  ]
+}

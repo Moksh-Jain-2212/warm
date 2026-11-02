@@ -1828,8 +1828,10 @@ The candidate remains unqualified; a production refactor is isolating stale-only
 state from the fresh dispatcher before a new, separately recorded comparison.
 
 Final integration review also identified a cleanup-ownership gap in canonical
-compaction: replacing a segment could lose its pending scrub retry queue. A focused
-regression and fix are in progress before the combined gate.
+compaction: replacing a segment could lose its pending scrub retry queue. Canonical
+replacement now drains and syncs that queue first, retaining its owner on failure.
+The regression failed before the fix; all 13 compaction tests and strict Clippy pass.
+See [compaction cleanup validation](publication-recovery-20261101/compaction-validation.json).
 
 ## Next authorized phase: changing agent memory and Vectra migration
 
