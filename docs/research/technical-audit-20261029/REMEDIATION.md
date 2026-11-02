@@ -1907,3 +1907,15 @@ GloVe 100D subset supplies 100,000 vectors/1,000 queries and exact-neighbor trut
 100K unique-document fixture. LME occurrences require per-question haystack eligibility.
 These are inventory observations: freeze actual hashes and row/text mappings before
 running comparisons, and do not present synthetic replication as unique-document evidence.
+
+The user also proposed testing whether records can be removed without reducing memory
+quality or recall. Treat this as an evaluation proposal, not permission to delete user
+data. Start with duplicates/repeated statements and reversible active-index reductions;
+preserve provenance, validity and historical answers. Test the whole proposed batch against
+held-out current, historical and multi-step questions, since individually redundant records
+may not be jointly removable. Measure recall, answer correctness, index/RSS/context size
+and latency together; passing a workload cannot guarantee all future questions. Owning
+several blue possessions does not establish an explicit favorite-color preference, which
+can have independent value and lower retrieval cost. Existing dry-run consolidation keeps
+source history unless destructive removal is separately enabled; any new policy should
+build on those controls. No pruning experiment or data removal has run.
