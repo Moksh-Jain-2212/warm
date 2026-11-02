@@ -132,7 +132,8 @@ their failure leaves live documents, vectors and the revision unchanged. Deleted
 hidden during publication; physical cleanup runs afterwards. A cleanup failure reports a
 committed outcome and retains pending spans. After the I/O fault clears, `flush()` retries
 that cleanup without replaying the business mutation; new writes also drain pending cleanup
-before committing. Other publication failures can still require reopen or reconciliation
+before committing. Canonical compaction drains and syncs the old segment before replacing
+its cleanup owner. Other publication failures can still require reopen or reconciliation
 before relying on that state. A reported cache-scrub failure does not mean the old bytes
 were erased. This contract distinguishes durable data from completed auxiliary effects;
 it does not supply an automatic sidecar repair service or exactly-once external delivery.
@@ -147,11 +148,15 @@ This does not reconstruct missing historical audit records or provenance effects
 which operations are audited, or prove history completeness against deletion of whole records.
 Do not repeat a committed mutation merely to obtain an auxiliary record. HTTP replays a
 retained idempotency key's committed failure within
-its cache TTL. Capacity pressure rejects new keys instead of evicting protected ones;
+its retention window. Capacity pressure rejects new keys instead of evicting protected ones;
 if the response cannot fit the replay byte budget, its key requires reconciliation without
-reexecuting the operation. Worker panics retain the same protection. The cache is
-process-local and does not survive restart. Reconciliation
-after cache expiry or restart must compare application-owned IDs, versions and resulting state.
+reexecuting the operation. Worker panics retain the same protection. Durable receipts survive
+restart, which conservatively starts a fresh retention window. Interrupted reservations
+require reconciliation instead of automatic reexecution; forgetting and restore scrub old
+response bodies while retaining protected keys. Receipts are separate from business commits
+and require encrypted-volume protection for encryption at rest. Reconciliation after an
+ambiguous outcome or receipt expiry must compare application-owned IDs, versions and resulting
+state. See [HTTP retry boundaries](SERVER.md#limits-and-backpressure).
 Any external repair/delivery workflow must persist its own stable effect IDs and deduplicate
 delivery; the core audit queue does not provide a general external-effect retry worker.
 
