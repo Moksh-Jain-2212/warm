@@ -44,6 +44,8 @@ jobs:
     uses: ./.github/workflows/npm-packages.yml
     permissions:
       contents: read
+      id-token: write
+      attestations: write
 
   fuzz:
     if: ${{ !inputs.publish_crate_only }}

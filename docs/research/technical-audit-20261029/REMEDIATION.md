@@ -2057,3 +2057,15 @@ five distinct-process lifecycle pairs; see
 [independent result audit](agent-memory-integration-20261102/fresh-results-independent-validation.json).
 Research commits were merged with ancestry preserved. Original vectors and corpus text
 remain in the documented local cache, and no weights or bulk vectors were committed.
+
+### Hosted Release gate correction
+
+PR #376's `fac0304f` Release run failed before scheduling any job: its npm reusable
+workflow caller allowed only read access, while the child's attestation jobs require
+`id-token: write` and `attestations: write`. GitHub validates that permission ceiling
+even when publication conditions would skip those child jobs. The caller now grants
+exactly those two permissions alongside `contents: read`; publication conditions and
+protected environments are unchanged. The [gate correction receipt](agent-memory-integration-20261102/release-gate-correction.json)
+preserves the failed run and local workflow checks. The corrected head still requires
+hosted validation. The required `check` context is the existing CI aggregate, which
+waits for the Windows test job; it was not missing from the workflow configuration.

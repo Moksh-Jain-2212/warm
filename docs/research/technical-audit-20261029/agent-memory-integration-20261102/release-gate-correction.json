@@ -1,0 +1,52 @@
+{
+  "failed_head": "fac0304f9ac984782c2202ca2e3f304ef2946c02",
+  "failed_run": 41398869308,
+  "failed_run_url": "https://github.com/writerslogic/warm/actions/runs/41398869308",
+  "conclusion": "startup_failure",
+  "scheduled_jobs": 0,
+  "check_runs": 0,
+  "caller": ".github/workflows/release.yml:42 (npm)",
+  "callee": ".github/workflows/npm-packages.yml",
+  "denied_nested_jobs": [
+    "release-artifacts",
+    "release-sbom"
+  ],
+  "required_permissions": [
+    "id-token: write",
+    "attestations: write"
+  ],
+  "previous_caller_permissions": {
+    "contents": "read"
+  },
+  "corrected_caller_permissions": {
+    "contents": "read",
+    "id-token": "write",
+    "attestations": "write"
+  },
+  "publication_conditions_changed": false,
+  "environments_changed": false,
+  "required_check": {
+    "context": "check",
+    "app_id": 15368,
+    "app_slug": "github-actions",
+    "workflow": ".github/workflows/ci.yml:418",
+    "if": "always()",
+    "pending_dependency": "test-windows",
+    "missing_configuration": false
+  },
+  "commands": [
+    {
+      "command": "uvx --offline --from 'actionlint-py==1.7.12.25' actionlint -color",
+      "exit_code": 0,
+      "log": "release-actionlint.log.gz"
+    },
+    {
+      "command": "uvx --offline 'zizmor==1.31.1' --min-severity medium --format plain .github/workflows",
+      "exit_code": 0,
+      "log": "release-zizmor.log.gz"
+    }
+  ],
+  "workflow_sha256": "89da3c345be89f1f80011ddce7dfaca35d70eb0a00934c6368b0da488aaed474",
+  "hosted_corrected_head_validation": "pending",
+  "reruns_requested": 0
+}
