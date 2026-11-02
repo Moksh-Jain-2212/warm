@@ -1,10 +1,16 @@
 # Copyright 2024-2026 WritersLogic Contributors
 # SPDX-License-Identifier: Apache-2.0
-# Performance comparisons run locally; CI validates the reproducible harness and table.
+# CI validates the harness and table; vector qualification is an optional manual run.
 name: bench-refresh
 
 on:
   workflow_dispatch:
+    inputs:
+      vector_qualification:
+        description: Run the pinned vector comparison on a standard public-repository runner
+        type: boolean
+        required: false
+        default: false
   push:
     branches: [main]
     paths:
@@ -37,3 +43,64 @@ jobs:
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
       - name: Generator tests (every table cell traces to a committed results file)
         run: uv run --no-project --python 3.13 --with pytest --with numpy==2.5.4 pytest -q benchmarks/competitive/tests
+
+  vector-qualification:
+    if: github.event_name == 'workflow_dispatch' && inputs.vector_qualification && github.event.repository.private == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    env:
+      EVIDENCE: docs/research/technical-audit-20261029/vector-contention-20261101/ci-linux-1024
+      CARGO_BUILD_JOBS: "2"
+      RAYON_NUM_THREADS: "1"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - name: Record runner and source before setup
+        run: |
+          mkdir -p "$EVIDENCE"
+          {
+            git rev-parse HEAD
+            uname -a
+            lscpu
+          } > "$EVIDENCE/runner-setup.log" 2>&1
+      - uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8 # master
+        with:
+          toolchain: "1.99.0"
+      - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: false
+      - name: Verify dependency manifests match both pinned revisions
+        shell: bash
+        run: |
+          printf '%s\n' \
+            'dc1a38eb7e8052aa72e7ccf3ccb065cf12632ed1a1ee8e475aead922a6384f4a  Cargo.lock' \
+            '48c91fe73f15894f42a7086f3fce50a49b76677924907e8cf8c8937cec42501c  Cargo.toml' \
+            | sha256sum --check | tee "$EVIDENCE/cargo-manifest-check.log"
+      - name: Fetch locked dependencies before offline builds
+        shell: bash
+        run: cargo +1.99.0 fetch --locked 2>&1 | tee "$EVIDENCE/cargo-fetch.log"
+      - name: Build pinned baseline offline
+        run: uv run --no-project python "$EVIDENCE/probe.py" build baseline
+      - name: Build pinned candidate offline
+        run: uv run --no-project python "$EVIDENCE/probe.py" build current
+      - name: Verify pinned build and source evidence
+        run: uv run --no-project python "$EVIDENCE/probe.py" verify
+      - name: Run the fixed 600-second qualification
+        run: >-
+          uv run --no-project python "$EVIDENCE/probe.py" run
+          --quiet-grant 'Dedicated standard public ubuntu-24.04 job; prerequisite fetch/build steps finished; no concurrent WARM work'
+      - name: Summarize qualification evidence
+        if: always()
+        run: uv run --no-project python "$EVIDENCE/summarize.py"
+      - name: Retain bounded qualification evidence in logs including failures
+        if: always()
+        run: |
+          if command -v uv >/dev/null 2>&1; then
+            uv run --no-project python "$EVIDENCE/probe.py" emit-evidence
+          else
+            python3 "$EVIDENCE/probe.py" emit-evidence
+          fi
