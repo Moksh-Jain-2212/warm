@@ -96,6 +96,49 @@ fn whole_document_embedding_uses_the_stored_span_for_single_and_batch() {
     assert_eq!(core.document_embedding_count(), 2);
 }
 
+#[cfg(feature = "local-models")]
+#[test]
+fn model_stages_fall_back_to_the_installed_embedder_for_ingest_and_search() {
+    use writerslogic_warm::core::models::ModelStages;
+
+    let dir = tempfile::tempdir().unwrap();
+    let (pack, sha) = write_tiny(dir.path(), Quantization::F32, Pooling::Cls);
+    let core = WarmCore::new(
+        1024,
+        Some(dir.path().join("stages").display().to_string()),
+        Some(config(&pack, &sha)),
+    )
+    .unwrap();
+    let stages = Arc::new(ModelStages::default());
+    core.set_model_stages(Some(stages.clone())).unwrap();
+    assert_eq!(
+        core.memorize_document(input("single", "cat sat on the mat"))
+            .unwrap(),
+        1
+    );
+    assert_eq!(
+        core.memorize_documents(vec![input("batch", "cat sat on the mat")])
+            .unwrap(),
+        vec![1]
+    );
+    assert_eq!(core.document_embedding_count(), 2);
+    let options = SearchOptions {
+        lexical_weight: Some(0.0),
+        semantic_weight: Some(1.0),
+        min_semantic_score: Some(-1.0),
+        ..Default::default()
+    };
+    for hits in [
+        core.search_documents("cat sat on the mat", &options)
+            .unwrap(),
+        core.search_documents_with_models("cat sat on the mat", "", &options, &stages)
+            .unwrap(),
+    ] {
+        assert_eq!(hits.len(), 2);
+        assert!(hits.iter().all(|hit| hit.semantic_score.is_some()));
+    }
+}
+
 #[test]
 fn embedding_limits_fail_before_mutation_and_batches_share_one_admission() {
     use writerslogic_warm::MemorizeBatchItem;

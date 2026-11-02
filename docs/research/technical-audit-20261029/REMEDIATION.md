@@ -2233,3 +2233,16 @@ reuse the spans validated for the transaction. Regressions cover single and batc
 ingest with local embedders and model stages. The offline, locked all-features
 library compile check passed; the regressions have not been run because tests remain
 paused.
+
+### Local embedder and model-stage fallback (2026-11-02)
+
+When model stages without their own embedder were installed, single-document ingest
+skipped the installed local embedder, although batch ingest used it; staged text
+search skipped it as well. This could reject eager local-embed ingestion or silently
+omit semantic scoring. Both ingest routes and staged text search now use the local
+embedder as a fallback, while a stage-owned embedder retains precedence. Batch
+admission and embedding share the same captured local embedder even if its
+installation changes concurrently. A regression covers single and batch ingestion
+and both staged search entry points; it has not been run while tests are paused.
+Offline, locked library compile checks passed with all features and with only the
+local-embed feature.

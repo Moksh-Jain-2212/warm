@@ -96,17 +96,13 @@ impl WarmCore {
 
     /// Fills `embeddings` of every input that has none, embedding all their chunks in one pass.
     pub(super) fn embed_document_inputs(
-        &self,
         inputs: &mut [DocumentInput],
         options: &IngestOptions,
+        embedder: Option<&Embedder>,
     ) -> Result<()> {
-        let Some(embedder) = self.text_embedder() else {
+        let Some(embedder) = embedder else {
             return Ok(());
         };
-        #[cfg(feature = "local-models")]
-        if self.model_stages().is_some_and(|s| s.embedder.is_some()) {
-            return Ok(());
-        }
         let mut texts: Vec<String> = Vec::new();
         let mut spans = Vec::with_capacity(inputs.len());
         for input in inputs.iter() {
@@ -151,10 +147,6 @@ impl WarmCore {
         let Some(embedder) = self.text_embedder() else {
             return Ok(None);
         };
-        #[cfg(feature = "local-models")]
-        if self.model_stages().is_some_and(|s| s.embedder.is_some()) {
-            return Ok(None);
-        }
         let v = embedder.embed_query(&[text])?;
         Ok(Some(v[0].iter().copied().map(f64::from).collect()))
     }
