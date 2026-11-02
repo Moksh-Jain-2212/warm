@@ -66,10 +66,8 @@ pub const SNAPSHOT_MIN_ROWS: usize = 1;
 /// Default `graph_min_rows`: a snapshot with fewer rows carries only the exact scan, which
 /// beats a graph traversal at that size.
 pub const DEFAULT_GRAPH_MIN_ROWS: usize = 4096;
-/// Default beam width of a graph query. The accepted qgraph rows reached recall 0.95 at
-/// `ef` 736 on glove-100-angular (1.18M vectors, `benchmarks/results/ann_modal_confirm_v1.json`);
-/// stores of up to a few hundred thousand embedding rows reach it with a far smaller beam, and
-/// `tests/server_ann.rs` holds the default to recall >= 0.95 on its corpus.
+/// Default beam width of a graph query. Recall depends on the corpus and graph; the frozen
+/// 100,000-row study on an earlier revision measured 92.35% mean recall at this setting.
 pub const DEFAULT_EF: usize = 128;
 pub const MAX_EF: usize = 4096;
 pub const MAX_K: usize = 1000;
