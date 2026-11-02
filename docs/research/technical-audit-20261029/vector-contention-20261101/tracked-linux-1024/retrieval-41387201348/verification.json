@@ -1,0 +1,66 @@
+{
+  "verified_at": "2026-11-02T04:31:02.769102+00:00",
+  "run_id": 41387201348,
+  "run_attempt": 1,
+  "job_id": 125090565786,
+  "workflow_head": "2ccdfa1cf64cfbd59c0751c7fa1bd9d680667c47",
+  "candidate_source": "b4fc1ba634e1cca0ae8024f259fa6bcb8ef73954",
+  "baseline_source": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+  "archive_sha256": "0d1a9ef796b6eeb4f250037d23935153134ac9a7b3fc35d6bed5ba1d349108ed",
+  "archive_bytes": 1409904,
+  "exported_regular_files": 47,
+  "frozen_plan_sha256": "1e9548cd3b696d91e420c175897aad8da631de3564b17c3e07068ce1d8ac0163",
+  "frozen_files_match_workflow_commit": [
+    "README.md",
+    "contention_probe.rs",
+    "harness-tests.json",
+    "harness-tests.log.gz",
+    "plan.json",
+    "probe.py",
+    "source-qualification/clippy.log.gz",
+    "source-qualification/docstring-only-change.patch",
+    "source-qualification/provenance.json",
+    "source-qualification/qualification.json",
+    "source-qualification/snapshot-tests.log.gz",
+    "source-qualification/vector-tests.log.gz",
+    "summarize.py",
+    "test_probe.py",
+    "test_summary_exit.py"
+  ],
+  "all_source_and_instrumented_hashes_verified": true,
+  "cargo_inputs_verified_for_both_revisions": true,
+  "binary_hash_limit": "Executables are intentionally not exported. The pinned runner driver verified recorded executable SHA256 values before timing; retained build manifests match execution-ledger hashes. No local rehash of executable bytes is claimed.",
+  "binary_sha256": {
+    "baseline": "4bf6f6b52aad35538c32f340c246a15eb7fa88573f4530171f5a8ab69fb6099b",
+    "current": "a90ad64543f28a1c7422f0ee52581910b7997f3cfdbd3516c6d6b40b212320d9"
+  },
+  "all_10_compressed_report_and_log_hashes_verified": true,
+  "complete_ordered_result_lists_compared": 92160,
+  "ordered_results_equal_across_all_processes_and_revisions": true,
+  "reported_coherent_oracle_checks": 92880,
+  "oracle_limit": "Full in-process oracle assertions passed and every raw ordered answer/canonical score bit was compared across all processes locally; no new corpus benchmark or oracle re-execution occurred.",
+  "summary_reproduction": {
+    "byte_identical": true,
+    "exit_code": 0,
+    "sha256": "abcc9910acb547f7eef5b0d6874c36079ae56b7db9dbc1341b46772d029f3980"
+  },
+  "qualification_passed": true,
+  "query_gate_passed": true,
+  "writer_gate_passed": true,
+  "execution_seconds": 537.555057126,
+  "completion_budget_seconds": 900,
+  "host": {
+    "observations": 119,
+    "all_frozen_host_checks_passed": true,
+    "external_capacity_percent_range": [
+      0.15000000000000002,
+      0.4
+    ],
+    "steal_ticks_first": 0,
+    "steal_ticks_last": 0,
+    "limits": "Guest process observations and zero reported steal do not establish physical-host isolation. These synthetic Linux VM results do not imply production/macOS performance or replace any earlier failed/blocked study."
+  },
+  "job_log_sha256": "d25b92eb4e33c74a86abd68998c205d981672b3f5d37e1a8077eaff276771ec3",
+  "job_log_gzip_sha256": "ce6d32817ead9cecfd5f0560329b6fc994ecbc523b026d851f3fb3c71483e1d4",
+  "new_benchmark_runs_during_retrieval": 0
+}

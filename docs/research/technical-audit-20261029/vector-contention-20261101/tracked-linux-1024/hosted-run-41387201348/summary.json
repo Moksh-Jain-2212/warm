@@ -1,0 +1,379 @@
+{
+  "original_study_query_gate": "failed; retained unchanged",
+  "confirmation_scope": "Changed-row ledger candidate on Linux x64 standard public ubuntu-24.04 VM, 1024 samples per phase, fixed synthetic workload, observed external CPU capacity <=20%; no macOS, production or isolated-host qualification",
+  "oracle_checks": 92880,
+  "processes": 10,
+  "execution_seconds": 537.555057126,
+  "rows": [
+    {
+      "dimensions": 16,
+      "phase": "fresh_idle",
+      "baseline": {
+        "query_ns_p50": 128391,
+        "query_ns_p99": 156013,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 127399,
+        "query_ns_p99": 154861,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "delta_percent": {
+        "query_ns_p50": -0.7726398267791312,
+        "query_ns_p99": -0.7384000051277817,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 0.0,
+        "peak_requested_bytes_p99": 0.0,
+        "allocations_p50": 0.0,
+        "allocations_p99": 0.0
+      }
+    },
+    {
+      "dimensions": 16,
+      "phase": "stale_idle",
+      "baseline": {
+        "query_ns_p50": 1108256,
+        "query_ns_p99": 1182816,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 1360,
+        "peak_requested_bytes_p99": 1360,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 142427,
+        "query_ns_p99": 173795,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 3408,
+        "peak_requested_bytes_p99": 3408,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": -87.14854690612998,
+        "query_ns_p99": -85.3066749181614,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 150.58823529411765,
+        "peak_requested_bytes_p99": 150.58823529411765,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 16,
+      "phase": "stale_writer",
+      "baseline": {
+        "query_ns_p50": 1128835,
+        "query_ns_p99": 1190630,
+        "writer_wait_ns_p50": 1121782,
+        "writer_wait_ns_p99": 1187374,
+        "writer_total_ns_p50": 1124407,
+        "writer_total_ns_p99": 1193797,
+        "peak_requested_bytes_p50": 1552,
+        "peak_requested_bytes_p99": 1552,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 147907,
+        "query_ns_p99": 193031,
+        "writer_wait_ns_p50": 70,
+        "writer_wait_ns_p99": 120,
+        "writer_total_ns_p50": 1743,
+        "writer_total_ns_p99": 4819,
+        "peak_requested_bytes_p50": 3600,
+        "peak_requested_bytes_p99": 3600,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": -86.8973764987797,
+        "query_ns_p99": -83.78749065620723,
+        "writer_wait_ns_p50": -99.99375992839964,
+        "writer_wait_ns_p99": -99.98989366450671,
+        "writer_total_ns_p50": -99.84498495651486,
+        "writer_total_ns_p99": -99.59633002930984,
+        "peak_requested_bytes_p50": 131.95876288659795,
+        "peak_requested_bytes_p99": 131.95876288659795,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 128,
+      "phase": "fresh_idle",
+      "baseline": {
+        "query_ns_p50": 869579,
+        "query_ns_p99": 935122,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 861935,
+        "query_ns_p99": 920274,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "delta_percent": {
+        "query_ns_p50": -0.8790460671198375,
+        "query_ns_p99": -1.5878142103383341,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 0.0,
+        "peak_requested_bytes_p99": 0.0,
+        "allocations_p50": 0.0,
+        "allocations_p99": 0.0
+      }
+    },
+    {
+      "dimensions": 128,
+      "phase": "stale_idle",
+      "baseline": {
+        "query_ns_p50": 1897685,
+        "query_ns_p99": 1978206,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 1360,
+        "peak_requested_bytes_p99": 1360,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 878496,
+        "query_ns_p99": 947464,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 3408,
+        "peak_requested_bytes_p99": 3408,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": -53.7069640114139,
+        "query_ns_p99": -52.104886953128236,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 150.58823529411765,
+        "peak_requested_bytes_p99": 150.58823529411765,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 128,
+      "phase": "stale_writer",
+      "baseline": {
+        "query_ns_p50": 1912713,
+        "query_ns_p99": 2005126,
+        "writer_wait_ns_p50": 1901884,
+        "writer_wait_ns_p99": 1995569,
+        "writer_total_ns_p50": 1905880,
+        "writer_total_ns_p99": 2000328,
+        "peak_requested_bytes_p50": 1552,
+        "peak_requested_bytes_p99": 1552,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 888264,
+        "query_ns_p99": 969587,
+        "writer_wait_ns_p50": 80,
+        "writer_wait_ns_p99": 141,
+        "writer_total_ns_p50": 2595,
+        "writer_total_ns_p99": 5881,
+        "peak_requested_bytes_p50": 3600,
+        "peak_requested_bytes_p99": 3600,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": -53.55999567107036,
+        "query_ns_p99": -51.64458492882742,
+        "writer_wait_ns_p50": -99.99579364461765,
+        "writer_wait_ns_p99": -99.99293434604365,
+        "writer_total_ns_p50": -99.86384242449682,
+        "writer_total_ns_p99": -99.70599821629253,
+        "peak_requested_bytes_p50": 131.95876288659795,
+        "peak_requested_bytes_p99": 131.95876288659795,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 768,
+      "phase": "fresh_idle",
+      "baseline": {
+        "query_ns_p50": 5991364,
+        "query_ns_p99": 6097644,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 5985986,
+        "query_ns_p99": 6095219,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "delta_percent": {
+        "query_ns_p50": -0.08976253153706315,
+        "query_ns_p99": -0.03976945849905045,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 0.0,
+        "peak_requested_bytes_p99": 0.0,
+        "allocations_p50": 0.0,
+        "allocations_p99": 0.0
+      }
+    },
+    {
+      "dimensions": 768,
+      "phase": "stale_idle",
+      "baseline": {
+        "query_ns_p50": 7185148,
+        "query_ns_p99": 7437951,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 1360,
+        "peak_requested_bytes_p99": 1360,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 6012264,
+        "query_ns_p99": 6118674,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 3408,
+        "peak_requested_bytes_p99": 3408,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": -16.323727778467468,
+        "query_ns_p99": -17.737102597207212,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 150.58823529411765,
+        "peak_requested_bytes_p99": 150.58823529411765,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 768,
+      "phase": "stale_writer",
+      "baseline": {
+        "query_ns_p50": 7226868,
+        "query_ns_p99": 7483289,
+        "writer_wait_ns_p50": 7190781,
+        "writer_wait_ns_p99": 7440489,
+        "writer_total_ns_p50": 7199728,
+        "writer_total_ns_p99": 7450538,
+        "peak_requested_bytes_p50": 1552,
+        "peak_requested_bytes_p99": 1552,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 6025158,
+        "query_ns_p99": 6131056,
+        "writer_wait_ns_p50": 171,
+        "writer_wait_ns_p99": 461,
+        "writer_total_ns_p50": 9308,
+        "writer_total_ns_p99": 15029,
+        "peak_requested_bytes_p50": 3600,
+        "peak_requested_bytes_p99": 3600,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": -16.628365150712586,
+        "query_ns_p99": -18.070035782394612,
+        "writer_wait_ns_p50": -99.9976219551117,
+        "writer_wait_ns_p99": -99.99380417066675,
+        "writer_total_ns_p50": -99.87071733821055,
+        "writer_total_ns_p99": -99.79828302331993,
+        "peak_requested_bytes_p50": 131.95876288659795,
+        "peak_requested_bytes_p99": 131.95876288659795,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    }
+  ],
+  "query_acceptance": true,
+  "writer_acceptance": true,
+  "confirmation_acceptance": true,
+  "linux_steal_observation": {
+    "samples": 119,
+    "acceptance_gate": false,
+    "first_ticks": 0,
+    "last_ticks": 0,
+    "delta_ticks": 0
+  }
+}
