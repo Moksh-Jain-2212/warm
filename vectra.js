@@ -420,16 +420,24 @@ class VectraMigrationIndex {
 }
 
 const importVectraItems = (items, options) => VectraMigrationIndex.importItems(items, options)
+function metadataFilename(file) {
+  if (typeof file !== 'string' || !file || bytes(file) > 255 ||
+      /[\\/:<>"|?*\u0000-\u001f]/.test(file) || /[\uD800-\uDFFF]/u.test(file) || /[. ]$/.test(file) ||
+      /^(?:con|prn|aux|nul|conin\$|conout\$|com[1-9¹²³]|lpt[1-9¹²³])[ ]*(?:\.|$)/i.test(file)) {
+    throw new TypeError('invalid external metadata filename')
+  }
+  return file
+}
 async function importVectraIndex(source, options) {
   if (!source || typeof source.listItems !== 'function' || typeof source.getIndexStats !== 'function') throw new TypeError('a Vectra 0.15 LocalIndex source is required')
   const stats = await source.getIndexStats()
   const items = await source.listItems()
+  for (const item of items) if (item.metadataFile !== undefined) metadataFilename(item.metadataFile)
   async function* resolved() {
     for (const item of items) {
       let original = item.metadata
       if (item.metadataFile !== undefined) {
-        const file = item.metadataFile
-        if (typeof file !== 'string' || !file || bytes(file) > 255 || file === '.' || file === '..' || /[\\/\0]/.test(file)) throw new TypeError('invalid external metadata filename')
+        const file = metadataFilename(item.metadataFile)
         const data = await source.storage.readFile(path.join(source.folderPath, file))
         if (data.byteLength > 64 * 1024) throw new RangeError('external metadata exceeds 64 KiB')
         original = source.codec.deserializeMetadata(data)

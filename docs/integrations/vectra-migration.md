@@ -30,6 +30,8 @@ migrate().catch(error => { console.error(error); process.exitCode = 1 })
 
 The importer reads full external metadata through the source's public storage and codec APIs. It retains the indexed metadata returned by `listItems()` separately as the filter view. A field stored only in a metadata sidecar remains available in returned items but does not suddenly become filterable. This matches the pinned [`LocalIndex`](https://github.com/Stevenic/vectra/blob/dec2dadc3bb158b06ac72fa9097bee729429a271/src/LocalIndex.ts) behavior. `importVectraItems(iterable, options)` also accepts a synchronous or asynchronous stream of `{ id, vector, metadata, indexedMetadata? }` records when the caller has already resolved sidecars.
 
+External metadata names must be single portable filenames: separators, alternate-stream/drive colons, invalid Unicode/control characters, Windows device names and trailing dots/spaces are rejected before storage reads. Ordinary Vectra UUID filenames remain supported.
+
 Imports use bounded atomic batches. A later failure can leave earlier batches in the new destination; its profile is marked incomplete/failed and the adapter refuses to open it. The source is untouched. Inspect or remove that failed destination after its owning process exits, then import into a new directory. An import is not an atomic replacement of an existing store and does not resume a partial destination.
 
 ## Create, query, transact, reopen

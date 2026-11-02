@@ -218,8 +218,16 @@ async function main() {
     assert.equal(partialProfile.state, 'failed')
     assert.equal(partialProfile.importedItems, 128)
     await assert.rejects(VectraMigrationIndex.open({ path: partialPath }), /incomplete/)
-    const badSource = { ...source, async listItems() { return [{ ...snapshot.items[0], metadataFile: '../escape.json' }] } }
-    await assert.rejects(importVectraIndex(badSource, { ...options, path: path.join(root, 'bad-source') }), /filename/)
+    let invalidReads = 0
+    for (const metadataFile of ['../escape.json', 'dir\\file.json', 'file.json:stream', 'C:secret.json', 'NUL.json', 'con .txt', 'CONIN$', 'COM¹.json', 'lpt9.pb', 'name.json.', 'name.json ', 'bad\u0001.json', 'bad\ud800.json', 'file?.json']) {
+      const badSource = {
+        ...source,
+        storage: { async readFile() { invalidReads++; throw new Error('invalid filename reached storage') } },
+        async listItems() { return [{ ...snapshot.items[0], metadataFile }] },
+      }
+      await assert.rejects(importVectraIndex(badSource, { ...options, path: path.join(root, 'bad-source') }), /filename/)
+    }
+    assert.equal(invalidReads, 0)
     await assert.rejects(VectraMigrationIndex.create({ ...options, path: path.join(root, 'partial'), candidateDimensions: 2 }), /together/)
   } else throw new Error(`unknown phase: ${phase}`)
 }
