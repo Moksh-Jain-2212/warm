@@ -2,6 +2,10 @@
 /* eslint-disable */
 
 export declare class WarmMemorySystem {
+  mutateVectorRecords(operations: Array<{ op: 'insert' | 'upsert'; record: VectorRecordInput } | { op: 'delete'; id: string }>, options?: VectorRecordRevisionOptions): Promise<VectorRecordMutationResult>
+  getVectorRecord(id: string, options?: VectorRecordRevisionOptions | undefined | null): Promise<VectorRecordGetResult>
+  listVectorRecords(options?: VectorRecordListOptions | undefined | null): Promise<VectorRecordListResult>
+  queryVectorRecords(vector: Array<number>, k: number, options?: VectorRecordQueryOptions | undefined | null): Promise<{ revision: string; results: VectorRecordHit[]; diagnostics: { route: string; candidateDimensions: number; shortlistLimit?: number | null } }>
   constructor(dimensions: number, storagePath?: string | undefined | null, config?: WarmConfigJs | undefined | null)
   /**
    * Replaces the memory API's configuration (policies and defaults; see
@@ -248,6 +252,12 @@ export interface ListedDocument {
   chunkCount: number
 }
 
+export interface ListedVectorRecord {
+  id: string
+  metadata: Record<string, unknown>
+  vector?: Array<number>
+}
+
 /** Input item for batch memorization — a single id/text pair. */
 export interface MemorizeBatchItem {
   id: string
@@ -374,6 +384,65 @@ export interface TextMetrics {
   punctuationCount: number
 }
 
+export interface VectorRecordGetResult {
+  revision: string
+  record: VectorRecordInput | null
+}
+
+export interface VectorRecordHit {
+  item: VectorRecordInput
+  score: number
+}
+
+export interface VectorRecordInput {
+  id: string
+  vector: Array<number>
+  metadata: Record<string, unknown>
+}
+
+export interface VectorRecordListOptions {
+  from?: string
+  limit?: number
+  ifRevision?: string
+  includeVectors?: boolean
+}
+
+export interface VectorRecordListResult {
+  revision: string
+  records: Array<ListedVectorRecord>
+  nextFrom: string | null
+}
+
+export interface VectorRecordMutationResult {
+  revision: string
+  outcomes: Array<VectorRecordOutcome>
+}
+
+export interface VectorRecordOperationInput {
+  op: string
+  record?: VectorRecordInput
+  id?: string
+}
+
+export interface VectorRecordOutcome {
+  op: string
+  id: string
+  created?: boolean
+  deleted?: boolean
+}
+
+export interface VectorRecordQueryOptions {
+  documentIds?: Array<string>
+  ifRevision?: string
+  minScore?: number
+  mode?: string
+  ef?: number
+}
+
+export interface VectorRecordRevisionOptions {
+  ifRevision?: string
+}
+
 /** Vector route options; filters use full exact ranking before top-k selection. */
 export interface VectorSearchOptions {
   mode?: string
@@ -385,6 +454,8 @@ export interface VectorSearchOptions {
 }
 
 export interface WarmConfigJs {
+  /** Create a schema-7 store for native vector records; existing older stores require an offline upgrade. */
+  vectorRecords?: boolean
   embeddingModel?: string
   embeddingRevision?: string
   embeddingDimensions?: number

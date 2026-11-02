@@ -63,7 +63,11 @@ struct StoreSchema {
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) fn validate_store(path: &Path, dimensions: usize, config: &WarmConfig) -> Result<u32> {
     let mut expected = StoreSchema {
-        version: super::format::STORE_SCHEMA_VERSION,
+        version: if config.vector_records {
+            super::format::VECTOR_RECORDS_SCHEMA_VERSION
+        } else {
+            super::format::STORE_SCHEMA_DEFAULT_VERSION
+        },
         dimensions,
         text_encoder: config.text_encoder.name().into(),
         vector_encoder: "signed-projection-v2".into(),
@@ -86,6 +90,9 @@ pub(crate) fn validate_store(path: &Path, dimensions: usize, config: &WarmConfig
             );
         }
         let actual: StoreSchema = serde_json::from_slice(&bytes)?;
+        if config.vector_records && actual.version < super::format::VECTOR_RECORDS_SCHEMA_VERSION {
+            bail!("vector records require store schema 7; use warm-format upgrade to create an upgraded copy before opening with vectorRecords");
+        }
         // Every schema from the oldest supported one opens; only the version differs between
         // them (it selects the journal format).
         if (super::format::STORE_SCHEMA_OLDEST..=super::format::STORE_SCHEMA_VERSION)

@@ -498,7 +498,33 @@ fn valid_vector(value: Option<&Value>, dimensions: Option<u64>) -> Result<(), St
     Ok(())
 }
 
-fn check_document(body: &Value, dimensions: Option<u64>) -> Result<(), String> {
+fn check_document(
+    body: &Value,
+    dimensions: Option<u64>,
+    embedding_dimensions: Option<Option<usize>>,
+) -> Result<(), String> {
+    if body
+        .get("vector_record")
+        .is_some_and(|kind| !kind.is_boolean())
+    {
+        return Err("document vector_record flag must be boolean".into());
+    }
+    if body.get("vector_record").and_then(Value::as_bool) == Some(true) {
+        let document: crate::core::documents::StoredDocument =
+            serde_json::from_value(body.clone()).map_err(|error| error.to_string())?;
+        let dimensions = dimensions
+            .map(usize::try_from)
+            .transpose()
+            .map_err(|_| "store dimensions exceed platform size")?
+            .unwrap_or_else(|| document.chunks.first().map_or(0, |chunk| chunk.vector.dim));
+        let embedding_dimensions = match embedding_dimensions {
+            Some(None) => return Err("vector records require an embedding space".into()),
+            Some(Some(dimensions)) => Some(dimensions),
+            None => None,
+        };
+        return crate::core::vector_records::validate(&document, dimensions, embedding_dimensions)
+            .map_err(|error| error.to_string());
+    }
     if !valid_id(body.get("id")) {
         return Err("document id is not 1..=65535 bytes without NUL".into());
     }
@@ -590,6 +616,7 @@ fn check_encode_document(body: &Value, dimensions: Option<u64>) -> Result<(), St
 fn check_mutation(
     value: &Value,
     dimensions: Option<u64>,
+    embedding_dimensions: Option<Option<usize>>,
     replay: &mut Replay,
 ) -> Result<(), String> {
     let object = value.as_object().ok_or("mutation is not an object")?;
@@ -627,7 +654,7 @@ fn check_mutation(
             }
             valid_vector(body.get("vector"), dimensions)?;
         }
-        "Document" => check_document(body, dimensions)?,
+        "Document" => check_document(body, dimensions, embedding_dimensions)?,
         "StoredTriple" => {
             for key in ["subject_id", "relation_id", "object_id", "composite_id"] {
                 if !valid_id(body.get(key)) {
@@ -710,8 +737,38 @@ pub fn check_transaction_with_schema(
     schema: u32,
     replay: &mut Replay,
 ) -> Result<usize, String> {
+    check_transaction_inner(json, dimensions, schema, None, replay)
+}
+
+/// Also validates native records against the configured embedding space, including its absence.
+pub fn check_transaction_for_store(
+    json: &[u8],
+    dimensions: Option<u64>,
+    schema: u32,
+    embedding_dimensions: Option<usize>,
+    replay: &mut Replay,
+) -> Result<usize, String> {
+    check_transaction_inner(json, dimensions, schema, Some(embedding_dimensions), replay)
+}
+
+fn check_transaction_inner(
+    json: &[u8],
+    dimensions: Option<u64>,
+    schema: u32,
+    embedding_dimensions: Option<Option<usize>>,
+    replay: &mut Replay,
+) -> Result<usize, String> {
     let value: Value = serde_json::from_slice(json).map_err(|e| format!("not JSON: {e}"))?;
     let mutations = value.as_array().ok_or("transaction is not an array")?;
+    if schema < super::VECTOR_RECORDS_SCHEMA_VERSION
+        && mutations.iter().any(|mutation| {
+            mutation.get("Document").is_some_and(|document| {
+                document.get("vector_record").and_then(Value::as_bool) == Some(true)
+            })
+        })
+    {
+        return Err("vector records require store schema 7".into());
+    }
     if schema < super::AUDIT_EFFECTS_SCHEMA_VERSION
         && mutations.iter().any(|mutation| {
             mutation.get("AuditPending").is_some() || mutation.get("AuditAcknowledged").is_some()
@@ -735,7 +792,8 @@ pub fn check_transaction_with_schema(
         ));
     }
     for (n, mutation) in mutations.iter().enumerate() {
-        check_mutation(mutation, dimensions, replay).map_err(|e| format!("mutation {n}: {e}"))?;
+        check_mutation(mutation, dimensions, embedding_dimensions, replay)
+            .map_err(|e| format!("mutation {n}: {e}"))?;
     }
     Ok(mutations.len())
 }
