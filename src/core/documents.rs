@@ -406,6 +406,8 @@ pub(crate) struct StoredChunk {
 
 #[derive(Clone, Serialize, Deserialize)]
 pub(crate) struct StoredDocument {
+    #[serde(default, skip_serializing_if = "std::ops::Not::not")]
+    pub vector_record: bool,
     #[serde(deserialize_with = "deserialize_compact_string")]
     pub id: String,
     #[serde(default, deserialize_with = "deserialize_compact_uri")]
@@ -1289,6 +1291,7 @@ pub(crate) fn prepare_spans(
         });
     }
     let mut document = StoredDocument {
+        vector_record: false,
         id: input.id,
         source_uri: input.source_uri,
         version: input.version.unwrap_or_else(|| "1".into()),

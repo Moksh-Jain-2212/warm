@@ -1,0 +1,57 @@
+{
+  "source_commit": "5154eb94a3350b0143f7e0923a5003fff912f077",
+  "docs_commit": "99028e6561f57451d9777513bc773304ecafdba8",
+  "rust": "1.99.0",
+  "cargo": "offline/locked/jobs2/private target",
+  "node": "v26.8.1",
+  "checks": {
+    "engine": {
+      "passed": 130,
+      "ignored": 1
+    },
+    "documents": {
+      "passed": 139,
+      "ignored": 1
+    },
+    "native_final": {
+      "passed": 13,
+      "ignored": 0
+    },
+    "format_scan_final": {
+      "passed": 16,
+      "ignored": 0
+    },
+    "format_golden": {
+      "passed": 6,
+      "ignored": 1
+    },
+    "format_upgrade": {
+      "passed": 8,
+      "ignored": 0
+    },
+    "native_and_vector_node_final": {
+      "passed": 4,
+      "skipped": 0
+    },
+    "types": "pass",
+    "clippy": "pass: --features node-api,security,experimental --lib --tests -- -D warnings",
+    "rustfmt_touched": "pass",
+    "old_schema6_reader": "rejects schema7 with exit30/schema-newer"
+  },
+  "artifacts": {
+    "warm-sdk.darwin-arm64.node": "5dc63e8d321aaf4c2cb0815805a8ea7fdf3543226d0476bc0dccf0e147394c26",
+    "index.d.ts": "2e50119c9b7aa12cbafc3cb605673f32eba8227980590ca630bb905682901b04"
+  },
+  "logs": {
+    "vector-records-engine-tests.log": "8dee931758ad52545fa70b78043cb9e924739afaf92836cfbe00789aa0198817",
+    "vector-records-document-tests.log": "95b711167937ea0981e8757ae40677ebea98c92898917e7e2c4b497722dff4bd",
+    "vector-records-tests.log": "6e9dab71cec2b7266330433ddec1cbe67d0329956562f3603f66053d6602c4a4",
+    "vector-records-scan-tests.log": "f218aa3d845d80747a005c241c0d8fa15a166a86652f668f3cc3f28a3f3cac5c",
+    "vector-records-format-tests.log": "bf42beed9db993e6a937916e775cbe775fd2b139978071e807b0bbd0ac33234e",
+    "vector-records-node-tests.log": "d59fe03a44bfc13b52e2d6e4849742d50822e2f3f5b1d112a65e42459f020bd3",
+    "vector-records-types.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "vector-records-clippy.log": "81a0c70efab40e9c5a8edeb723ade590500fa236899e25142242f683f42b54d7",
+    "vector-records-node-build.log": "6efc0104ea3521d0aeb642cb3260900aa55e89113fb6659ac3e1e300bfd988b2",
+    "vector-records-old-reader.json": "adfbbe5e01abe0fccc8eb52353679ae370e339861e880453e549b8e173016148"
+  }
+}

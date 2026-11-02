@@ -30,7 +30,7 @@ Dictionaries are in `fuzz/dictionaries/` (`-dict=fuzz/dictionaries/server.dict`)
 | `provenance_json` | W3C VC, Sigstore bundle JSON and the KERI key event log file | `provenance` |
 | `private_query` | server-side query words and client-side answer words of the private search protocol | `private-search` |
 | `operand_question` | free-text question parsing | `experimental` |
-| `connection_graph_log` | the append-only bincode event log replayed on open | `experimental` |
+| `connection_graph_log` | the append-only connection-graph event log replayed on open | `experimental` |
 | `llm_output` | text produced by an on-device model (JSON extraction, facts, query plan, dates) | `local-models` |
 
 ## Reproduce a crash from CI

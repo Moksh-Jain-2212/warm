@@ -5,6 +5,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Default)]
 pub struct WarmConfig {
+    /// Create a schema-7 store supporting native vector records. Older stores need an offline upgrade.
+    pub vector_records: bool,
     pub text_encoder: super::encoding::TextEncoder,
     pub ivf: IVFConfig,
     pub nsg: NSGConfig,

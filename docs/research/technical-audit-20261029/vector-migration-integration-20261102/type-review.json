@@ -1,0 +1,9 @@
+{
+  "reason": "PR378 code-quality review requested explicit void for intentional discarded private-property access in a compile-time fixture. The @ts-expect-error remains and still detects accidental exposure.",
+  "changed_file": "tests/node/vectra-types.test.mts",
+  "sha256": "5e134c64da6d9b29143c3019b2b971bc4978738038cb73c752d6654b1a7e4d1a",
+  "command": "npm run test:types",
+  "result": "all four type fixtures pass",
+  "runtime_source_changed": false,
+  "log_sha256": "39cf493819ef971b472c17f9ba22d33798c470b31770d683b4d7d7079dd3da50"
+}

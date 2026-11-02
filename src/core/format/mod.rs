@@ -34,12 +34,17 @@ pub const VECTOR_LOG_MAGIC: &[u8; 8] = b"HMSVLG01";
 pub const STORAGE_FORMAT_CURRENT: u32 = super::storage::STORAGE_FORMAT_VERSION;
 /// Oldest arena manifest version this build opens. Version 1 (no manifest) is read as 2.
 pub const STORAGE_FORMAT_OLDEST: u32 = 2;
-/// `version` field of the `store.json` a new store gets. Schema 2 stores write
+/// Newest supported `store.json` schema; ordinary new stores use [`STORE_SCHEMA_DEFAULT_VERSION`].
+/// Schema 2 stores write
 /// [`TRANSACTION_MAGIC`] frames, schema 3 stores [`BINARY_TRANSACTION_MAGIC`] frames; a store
 /// keeps the schema it was created with. Schema 4 stores also write binary frames and may hold
 /// a document checkpoint in place of the frames before it (`docs/file-format/CHECKPOINT.md`).
 /// Schema 5 adds namespace-scoped meaning maintenance, retaining binary frame encoding.
-pub const STORE_SCHEMA_VERSION: u32 = 6;
+pub const STORE_SCHEMA_VERSION: u32 = 7;
+/// Ordinary stores retain the previous reader requirement unless vector records are requested.
+pub const STORE_SCHEMA_DEFAULT_VERSION: u32 = 6;
+/// First schema permitting explicit text-free vector records.
+pub const VECTOR_RECORDS_SCHEMA_VERSION: u32 = 7;
 /// First schema with audit delivery intents and acknowledgements in the core journal.
 pub const AUDIT_EFFECTS_SCHEMA_VERSION: u32 = 6;
 /// First schema supporting namespace-scoped meaning maintenance mutations.

@@ -584,10 +584,13 @@ fn check_arena(
                     let checked = scan::transaction_json(payload)
                         .expect("a transaction payload")
                         .and_then(|json| {
-                            scan::check_transaction_with_schema(
+                            scan::check_transaction_for_store(
                                 &json,
                                 schema.dimensions,
                                 schema.raw["version"].as_u64().unwrap_or(0) as u32,
+                                schema.raw["embedding_space"]["dimensions"]
+                                    .as_u64()
+                                    .and_then(|value| usize::try_from(value).ok()),
                                 &mut replay,
                             )
                         });

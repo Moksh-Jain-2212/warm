@@ -1,0 +1,33 @@
+{
+  "verified_at": "2026-11-02T07:37:10.387150+00:00",
+  "pr": "https://github.com/writerslogic/warm/pull/376",
+  "merge": "113f8ad12b0790d0aad5050267c46996379ee659",
+  "qualified_head": "9292bfb57223f664c87eeb8964b1fc72f9cc740d",
+  "tree": "df334be205bbf72e21c52e9b552095456ff26da4",
+  "signature": {
+    "verified": true,
+    "reason": "valid",
+    "signature": "-----BEGIN PGP SIGNATURE-----\n\nwsFcBAABCAAQBQJq6D2TCRC1aQ7uu5UhlAAA9FcQAAVueMNllGc6+/4LgixTNAUk\n176LsfNvdqi5sgg7UNBFEXmuhb6JTce6xnrHlmFJ84dy59WdLLnYaRXVeRzSWJX0\n9f5AErGzCJt+0VQdZtGNjOKhzHH9Ie615V6NLJV/r5VPgu3DF5pM7SkeJOxEVFtP\nuh51eZWvPJ/pIs9yqnPj5hLE5W/jqPI6FL6MTtLvnOhfrt4Niyte+sEdR1fBxNB+\n28PVxz+/j9Ar9IOT54qm+FI5ZRySCpkkPubQ5o5NRVKPIzAd3IeFkoSsO4h3icxz\n5Pg5lqsmA8/AfQKsz2kxqdB1gcMYVm1Lbd6GBDt0C9VD0MzEpMknQMClMApckk45\n7POTF1XVWtqDdmMGYejpribwwPFRN/wGmP2JjeITQCY/Pl2TAVORf2SqPPU3HL0P\nvdSVU+X2GzSVI5ioXTXjznEmtKc/gk8iSyC7u1bajfWOpyrgaopzRILWenYV0Ond\nWBLIcozHHGI0LffhnjXWbeIfIVzmg9zaEa6PW6Wa8kEUJYZIPchuivJk9i3cmegB\n8XC8OloUVo8piOBMLWLcZ2dDFBSdxsCuV3tD9LYrHFpICYaWXUPp++WWqaLShuyD\npgvlYtyL3hWcinq/6sPVkhVKTwTt3Jt9hchX34ClQvQKhWNceWqpqyCaUp/oGlc3\nVCdLTk9kLchtxvo3T0QQ\n=XJ+M\n-----END PGP SIGNATURE-----\n",
+    "payload": "tree df334be205bbf72e21c52e9b552095456ff26da4\nparent 1ad2c4c799453043373e3a6c650357d8019eb90d\nparent 9292bfb57223f664c87eeb8964b1fc72f9cc740d\nauthor David Condrey <davidcondrey@me.com> 1793605011 -0800\ncommitter GitHub <noreply@github.com> 1793605011 -0800\n\nfeat: Add experimental prefix retrieval and rename the Node SDK (#376)\n\nPreserve qualified source and research ancestry. Full-vector defaults remain unchanged; prefix retrieval is experimental after failed fresh quality gates.\n\nSigned-off-by: David Condrey <david@writerslogic.com>",
+    "verified_at": "2026-11-02T07:36:52Z"
+  },
+  "parents": [
+    {
+      "sha": "1ad2c4c799453043373e3a6c650357d8019eb90d",
+      "url": "https://api.github.com/repos/writerslogic/warm/git/commits/1ad2c4c799453043373e3a6c650357d8019eb90d",
+      "html_url": "https://github.com/writerslogic/warm/commit/1ad2c4c799453043373e3a6c650357d8019eb90d"
+    },
+    {
+      "sha": "9292bfb57223f664c87eeb8964b1fc72f9cc740d",
+      "url": "https://api.github.com/repos/writerslogic/warm/git/commits/9292bfb57223f664c87eeb8964b1fc72f9cc740d",
+      "html_url": "https://github.com/writerslogic/warm/commit/9292bfb57223f664c87eeb8964b1fc72f9cc740d"
+    }
+  ],
+  "merged_at": "2026-11-02T07:36:52Z",
+  "checks": {
+    "success": 147,
+    "skipped": 23,
+    "neutral": 1
+  },
+  "gate_errors": []
+}

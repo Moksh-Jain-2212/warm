@@ -254,6 +254,11 @@ impl PackedTerms {
 }
 
 impl StoredTerms {
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn is_empty(&self) -> bool {
+        self.keys().len() == 0 && self.positions.is_none()
+    }
+
     #[cfg(test)]
     pub(super) fn record_memory(&self, census: &mut super::census::MemoryCensus) {
         use std::mem::{size_of, size_of_val};
@@ -770,15 +775,15 @@ mod tests {
             assert_eq!(table.get(key), map.get(key));
             assert_eq!(table.contains_key(key), map.contains_key(key));
         }
-        let old = bincode::serde::encode_to_vec(&map, bincode::config::standard()).unwrap();
-        assert_eq!(
-            bincode::serde::encode_to_vec(&table, bincode::config::standard()).unwrap(),
-            old
-        );
-        let (decoded, consumed): (StoredTerms, usize) =
-            bincode::serde::decode_from_slice(&old, bincode::config::standard()).unwrap();
+        let mut old = Vec::new();
+        ciborium::ser::into_writer(&map, &mut old).unwrap();
+        let mut packed = Vec::new();
+        ciborium::ser::into_writer(&table, &mut packed).unwrap();
+        assert_eq!(packed, old);
+        let mut input = old.as_slice();
+        let decoded: StoredTerms = ciborium::de::from_reader(&mut input).unwrap();
         decoded.assert_valid_storage();
-        assert_eq!(consumed, old.len());
+        assert!(input.is_empty());
         assert_eq!(serde_json::to_vec(&decoded).unwrap(), expected);
     }
 

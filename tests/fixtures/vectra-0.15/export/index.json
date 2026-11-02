@@ -1,0 +1,1 @@
+{"version":1,"metadata_config":{"indexed":["group"]},"items":[{"id":"external","metadata":{"group":"public"},"vector":[1,0,0],"norm":1,"metadataFile":"f68f91fa-089e-4a6a-8c99-78537df1fb0b.json"},{"id":"inline","metadata":{"group":"private"},"vector":[0,1,0],"norm":1}]}

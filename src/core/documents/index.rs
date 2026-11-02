@@ -116,6 +116,7 @@ pub(crate) struct DocumentStore {
     /// `generation`).
     pub(super) identity: StoreIdentity,
     pub(super) documents: BTreeMap<String, Arc<StoredDocument>>,
+    vector_record_count: usize,
     pub(super) postings: [PostingLists; 2],
     pub(super) slots: BTreeMap<String, Vec<usize>>,
     pub(super) slot_count: usize,
@@ -569,6 +570,16 @@ impl DocumentStore {
         self.documents.values().cloned()
     }
 
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn shared_values_from(
+        &self,
+        from: &str,
+    ) -> impl Iterator<Item = Arc<StoredDocument>> + '_ {
+        self.documents
+            .range::<str, _>((std::ops::Bound::Included(from), std::ops::Bound::Unbounded))
+            .map(|(_, document)| Arc::clone(document))
+    }
+
     /// A chunk's text from its inline copy or this store's text segment.
     pub(crate) fn try_chunk_text(&self, chunk: &StoredChunk) -> anyhow::Result<Option<String>> {
         try_text_of(chunk, self.text.as_deref())
@@ -635,6 +646,11 @@ impl DocumentStore {
 
     pub(crate) fn get(&self, id: &str) -> Option<&Arc<StoredDocument>> {
         self.documents.get(id)
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn only_vector_records(&self) -> bool {
+        self.base.is_none() && self.vector_record_count == self.documents.len()
     }
 
     pub(crate) fn metadata_candidates(
@@ -793,6 +809,7 @@ impl DocumentStore {
             store.insert_filters(&document);
             store.slots.insert(document.id.clone(), slots);
             store.generation += 1;
+            store.vector_record_count += usize::from(document.vector_record);
             store.documents.insert(document.id.clone(), document);
         }
         store.free = (0..slot_count)
@@ -985,6 +1002,7 @@ impl DocumentStore {
         );
         for document in group {
             self.track_dense_change(&document.id, document.chunks.len(), None);
+            self.vector_record_count += usize::from(document.vector_record);
             self.documents.insert(document.id.clone(), document);
         }
     }
@@ -1108,6 +1126,11 @@ impl DocumentStore {
             .record(self.generation - 1, self.generation, [id.as_str()]);
         self.track_dense_change(&id, document.chunks.len(), Some(&previous));
         let scrubbed = self.scrub_replaced(&previous, &document);
+        self.vector_record_count = self
+            .vector_record_count
+            .checked_sub(usize::from(previous.vector_record))
+            .and_then(|count| count.checked_add(usize::from(document.vector_record)))
+            .expect("vector record count overflow");
         self.documents.insert(id, document);
         scrubbed
     }
@@ -1247,6 +1270,10 @@ impl DocumentStore {
             return None;
         }
         let document = self.documents.remove(id)?;
+        self.vector_record_count = self
+            .vector_record_count
+            .checked_sub(usize::from(document.vector_record))
+            .expect("vector record count underflow");
         self.multichunk_documents.remove(id);
         self.advance_generation();
         #[cfg(not(target_arch = "wasm32"))]

@@ -233,7 +233,7 @@ fn schema_only_upgrade_preserves_checkpoint_and_source_bytes() -> anyhow::Result
     assert!(plan
         .steps
         .iter()
-        .any(|step| step.id == "store-schema-4-to-6"));
+        .any(|step| step.id == "store-schema-4-to-7"));
     assert!(!plan.steps.iter().any(|step| step.artefact == "arena"));
     upgrade_store(&source, &output, false)?;
     let mut after = file_fingerprints(&source)?;

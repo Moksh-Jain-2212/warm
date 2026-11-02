@@ -10,12 +10,14 @@ mod document_batch;
 mod embed_api;
 mod governance;
 mod image;
+mod index_cache;
 pub(crate) mod journal;
 pub(crate) mod knowledge;
 pub(crate) mod memory_access;
 pub(crate) mod multi_hop;
 mod mutation;
 mod mutation_gate;
+mod vector_records;
 
 #[cfg(test)]
 mod deferred_cache_tests;
@@ -95,6 +97,7 @@ pub struct WarmCore {
     /// writes.
     persisted_indices: crate::core::sync::Mutex<Vec<u8>>,
     revision: std::sync::atomic::AtomicU64,
+    vector_record_instance: [u8; 16],
     /// The frame format this store is written in (its `store.json` schema); both are read.
     journal: journal::JournalFormat,
     /// `store.json` schema version of the open store.
@@ -296,6 +299,7 @@ impl WarmCore {
             compaction: crate::core::sync::Mutex::new(()),
             persisted_indices: crate::core::sync::Mutex::new(Vec::new()),
             revision: std::sync::atomic::AtomicU64::new(super::documents::opaque_counter_start()),
+            vector_record_instance: rand::random(),
             journal: journal::JournalFormat::for_schema(schema),
             schema,
             arena,
@@ -430,6 +434,9 @@ impl WarmCore {
                 return Ok(());
             }
         };
+        if saved["encoding"] != index_cache::ENCODING {
+            return Ok(());
+        }
         if saved["checkpoint"] != serde_json::to_value(self.arena.checkpoint())? {
             tracing::info!("stale ANN checkpoint; using rebuilt inverted index");
             return Ok(());
@@ -441,7 +448,7 @@ impl WarmCore {
         }
         shards.try_for_each_shard_indexed(|i, shard| {
             let read_cache = |path: &Path, expected_crc: &serde_json::Value| -> Result<Vec<u8>> {
-                let raw = std::fs::read(path)?;
+                let raw = index_cache::read(path)?;
                 anyhow::ensure!(
                     expected_crc.as_u64() == Some(crc32fast::hash(&raw) as u64),
                     "index cache checksum mismatch"
@@ -452,9 +459,8 @@ impl WarmCore {
             if nsg_path.exists() && saved["shards"][i]["nsg"] == true {
                 let result = (|| -> Result<super::nsg::NSGIndex> {
                     let data = read_cache(&nsg_path, &saved["shards"][i]["nsgCrc"])?;
-                    let (nsg, consumed) =
-                        bincode::serde::decode_from_slice(&data, bincode::config::standard())?;
-                    anyhow::ensure!(consumed == data.len(), "trailing index cache data");
+                    let nsg = index_cache::decode(&data)?;
+                    index_cache::validate_nsg(&nsg, shard, self.dimensions)?;
                     Ok(nsg)
                 })();
                 match result {
@@ -467,8 +473,8 @@ impl WarmCore {
             if ivf_path.exists() && saved["shards"][i]["ivf"] == true {
                 let result = (|| -> Result<IVFIndex> {
                     let data = read_cache(&ivf_path, &saved["shards"][i]["ivfCrc"])?;
-                    let (mut ivf, _): (IVFIndex, usize) =
-                        bincode::serde::decode_from_slice(&data, bincode::config::standard())?;
+                    let mut ivf: IVFIndex = index_cache::decode(&data)?;
+                    index_cache::validate_ivf(&ivf, self.dimensions)?;
                     ivf.lists = Some(super::ivf::inverted_list::InvertedLists::new());
 
                     let vectors = shard.vectors.read();
@@ -519,23 +525,25 @@ impl WarmCore {
             let mut nsg_crc = None;
             let mut ivf_crc = None;
             if let Some(ref nsg) = *shard.nsg.read() {
-                let data = bincode::serde::encode_to_vec(nsg, bincode::config::standard())?;
-                let data = self.maybe_encrypt(&data)?.into_owned();
-                nsg_crc = Some(crc32fast::hash(&data));
-                files.push((self.nsg_index_path(i, multi), data));
+                if let Some(data) = index_cache::encode(nsg)? {
+                    let data = self.maybe_encrypt(&data)?.into_owned();
+                    nsg_crc = Some(crc32fast::hash(&data));
+                    files.push((self.nsg_index_path(i, multi), data));
+                }
             }
             if let Some(ref ivf) = *shard.ivf.read() {
-                let data = bincode::serde::encode_to_vec(ivf, bincode::config::standard())?;
-                let data = self.maybe_encrypt(&data)?.into_owned();
-                ivf_crc = Some(crc32fast::hash(&data));
-                files.push((self.ivf_index_path(i, multi), data));
+                if let Some(data) = index_cache::encode(ivf)? {
+                    let data = self.maybe_encrypt(&data)?.into_owned();
+                    ivf_crc = Some(crc32fast::hash(&data));
+                    files.push((self.ivf_index_path(i, multi), data));
+                }
             }
             states
-                .push(serde_json::json!({"nsg": shard.nsg_trained(), "ivf": shard.ivf_trained(), "nsgCrc": nsg_crc, "ivfCrc": ivf_crc}));
+                .push(serde_json::json!({"nsg": nsg_crc.is_some(), "ivf": ivf_crc.is_some(), "nsgCrc": nsg_crc, "ivfCrc": ivf_crc}));
             Ok(())
         })?;
         let metadata = serde_json::to_vec(
-            &serde_json::json!({"checkpoint": checkpoint, "shardCount": shards.shard_count(), "shards": states}),
+            &serde_json::json!({"encoding": index_cache::ENCODING, "checkpoint": checkpoint, "shardCount": shards.shard_count(), "shards": states}),
         )?;
         Ok(EncodedIndices { files, metadata })
     }

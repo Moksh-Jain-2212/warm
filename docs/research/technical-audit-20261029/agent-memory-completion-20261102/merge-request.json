@@ -1,0 +1,6 @@
+{
+  "sha": "9292bfb57223f664c87eeb8964b1fc72f9cc740d",
+  "merge_method": "merge",
+  "commit_title": "feat: Add experimental prefix retrieval and rename the Node SDK (#376)",
+  "commit_message": "Preserve qualified source and research ancestry. Full-vector defaults remain unchanged; prefix retrieval is experimental after failed fresh quality gates.\n\nSigned-off-by: David Condrey <david@writerslogic.com>"
+}

@@ -19,6 +19,7 @@ fn rebuilt_terms_preserve_complete_document_bytes_and_legacy_frequencies() {
             );
         }
         let mut document = StoredDocument {
+            vector_record: false,
             id: "document:é".into(),
             source_uri: Some("source:é".into()),
             version: "1".into(),

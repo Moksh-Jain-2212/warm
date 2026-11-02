@@ -285,14 +285,51 @@ impl WarmCore {
         revision: Option<u64>,
         append: impl FnOnce(&[u8]) -> Result<()>,
     ) -> Result<bool> {
+        self.commit_payload_checked(mutations, payload, revision, append, || Ok(()))
+            .map(|result| result.is_some())
+    }
+
+    pub(super) fn commit_serialized_checked<T>(
+        &self,
+        mutations: &[Mutation],
+        payload: &[u8],
+        check: impl FnOnce() -> Result<T>,
+    ) -> Result<(u64, T)> {
+        if !self.checkpoint_accepts(mutations) {
+            self.hydrate_documents()?;
+        }
+        self.validate_transaction(mutations)?;
+        self.commit_payload_checked(
+            mutations,
+            payload,
+            None,
+            |payload| self.arena_write(payload).map(|_| ()),
+            check,
+        )?
+        .ok_or_else(|| anyhow::anyhow!("unconditional transaction rejected"))
+    }
+
+    fn commit_payload_checked<T>(
+        &self,
+        mutations: &[Mutation],
+        payload: &[u8],
+        revision: Option<u64>,
+        append: impl FnOnce(&[u8]) -> Result<()>,
+        check: impl FnOnce() -> Result<T>,
+    ) -> Result<Option<(u64, T)>> {
         // Lookups, clones and the chunk diff of every mutation are prepared while readers are
         // still served and before this writer queues; the exclusive window only installs them
         // (a document replaced by another writer in between is re-diffed there).
         let mutations = &self.prepare_mutations(mutations);
         let transaction = self.mutation_gate.begin_write();
         if revision.is_some_and(|expected| expected != self.revision()) {
-            return Ok(false);
+            return Ok(None);
         }
+        let checked = check()?;
+        let next_revision = self
+            .revision()
+            .checked_add(1)
+            .ok_or_else(|| anyhow::anyhow!("store revision exhausted"))?;
         self.validate_audit_transitions(mutations.mutations)?;
         let segment = self.documents.read().text_segment();
         let mut staged = segment
@@ -320,7 +357,7 @@ impl WarmCore {
             let shards = self.shards.write();
             let applied = self.apply_mutations(mutations, &shards);
             self.revision
-                .fetch_add(1, std::sync::atomic::Ordering::Release);
+                .store(next_revision, std::sync::atomic::Ordering::Release);
             applied
         };
         let cleaned = segment
@@ -328,7 +365,7 @@ impl WarmCore {
             .map_or(Ok(()), |segment| segment.drain_scrubs());
         crate::core::error::after_commit("live publication", applied)?;
         crate::core::error::after_commit("retained-text cleanup", cleaned)?;
-        Ok(true)
+        Ok(Some((next_revision, checked)))
     }
 
     pub(super) fn validate_mutation(&self, mutation: &Mutation) -> Result<()> {
@@ -357,6 +394,25 @@ impl WarmCore {
             }
             Mutation::Document(document) => {
                 validate_id(&document.id)?;
+                if crate::core::vector_records::is_record(document) {
+                    ensure!(
+                        self.schema >= crate::core::format::VECTOR_RECORDS_SCHEMA_VERSION,
+                        "vector records require store schema 7"
+                    );
+                    let embedding_dimensions = self
+                        .config
+                        .embedding_space
+                        .as_ref()
+                        .ok_or_else(|| {
+                            anyhow::anyhow!("vector records require an embedding space")
+                        })?
+                        .dimensions;
+                    return crate::core::vector_records::validate(
+                        document,
+                        self.dimensions,
+                        Some(embedding_dimensions),
+                    );
+                }
                 ensure!(
                     !document.chunks.is_empty() && document.chunks.len() <= 4096,
                     "invalid document chunk count"
