@@ -1,10 +1,12 @@
 # Fast-path-isolation comparison
 
 The frozen baseline is `ba980ffc16e01981bf1d025debfb83d6e7334aac`; the changed
-production candidate is `bf5f41f9f9114cf12fbd3fa9a0d60c8b6623b985`. The candidate's
-eight vector tests, 15 snapshot tests and strict library/test Clippy gate passed
-before source pinning. Timing additionally requires code-generation inspection,
-a new coordinator quiet grant and the frozen host preflight.
+production candidate is integrated revision `d7f5982f4612a16b78071d013ee858c64447a133`.
+Its vector source is byte-identical to isolation commit
+`bf5f41f9f9114cf12fbd3fa9a0d60c8b6623b985`, whose eight vector tests, 15 snapshot
+tests and strict library/test Clippy gate passed before pinning. Timing additionally
+requires integrated readiness checks, code-generation inspection, a new coordinator
+quiet grant and the frozen host preflight.
 
 This separate experiment evaluates an actual source change that isolates stale
 exact work from fresh dispatch. Read-only inspection of the original binaries
@@ -17,6 +19,16 @@ The unchanged-candidate 1,024-sample confirmation was blocked before timing:
 its two preflights exceeded the fixed 20% external CPU capacity budget. Neither
 study is superseded, discarded or retried here. No performance qualification is
 claimed before this changed candidate meets its own complete frozen criteria.
+
+`premeasurement-scope-revision.json` preserves the initial plan that pinned the
+isolated source alone. The coordinator repinned to integrated source before its
+build or any timing, retaining every threshold, workload setting and baseline.
+The already compiled baseline is reused after verification of its engine,
+instrumented vector source, Rust harness, settings and executable hashes. Its
+original build manifest remains in `build-baseline-before-scope.json`; separate
+execution-wrapper and plan fields identify the updated protocol without claiming
+a new compiler invocation. An earlier wrapper EOF-whitespace correction is
+retained in `premeasurement-format-correction.json` and `preformat-probe.py.gz`.
 
 The Rust benchmark harness is byte-identical to `../confirmation-1024/contention_probe.rs`:
 8,192 rows; dimensions 16/128/768; k=10; eight warmups; 1,024 recorded queries per

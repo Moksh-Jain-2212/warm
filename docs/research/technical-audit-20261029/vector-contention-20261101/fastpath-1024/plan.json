@@ -1,7 +1,7 @@
 {
-  "scope": "Separately preregistered comparison of the stale-exact helper-isolation production revision",
+  "scope": "Separately preregistered comparison of integrated production source including stale-exact helper isolation and the other completed remediation changes",
   "baseline": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
-  "current": "bf5f41f9f9114cf12fbd3fa9a0d60c8b6623b985",
+  "current": "d7f5982f4612a16b78071d013ee858c64447a133",
   "compiler": "Rust 1.99.0, opt-level 3 test profile, debug 0, default features, jobs 2",
   "rows": 8192,
   "dimensions": [
@@ -50,7 +50,7 @@
     "allocation": "Additional stale capture remains bounded by 512 KiB bitmap plus 128 document Arcs and at most 1024 scored delta hits; no embedding or document-text copy",
     "limits": "Local synthetic fixed workload on a shared desktop, conditional on all host checks; no production/general-hardware claim. Preserve original failed study and blocked unchanged-source confirmation. No tuning, automatic reruns or selective exclusions."
   },
-  "source_pinning": "Baseline and changed candidate commits pinned before either build or timing. Candidate focused checks passed before pinning; all production changes relative to the earlier candidate are in vector_index.rs.",
+  "source_pinning": "Integrated production commit pinned before candidate build or any timing. Its vector source is byte-identical to the isolation commit that passed focused checks. Baseline executable is reused with verified unchanged compiled inputs; integrated readiness checks precede timing grant.",
   "query_schedule": {
     "warmup_indices": [
       0,
@@ -143,7 +143,7 @@
     }
   },
   "confirmation_reason": "Evaluate an actual production source revision that isolates stale exact work from fresh dispatch after original codegen inspection found a 48-byte dispatch frame increase. This is not a repeat measurement of the unchanged candidate. Preserve original failed gate and the blocked unchanged-candidate confirmation.",
-  "binary_change": "Build pinned baseline and changed production candidate with the byte-identical 1024-sample Rust harness used for the blocked confirmation. Preserve prior and new executable hashes. No old-candidate timings.",
+  "binary_change": "Reuse the verified premeasurement baseline executable; its engine, instrumented vector source, Rust harness and compiler settings are unchanged. Build the integrated production candidate with the same 1024-sample Rust harness. Original build and new execution-wrapper/protocol provenance are recorded separately. No old-candidate timings.",
   "host_conditions": {
     "preflight_observations": 2,
     "preflight_interval_seconds": 5,
@@ -178,7 +178,8 @@
     "plan_sha256": "814a66ae234debd53e98e91d54c24d1eaeed7f4355f4556b2620c3f19d2f32e4",
     "status_sha256": "9f1de67cb7ce8c7587f692a4b10d03628dd3fc12637b89fca5c0cbdce30e639e"
   },
-  "preregistered_at": "2026-11-02T03:06:08.358713+00:00",
-  "frozen_at": "2026-11-02T03:06:08.358713+00:00",
-  "candidate_source_sha256": "b7ada58a05e3fb2e6a884cf60ff264246386f6a839ea5442de744af4a046086b"
+  "preregistered_at": "2026-11-02T03:09:45.528892+00:00",
+  "frozen_at": "2026-11-02T03:09:45.528892+00:00",
+  "candidate_source_sha256": "b7ada58a05e3fb2e6a884cf60ff264246386f6a839ea5442de744af4a046086b",
+  "candidate_isolation_commit": "bf5f41f9f9114cf12fbd3fa9a0d60c8b6623b985"
 }

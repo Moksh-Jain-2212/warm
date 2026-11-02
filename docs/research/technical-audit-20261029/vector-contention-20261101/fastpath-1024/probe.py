@@ -177,9 +177,17 @@ def verify_builds(plan):
                 or record["instrumented_vector_sha256"] != digest(source)
                 or record["probe_sha256"] != digest(HERE / "contention_probe.rs")
                 or record["probe_sha256"] != digest(source.parent / "contention_probe.rs")
-                or record["harness_sha256"] != digest(HERE / "probe.py")
-                or record["settings"] != SETTINGS or record["plan_source"] != plan):
+                or record.get("execution_harness_sha256", record["harness_sha256"]) != digest(HERE / "probe.py")
+                or record["settings"] != SETTINGS or record.get("execution_plan_source", record["plan_source"]) != plan):
             raise RuntimeError(f"Changed build inputs: {variant}")
+        if "reuse" in record:
+            original = HERE / record["reuse"]["original_manifest"]
+            if variant != "baseline" or digest(original) != record["reuse"]["original_manifest_sha256"]:
+                raise RuntimeError("Invalid baseline reuse provenance")
+            previous = json.loads(original.read_text())
+            for key in ["revision", "engine_vector_sha256", "instrumented_vector_sha256", "probe_sha256", "binary_sha256", "harness_sha256"]:
+                if record[key] != previous[key]:
+                    raise RuntimeError(f"Changed reused baseline input: {key}")
     for name, expected in plan["original_study"]["files"].items():
         if digest(HERE.parent / name) != expected:
             raise RuntimeError(f"Original study changed: {name}")
