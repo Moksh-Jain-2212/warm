@@ -10,6 +10,7 @@ const npmCli = process.env.npm_execpath
 if (!npmCli) throw new Error('Run this check with npm run test:package')
 try {
   const [packed] = JSON.parse(execFileSync(process.execPath, [npmCli, 'pack', '--json', '--ignore-scripts', '--pack-destination', temporary], { encoding: 'utf8' }))
+  console.log(`Packed artifact: ${packed.filename}; integrity=${packed.integrity}`)
   assert.ok(packed.files.some(file => file.path.endsWith('.node')), 'build the native binding before testing the tarball')
   writeFileSync(join(temporary, 'package.json'), JSON.stringify({ private: true }))
   execFileSync(process.execPath, [npmCli, 'install', '--ignore-scripts', '--omit=optional', '--no-audit', join(temporary, packed.filename)], { cwd: temporary, stdio: 'pipe' })
