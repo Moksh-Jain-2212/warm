@@ -1,0 +1,28 @@
+{
+  "recorded_at": "2026-11-02T03:50:39.860252+00:00",
+  "command": [
+    "uv",
+    "run",
+    "--no-project",
+    "python",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "docs/research/technical-audit-20261029/vector-contention-20261101/ci-linux-1024",
+    "-p",
+    "test_decode_joblog.py",
+    "-v"
+  ],
+  "observed_exit_code": 0,
+  "tests_passed": 3,
+  "decoder_sha256": "6a8c4fff1806ad9bfe60f5fce5ff1aae3dfbefab3d0bd17d04bf5811417659f1",
+  "tests_sha256": "af6a26ba164664802f5e9098a7ed153977248e45b14da0fd879a8b8e0244dc7f",
+  "coverage": [
+    "roundtrip with timestamp prefixes",
+    "corrupt/incomplete/duplicate archive rejection",
+    "declared length bound",
+    "unsafe absolute/parent/backslash/duplicate and file-directory-collision paths",
+    "archive metadata byte-count mismatch"
+  ]
+}

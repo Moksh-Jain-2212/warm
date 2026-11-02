@@ -1,0 +1,10 @@
+[1m[92m   Compiling[0m warm-rust v0.6.5 (/home/runner/work/warm/warm/target/vector-ci-linux-1024/current)
+[1m[92m    Finished[0m `test` profile [optimized] target(s) in 1m 42s
+warning: function `before_canonical_scoring` is never used
+    --> src/core/documents/vector_index.rs:1017:19
+     |
+1017 |     pub(super) fn before_canonical_scoring() {
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+

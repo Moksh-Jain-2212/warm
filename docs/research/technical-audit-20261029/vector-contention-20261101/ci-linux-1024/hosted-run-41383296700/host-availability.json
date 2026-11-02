@@ -1,0 +1,2386 @@
+[
+  {
+    "plan_sha256": "1016e2b70c87d13de73cfa05d43d2860e45a45c4806328640b837382d3c2e50c",
+    "observations": [
+      {
+        "observed_at": "2026-11-02T03:34:30.100953+00:00",
+        "load": [
+          1.9130859375,
+          1.29248046875,
+          0.587890625
+        ],
+        "driver_pid": 4925,
+        "system": "Linux",
+        "machine": "x86_64",
+        "logical_cpu_count": 4,
+        "linux_cpu": {
+          "available": true,
+          "raw_cpu_line": "cpu  52387 2 3996 109629 1641 0 140 0 0 0",
+          "ticks": {
+            "user": 52387,
+            "nice": 2,
+            "system": 3996,
+            "idle": 109629,
+            "iowait": 1641,
+            "irq": 0,
+            "softirq": 140,
+            "steal": 0,
+            "guest": 0,
+            "guest_nice": 0
+          },
+          "steal_ticks": 0,
+          "clock_ticks_per_second": 100,
+          "acceptance_gate": false
+        },
+        "processes": [
+          {
+            "pid": 1,
+            "ppid": 0,
+            "cpu_percent": 0.6,
+            "elapsed": "07:01",
+            "executable": "systemd"
+          },
+          {
+            "pid": 2,
+            "ppid": 0,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kthreadd"
+          },
+          {
+            "pid": 3,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "pool_workqueue_release"
+          },
+          {
+            "pid": 4,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-rcu_gp"
+          },
+          {
+            "pid": 5,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-sync_wq"
+          },
+          {
+            "pid": 6,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-kvfree_rcu_reclaim"
+          },
+          {
+            "pid": 7,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-slub_flushwq"
+          },
+          {
+            "pid": 8,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-netns"
+          },
+          {
+            "pid": 10,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/0:0H-kblockd"
+          },
+          {
+            "pid": 12,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-mm_percpu_wq"
+          },
+          {
+            "pid": 13,
+            "ppid": 2,
+            "cpu_percent": 0.2,
+            "elapsed": "07:01",
+            "executable": "kworker/0:1-events"
+          },
+          {
+            "pid": 14,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "ksoftirqd/0"
+          },
+          {
+            "pid": 15,
+            "ppid": 2,
+            "cpu_percent": 0.2,
+            "elapsed": "07:01",
+            "executable": "pr/ttyS0"
+          },
+          {
+            "pid": 16,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "rcu_sched"
+          },
+          {
+            "pid": 17,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "rcu_exp_par_gp_kthread_worker/0"
+          },
+          {
+            "pid": 18,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "rcu_exp_gp_kthread_worker"
+          },
+          {
+            "pid": 19,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "migration/0"
+          },
+          {
+            "pid": 20,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kprobe-optimizer"
+          },
+          {
+            "pid": 21,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "idle_inject/0"
+          },
+          {
+            "pid": 22,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "cpuhp/0"
+          },
+          {
+            "pid": 23,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "cpuhp/2"
+          },
+          {
+            "pid": 24,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "idle_inject/2"
+          },
+          {
+            "pid": 25,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "migration/2"
+          },
+          {
+            "pid": 26,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "ksoftirqd/2"
+          },
+          {
+            "pid": 28,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/2:0H-kblockd"
+          },
+          {
+            "pid": 29,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "cpuhp/1"
+          },
+          {
+            "pid": 30,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "idle_inject/1"
+          },
+          {
+            "pid": 31,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "migration/1"
+          },
+          {
+            "pid": 32,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "ksoftirqd/1"
+          },
+          {
+            "pid": 34,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/1:0H-kblockd"
+          },
+          {
+            "pid": 35,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "cpuhp/3"
+          },
+          {
+            "pid": 36,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "idle_inject/3"
+          },
+          {
+            "pid": 37,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "migration/3"
+          },
+          {
+            "pid": 38,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "ksoftirqd/3"
+          },
+          {
+            "pid": 40,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/3:0H-kblockd"
+          },
+          {
+            "pid": 41,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kdevtmpfs"
+          },
+          {
+            "pid": 42,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-inet_frag_wq"
+          },
+          {
+            "pid": 43,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "rcu_tasks_kthread"
+          },
+          {
+            "pid": 44,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "rcu_tasks_rude_kthread"
+          },
+          {
+            "pid": 45,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kauditd"
+          },
+          {
+            "pid": 46,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "khungtaskd"
+          },
+          {
+            "pid": 47,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "oom_reaper"
+          },
+          {
+            "pid": 50,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/3:1-events"
+          },
+          {
+            "pid": 51,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-writeback"
+          },
+          {
+            "pid": 52,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kcompactd0"
+          },
+          {
+            "pid": 53,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "ksmd"
+          },
+          {
+            "pid": 54,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "khugepaged"
+          },
+          {
+            "pid": 55,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-kblockd"
+          },
+          {
+            "pid": 56,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-blkcg_punt_bio"
+          },
+          {
+            "pid": 57,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-kintegrityd"
+          },
+          {
+            "pid": 58,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/1:1-mm_percpu_wq"
+          },
+          {
+            "pid": 59,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "irq/9-acpi"
+          },
+          {
+            "pid": 61,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-tpm_dev_wq"
+          },
+          {
+            "pid": 62,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-ata_sff"
+          },
+          {
+            "pid": 63,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-md_bitmap"
+          },
+          {
+            "pid": 64,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-md_llbitmap_io"
+          },
+          {
+            "pid": 65,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-md_llbitmap_unplug"
+          },
+          {
+            "pid": 66,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-edac-poller"
+          },
+          {
+            "pid": 67,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-hv_vmbus_con"
+          },
+          {
+            "pid": 68,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-hv_vmbus_rescind"
+          },
+          {
+            "pid": 69,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-hv_pri_chan"
+          },
+          {
+            "pid": 70,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-hv_sub_chan"
+          },
+          {
+            "pid": 71,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-devfreq_wq"
+          },
+          {
+            "pid": 72,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "watchdogd"
+          },
+          {
+            "pid": 73,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-quota_events_unbound"
+          },
+          {
+            "pid": 74,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kswapd0"
+          },
+          {
+            "pid": 75,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "ecryptfs-kthread"
+          },
+          {
+            "pid": 76,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-kthrotld"
+          },
+          {
+            "pid": 77,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-acpi_thermal_pm"
+          },
+          {
+            "pid": 78,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-nfit"
+          },
+          {
+            "pid": 79,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "scsi_eh_0"
+          },
+          {
+            "pid": 80,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "scsi_eh_1"
+          },
+          {
+            "pid": 81,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-nvme-wq"
+          },
+          {
+            "pid": 82,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-scsi_tmf_1"
+          },
+          {
+            "pid": 83,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-scsi_tmf_0"
+          },
+          {
+            "pid": 84,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-nvme-reset-wq"
+          },
+          {
+            "pid": 85,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-nvme-delete-wq"
+          },
+          {
+            "pid": 86,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-nvme-auth-wq"
+          },
+          {
+            "pid": 87,
+            "ppid": 2,
+            "cpu_percent": 0.1,
+            "elapsed": "07:01",
+            "executable": "kworker/u16:3-events_power_efficient"
+          },
+          {
+            "pid": 88,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/0:2-mm_percpu_wq"
+          },
+          {
+            "pid": 90,
+            "ppid": 2,
+            "cpu_percent": 0.1,
+            "elapsed": "07:01",
+            "executable": "kworker/u16:4-writeback"
+          },
+          {
+            "pid": 91,
+            "ppid": 2,
+            "cpu_percent": 0.1,
+            "elapsed": "07:01",
+            "executable": "kworker/u16:5-events_power_efficient"
+          },
+          {
+            "pid": 93,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "hv_balloon"
+          },
+          {
+            "pid": 94,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-mld"
+          },
+          {
+            "pid": 95,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-ipv6_addrconf"
+          },
+          {
+            "pid": 96,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-kstrp"
+          },
+          {
+            "pid": 98,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/u17:0"
+          },
+          {
+            "pid": 109,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-charger_manager"
+          },
+          {
+            "pid": 110,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "jbd2/sda1-8"
+          },
+          {
+            "pid": 111,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/R-ext4-rsv-conversion"
+          },
+          {
+            "pid": 112,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "kworker/1:2-mm_percpu_wq"
+          },
+          {
+            "pid": 146,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:00",
+            "executable": "kworker/2:1H-kblockd"
+          },
+          {
+            "pid": 163,
+            "ppid": 1,
+            "cpu_percent": 0.1,
+            "elapsed": "07:00",
+            "executable": "systemd-journal"
+          },
+          {
+            "pid": 185,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:00",
+            "executable": "kworker/R-kmpathd"
+          },
+          {
+            "pid": 186,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:00",
+            "executable": "kworker/R-kmpath_handlerd"
+          },
+          {
+            "pid": 204,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:00",
+            "executable": "kworker/2:2-mm_percpu_wq"
+          },
+          {
+            "pid": 205,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:00",
+            "executable": "kworker/3:3-events"
+          },
+          {
+            "pid": 226,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "07:00",
+            "executable": "multipathd"
+          },
+          {
+            "pid": 230,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "07:00",
+            "executable": "systemd-udevd"
+          },
+          {
+            "pid": 243,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:00",
+            "executable": "psimon"
+          },
+          {
+            "pid": 294,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:59",
+            "executable": "card1-crtc0"
+          },
+          {
+            "pid": 393,
+            "ppid": 1,
+            "cpu_percent": 0.1,
+            "elapsed": "06:58",
+            "executable": "hv_kvp_daemon"
+          },
+          {
+            "pid": 401,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:58",
+            "executable": "kworker/1:1H-kblockd"
+          },
+          {
+            "pid": 414,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:58",
+            "executable": "jbd2/sda16-8"
+          },
+          {
+            "pid": 415,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:58",
+            "executable": "kworker/R-ext4-rsv-conversion"
+          },
+          {
+            "pid": 488,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:58",
+            "executable": "kworker/0:1H-kblockd"
+          },
+          {
+            "pid": 549,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:58",
+            "executable": "systemd-resolve"
+          },
+          {
+            "pid": 559,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:58",
+            "executable": "kworker/2:4-events"
+          },
+          {
+            "pid": 591,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:57",
+            "executable": "haveged"
+          },
+          {
+            "pid": 620,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:57",
+            "executable": "kworker/3:1H-kblockd"
+          },
+          {
+            "pid": 651,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:57",
+            "executable": "kworker/R-cfg80211"
+          },
+          {
+            "pid": 732,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "systemd-network"
+          },
+          {
+            "pid": 946,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "dbus-daemon"
+          },
+          {
+            "pid": 951,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "networkd-dispat"
+          },
+          {
+            "pid": 954,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "php-fpm8.3"
+          },
+          {
+            "pid": 958,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "polkitd"
+          },
+          {
+            "pid": 980,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "systemd-logind"
+          },
+          {
+            "pid": 986,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "udisksd"
+          },
+          {
+            "pid": 987,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "python3"
+          },
+          {
+            "pid": 1028,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "cron"
+          },
+          {
+            "pid": 1054,
+            "ppid": 1,
+            "cpu_percent": 0.1,
+            "elapsed": "06:51",
+            "executable": "containerd"
+          },
+          {
+            "pid": 1095,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "agetty"
+          },
+          {
+            "pid": 1111,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "chronyd"
+          },
+          {
+            "pid": 1121,
+            "ppid": 1111,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "chronyd"
+          },
+          {
+            "pid": 1122,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "rsyslogd"
+          },
+          {
+            "pid": 1133,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "ModemManager"
+          },
+          {
+            "pid": 1137,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "agetty"
+          },
+          {
+            "pid": 1167,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:51",
+            "executable": "dockerd"
+          },
+          {
+            "pid": 1200,
+            "ppid": 954,
+            "cpu_percent": 0.0,
+            "elapsed": "06:50",
+            "executable": "php-fpm8.3"
+          },
+          {
+            "pid": 1210,
+            "ppid": 954,
+            "cpu_percent": 0.0,
+            "elapsed": "06:50",
+            "executable": "php-fpm8.3"
+          },
+          {
+            "pid": 1213,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:50",
+            "executable": "kworker/R-tls-strp"
+          },
+          {
+            "pid": 1239,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:50",
+            "executable": "systemd"
+          },
+          {
+            "pid": 1255,
+            "ppid": 1239,
+            "cpu_percent": 0.0,
+            "elapsed": "06:50",
+            "executable": "(sd-pam)"
+          },
+          {
+            "pid": 1290,
+            "ppid": 987,
+            "cpu_percent": 0.2,
+            "elapsed": "06:50",
+            "executable": "python3"
+          },
+          {
+            "pid": 1991,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:47",
+            "executable": "psimon"
+          },
+          {
+            "pid": 1994,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:47",
+            "executable": "hosted-compute-"
+          },
+          {
+            "pid": 2008,
+            "ppid": 1994,
+            "cpu_percent": 0.0,
+            "elapsed": "06:47",
+            "executable": "sudo"
+          },
+          {
+            "pid": 2011,
+            "ppid": 2008,
+            "cpu_percent": 0.5,
+            "elapsed": "06:47",
+            "executable": "provjobd4205851"
+          },
+          {
+            "pid": 2075,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:18",
+            "executable": "kworker/u16:7-events_power_efficient"
+          },
+          {
+            "pid": 2078,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:06",
+            "executable": "kworker/R-mlx5_cmd_e523:00:02.0"
+          },
+          {
+            "pid": 2081,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:06",
+            "executable": "kworker/R-mlx5_healthe523:00:02.0"
+          },
+          {
+            "pid": 2082,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:06",
+            "executable": "kworker/R-mlx5_page_allocator"
+          },
+          {
+            "pid": 2083,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:06",
+            "executable": "kworker/R-mlx5_events"
+          },
+          {
+            "pid": 2084,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:06",
+            "executable": "ptp1"
+          },
+          {
+            "pid": 2085,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:06",
+            "executable": "kworker/R-mlx5_fc"
+          },
+          {
+            "pid": 2086,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:06",
+            "executable": "kworker/R-mlx5_hv_vhca"
+          },
+          {
+            "pid": 2087,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:05",
+            "executable": "kworker/R-mlx5e"
+          },
+          {
+            "pid": 2088,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:05",
+            "executable": "kworker/R-mlx5e_arfs"
+          },
+          {
+            "pid": 2102,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:05",
+            "executable": "kworker/R-ib-comp-wq"
+          },
+          {
+            "pid": 2103,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:05",
+            "executable": "kworker/R-ib-comp-unb-wq"
+          },
+          {
+            "pid": 2104,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:05",
+            "executable": "kworker/R-ib_mcast"
+          },
+          {
+            "pid": 2105,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:05",
+            "executable": "kworker/R-ib_nl_sa_wq"
+          },
+          {
+            "pid": 2106,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:05",
+            "executable": "kworker/R-mkey_cache"
+          },
+          {
+            "pid": 2108,
+            "ppid": 1994,
+            "cpu_percent": 0.4,
+            "elapsed": "05:44",
+            "executable": "Runner.Listener"
+          },
+          {
+            "pid": 2127,
+            "ppid": 2108,
+            "cpu_percent": 1.6,
+            "elapsed": "05:42",
+            "executable": "Runner.Worker"
+          },
+          {
+            "pid": 4848,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "01:29",
+            "executable": "kworker/3:0-events"
+          },
+          {
+            "pid": 4850,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "01:25",
+            "executable": "kworker/0:0-events"
+          },
+          {
+            "pid": 4851,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "01:24",
+            "executable": "kworker/2:0-mm_percpu_wq"
+          },
+          {
+            "pid": 4856,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "01:19",
+            "executable": "kworker/1:0-events"
+          },
+          {
+            "pid": 4919,
+            "ppid": 2127,
+            "cpu_percent": 0.0,
+            "elapsed": "00:00",
+            "executable": "bash"
+          },
+          {
+            "pid": 4920,
+            "ppid": 4919,
+            "cpu_percent": 0.0,
+            "elapsed": "00:00",
+            "executable": "uv"
+          },
+          {
+            "pid": 4925,
+            "ppid": 4920,
+            "cpu_percent": 90.0,
+            "elapsed": "00:00",
+            "executable": "python"
+          },
+          {
+            "pid": 4928,
+            "ppid": 4925,
+            "cpu_percent": 0.0,
+            "elapsed": "00:00",
+            "executable": "ps"
+          }
+        ],
+        "excluded_pids": [
+          0,
+          1,
+          1994,
+          2108,
+          2127,
+          4919,
+          4920,
+          4925,
+          4928
+        ],
+        "violations": [],
+        "external_cpu_percent_sum": 1.7000000000000002,
+        "external_capacity_percent": 0.42500000000000004,
+        "host_acceptable": true
+      },
+      {
+        "observed_at": "2026-11-02T03:34:35.114904+00:00",
+        "load": [
+          1.759765625,
+          1.27099609375,
+          0.58447265625
+        ],
+        "driver_pid": 4925,
+        "system": "Linux",
+        "machine": "x86_64",
+        "logical_cpu_count": 4,
+        "linux_cpu": {
+          "available": true,
+          "raw_cpu_line": "cpu  52418 2 4000 111595 1641 0 140 0 0 0",
+          "ticks": {
+            "user": 52418,
+            "nice": 2,
+            "system": 4000,
+            "idle": 111595,
+            "iowait": 1641,
+            "irq": 0,
+            "softirq": 140,
+            "steal": 0,
+            "guest": 0,
+            "guest_nice": 0
+          },
+          "steal_ticks": 0,
+          "clock_ticks_per_second": 100,
+          "acceptance_gate": false
+        },
+        "processes": [
+          {
+            "pid": 1,
+            "ppid": 0,
+            "cpu_percent": 0.6,
+            "elapsed": "07:06",
+            "executable": "systemd"
+          },
+          {
+            "pid": 2,
+            "ppid": 0,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kthreadd"
+          },
+          {
+            "pid": 3,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "pool_workqueue_release"
+          },
+          {
+            "pid": 4,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-rcu_gp"
+          },
+          {
+            "pid": 5,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-sync_wq"
+          },
+          {
+            "pid": 6,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-kvfree_rcu_reclaim"
+          },
+          {
+            "pid": 7,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-slub_flushwq"
+          },
+          {
+            "pid": 8,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-netns"
+          },
+          {
+            "pid": 10,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/0:0H-kblockd"
+          },
+          {
+            "pid": 12,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-mm_percpu_wq"
+          },
+          {
+            "pid": 13,
+            "ppid": 2,
+            "cpu_percent": 0.2,
+            "elapsed": "07:06",
+            "executable": "kworker/0:1-events"
+          },
+          {
+            "pid": 14,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "ksoftirqd/0"
+          },
+          {
+            "pid": 15,
+            "ppid": 2,
+            "cpu_percent": 0.2,
+            "elapsed": "07:06",
+            "executable": "pr/ttyS0"
+          },
+          {
+            "pid": 16,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "rcu_sched"
+          },
+          {
+            "pid": 17,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "rcu_exp_par_gp_kthread_worker/0"
+          },
+          {
+            "pid": 18,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "rcu_exp_gp_kthread_worker"
+          },
+          {
+            "pid": 19,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "migration/0"
+          },
+          {
+            "pid": 20,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kprobe-optimizer"
+          },
+          {
+            "pid": 21,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "idle_inject/0"
+          },
+          {
+            "pid": 22,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "cpuhp/0"
+          },
+          {
+            "pid": 23,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "cpuhp/2"
+          },
+          {
+            "pid": 24,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "idle_inject/2"
+          },
+          {
+            "pid": 25,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "migration/2"
+          },
+          {
+            "pid": 26,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "ksoftirqd/2"
+          },
+          {
+            "pid": 28,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/2:0H-kblockd"
+          },
+          {
+            "pid": 29,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "cpuhp/1"
+          },
+          {
+            "pid": 30,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "idle_inject/1"
+          },
+          {
+            "pid": 31,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "migration/1"
+          },
+          {
+            "pid": 32,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "ksoftirqd/1"
+          },
+          {
+            "pid": 34,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/1:0H-kblockd"
+          },
+          {
+            "pid": 35,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "cpuhp/3"
+          },
+          {
+            "pid": 36,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "idle_inject/3"
+          },
+          {
+            "pid": 37,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "migration/3"
+          },
+          {
+            "pid": 38,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "ksoftirqd/3"
+          },
+          {
+            "pid": 40,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/3:0H-kblockd"
+          },
+          {
+            "pid": 41,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kdevtmpfs"
+          },
+          {
+            "pid": 42,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-inet_frag_wq"
+          },
+          {
+            "pid": 43,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "rcu_tasks_kthread"
+          },
+          {
+            "pid": 44,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "rcu_tasks_rude_kthread"
+          },
+          {
+            "pid": 45,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kauditd"
+          },
+          {
+            "pid": 46,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "khungtaskd"
+          },
+          {
+            "pid": 47,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "oom_reaper"
+          },
+          {
+            "pid": 50,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/3:1-events"
+          },
+          {
+            "pid": 51,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-writeback"
+          },
+          {
+            "pid": 52,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kcompactd0"
+          },
+          {
+            "pid": 53,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "ksmd"
+          },
+          {
+            "pid": 54,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "khugepaged"
+          },
+          {
+            "pid": 55,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-kblockd"
+          },
+          {
+            "pid": 56,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-blkcg_punt_bio"
+          },
+          {
+            "pid": 57,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-kintegrityd"
+          },
+          {
+            "pid": 58,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/1:1-mm_percpu_wq"
+          },
+          {
+            "pid": 59,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "irq/9-acpi"
+          },
+          {
+            "pid": 61,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-tpm_dev_wq"
+          },
+          {
+            "pid": 62,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-ata_sff"
+          },
+          {
+            "pid": 63,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-md_bitmap"
+          },
+          {
+            "pid": 64,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-md_llbitmap_io"
+          },
+          {
+            "pid": 65,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-md_llbitmap_unplug"
+          },
+          {
+            "pid": 66,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-edac-poller"
+          },
+          {
+            "pid": 67,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-hv_vmbus_con"
+          },
+          {
+            "pid": 68,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-hv_vmbus_rescind"
+          },
+          {
+            "pid": 69,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-hv_pri_chan"
+          },
+          {
+            "pid": 70,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-hv_sub_chan"
+          },
+          {
+            "pid": 71,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-devfreq_wq"
+          },
+          {
+            "pid": 72,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "watchdogd"
+          },
+          {
+            "pid": 73,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-quota_events_unbound"
+          },
+          {
+            "pid": 74,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kswapd0"
+          },
+          {
+            "pid": 75,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "ecryptfs-kthread"
+          },
+          {
+            "pid": 76,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-kthrotld"
+          },
+          {
+            "pid": 77,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-acpi_thermal_pm"
+          },
+          {
+            "pid": 78,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-nfit"
+          },
+          {
+            "pid": 79,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "scsi_eh_0"
+          },
+          {
+            "pid": 80,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "scsi_eh_1"
+          },
+          {
+            "pid": 81,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-nvme-wq"
+          },
+          {
+            "pid": 82,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-scsi_tmf_1"
+          },
+          {
+            "pid": 83,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-scsi_tmf_0"
+          },
+          {
+            "pid": 84,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-nvme-reset-wq"
+          },
+          {
+            "pid": 85,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-nvme-delete-wq"
+          },
+          {
+            "pid": 86,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-nvme-auth-wq"
+          },
+          {
+            "pid": 87,
+            "ppid": 2,
+            "cpu_percent": 0.1,
+            "elapsed": "07:06",
+            "executable": "kworker/u16:3-events_power_efficient"
+          },
+          {
+            "pid": 88,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/0:2-mm_percpu_wq"
+          },
+          {
+            "pid": 90,
+            "ppid": 2,
+            "cpu_percent": 0.1,
+            "elapsed": "07:06",
+            "executable": "kworker/u16:4-events_power_efficient"
+          },
+          {
+            "pid": 91,
+            "ppid": 2,
+            "cpu_percent": 0.1,
+            "elapsed": "07:06",
+            "executable": "kworker/u16:5-events_power_efficient"
+          },
+          {
+            "pid": 93,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "hv_balloon"
+          },
+          {
+            "pid": 94,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-mld"
+          },
+          {
+            "pid": 95,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-ipv6_addrconf"
+          },
+          {
+            "pid": 96,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-kstrp"
+          },
+          {
+            "pid": 98,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/u17:0"
+          },
+          {
+            "pid": 109,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-charger_manager"
+          },
+          {
+            "pid": 110,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "jbd2/sda1-8"
+          },
+          {
+            "pid": 111,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/R-ext4-rsv-conversion"
+          },
+          {
+            "pid": 112,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:06",
+            "executable": "kworker/1:2-mm_percpu_wq"
+          },
+          {
+            "pid": 146,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:05",
+            "executable": "kworker/2:1H-kblockd"
+          },
+          {
+            "pid": 163,
+            "ppid": 1,
+            "cpu_percent": 0.1,
+            "elapsed": "07:05",
+            "executable": "systemd-journal"
+          },
+          {
+            "pid": 185,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:05",
+            "executable": "kworker/R-kmpathd"
+          },
+          {
+            "pid": 186,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:05",
+            "executable": "kworker/R-kmpath_handlerd"
+          },
+          {
+            "pid": 204,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:05",
+            "executable": "kworker/2:2-mm_percpu_wq"
+          },
+          {
+            "pid": 205,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:05",
+            "executable": "kworker/3:3-events"
+          },
+          {
+            "pid": 226,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "07:05",
+            "executable": "multipathd"
+          },
+          {
+            "pid": 230,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "07:05",
+            "executable": "systemd-udevd"
+          },
+          {
+            "pid": 243,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:05",
+            "executable": "psimon"
+          },
+          {
+            "pid": 294,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:04",
+            "executable": "card1-crtc0"
+          },
+          {
+            "pid": 393,
+            "ppid": 1,
+            "cpu_percent": 0.1,
+            "elapsed": "07:03",
+            "executable": "hv_kvp_daemon"
+          },
+          {
+            "pid": 401,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:03",
+            "executable": "kworker/1:1H-kblockd"
+          },
+          {
+            "pid": 414,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:03",
+            "executable": "jbd2/sda16-8"
+          },
+          {
+            "pid": 415,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:03",
+            "executable": "kworker/R-ext4-rsv-conversion"
+          },
+          {
+            "pid": 488,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:03",
+            "executable": "kworker/0:1H-kblockd"
+          },
+          {
+            "pid": 549,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "07:03",
+            "executable": "systemd-resolve"
+          },
+          {
+            "pid": 559,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:03",
+            "executable": "kworker/2:4-mm_percpu_wq"
+          },
+          {
+            "pid": 591,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "07:02",
+            "executable": "haveged"
+          },
+          {
+            "pid": 620,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:02",
+            "executable": "kworker/3:1H-kblockd"
+          },
+          {
+            "pid": 651,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "07:02",
+            "executable": "kworker/R-cfg80211"
+          },
+          {
+            "pid": 732,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "07:01",
+            "executable": "systemd-network"
+          },
+          {
+            "pid": 946,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "dbus-daemon"
+          },
+          {
+            "pid": 951,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "networkd-dispat"
+          },
+          {
+            "pid": 954,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "php-fpm8.3"
+          },
+          {
+            "pid": 958,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "polkitd"
+          },
+          {
+            "pid": 980,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "systemd-logind"
+          },
+          {
+            "pid": 986,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "udisksd"
+          },
+          {
+            "pid": 987,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "python3"
+          },
+          {
+            "pid": 1028,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "cron"
+          },
+          {
+            "pid": 1054,
+            "ppid": 1,
+            "cpu_percent": 0.1,
+            "elapsed": "06:56",
+            "executable": "containerd"
+          },
+          {
+            "pid": 1095,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "agetty"
+          },
+          {
+            "pid": 1111,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "chronyd"
+          },
+          {
+            "pid": 1121,
+            "ppid": 1111,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "chronyd"
+          },
+          {
+            "pid": 1122,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "rsyslogd"
+          },
+          {
+            "pid": 1133,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "ModemManager"
+          },
+          {
+            "pid": 1137,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "agetty"
+          },
+          {
+            "pid": 1167,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:56",
+            "executable": "dockerd"
+          },
+          {
+            "pid": 1200,
+            "ppid": 954,
+            "cpu_percent": 0.0,
+            "elapsed": "06:55",
+            "executable": "php-fpm8.3"
+          },
+          {
+            "pid": 1210,
+            "ppid": 954,
+            "cpu_percent": 0.0,
+            "elapsed": "06:55",
+            "executable": "php-fpm8.3"
+          },
+          {
+            "pid": 1213,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:55",
+            "executable": "kworker/R-tls-strp"
+          },
+          {
+            "pid": 1239,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:55",
+            "executable": "systemd"
+          },
+          {
+            "pid": 1255,
+            "ppid": 1239,
+            "cpu_percent": 0.0,
+            "elapsed": "06:55",
+            "executable": "(sd-pam)"
+          },
+          {
+            "pid": 1290,
+            "ppid": 987,
+            "cpu_percent": 0.2,
+            "elapsed": "06:55",
+            "executable": "python3"
+          },
+          {
+            "pid": 1991,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:52",
+            "executable": "psimon"
+          },
+          {
+            "pid": 1994,
+            "ppid": 1,
+            "cpu_percent": 0.0,
+            "elapsed": "06:52",
+            "executable": "hosted-compute-"
+          },
+          {
+            "pid": 2008,
+            "ppid": 1994,
+            "cpu_percent": 0.0,
+            "elapsed": "06:52",
+            "executable": "sudo"
+          },
+          {
+            "pid": 2011,
+            "ppid": 2008,
+            "cpu_percent": 0.5,
+            "elapsed": "06:52",
+            "executable": "provjobd4205851"
+          },
+          {
+            "pid": 2075,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:23",
+            "executable": "kworker/u16:7-events_power_efficient"
+          },
+          {
+            "pid": 2078,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:11",
+            "executable": "kworker/R-mlx5_cmd_e523:00:02.0"
+          },
+          {
+            "pid": 2081,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:11",
+            "executable": "kworker/R-mlx5_healthe523:00:02.0"
+          },
+          {
+            "pid": 2082,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:11",
+            "executable": "kworker/R-mlx5_page_allocator"
+          },
+          {
+            "pid": 2083,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:11",
+            "executable": "kworker/R-mlx5_events"
+          },
+          {
+            "pid": 2084,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:11",
+            "executable": "ptp1"
+          },
+          {
+            "pid": 2085,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:11",
+            "executable": "kworker/R-mlx5_fc"
+          },
+          {
+            "pid": 2086,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:11",
+            "executable": "kworker/R-mlx5_hv_vhca"
+          },
+          {
+            "pid": 2087,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:10",
+            "executable": "kworker/R-mlx5e"
+          },
+          {
+            "pid": 2088,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:10",
+            "executable": "kworker/R-mlx5e_arfs"
+          },
+          {
+            "pid": 2102,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:10",
+            "executable": "kworker/R-ib-comp-wq"
+          },
+          {
+            "pid": 2103,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:10",
+            "executable": "kworker/R-ib-comp-unb-wq"
+          },
+          {
+            "pid": 2104,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:10",
+            "executable": "kworker/R-ib_mcast"
+          },
+          {
+            "pid": 2105,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:10",
+            "executable": "kworker/R-ib_nl_sa_wq"
+          },
+          {
+            "pid": 2106,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "06:10",
+            "executable": "kworker/R-mkey_cache"
+          },
+          {
+            "pid": 2108,
+            "ppid": 1994,
+            "cpu_percent": 0.4,
+            "elapsed": "05:49",
+            "executable": "Runner.Listener"
+          },
+          {
+            "pid": 2127,
+            "ppid": 2108,
+            "cpu_percent": 1.6,
+            "elapsed": "05:47",
+            "executable": "Runner.Worker"
+          },
+          {
+            "pid": 4848,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "01:34",
+            "executable": "kworker/3:0-events"
+          },
+          {
+            "pid": 4850,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "01:30",
+            "executable": "kworker/0:0-events"
+          },
+          {
+            "pid": 4851,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "01:29",
+            "executable": "kworker/2:0-mm_percpu_wq"
+          },
+          {
+            "pid": 4856,
+            "ppid": 2,
+            "cpu_percent": 0.0,
+            "elapsed": "01:24",
+            "executable": "kworker/1:0-events"
+          },
+          {
+            "pid": 4919,
+            "ppid": 2127,
+            "cpu_percent": 0.0,
+            "elapsed": "00:05",
+            "executable": "bash"
+          },
+          {
+            "pid": 4920,
+            "ppid": 4919,
+            "cpu_percent": 0.0,
+            "elapsed": "00:05",
+            "executable": "uv"
+          },
+          {
+            "pid": 4925,
+            "ppid": 4920,
+            "cpu_percent": 1.7,
+            "elapsed": "00:05",
+            "executable": "python"
+          },
+          {
+            "pid": 4931,
+            "ppid": 4925,
+            "cpu_percent": 0.0,
+            "elapsed": "00:00",
+            "executable": "ps"
+          }
+        ],
+        "excluded_pids": [
+          0,
+          1,
+          1994,
+          2108,
+          2127,
+          4919,
+          4920,
+          4925,
+          4931
+        ],
+        "violations": [],
+        "external_cpu_percent_sum": 1.7000000000000002,
+        "external_capacity_percent": 0.42500000000000004,
+        "host_acceptable": true
+      }
+    ],
+    "acceptable": true
+  }
+]
