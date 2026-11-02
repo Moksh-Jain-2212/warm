@@ -198,6 +198,49 @@ fn stale_exact_vector_snapshot_survives_replacement_maintenance_and_reopen() -> 
 }
 
 #[test]
+fn vector_change_tracking_survives_canonical_compaction_and_restart() -> Result<()> {
+    let directory = tempfile::tempdir()?;
+    let path = directory.path().display().to_string();
+    let options = documents::VectorQueryOptions {
+        mode: documents::VectorIndexMode::Exact,
+        ..Default::default()
+    };
+    let core = WarmCore::new(1024, Some(path.clone()), Some(super::fixture_config(2)))?;
+    core.memorize_document(input("a", "old", "old", "g")?)?;
+    core.memorize_document(input("b", "old", "old", "g")?)?;
+    assert!(core.rebuild_vector_index(usize::MAX)?);
+    let old = core.vector_index.get().unwrap();
+    core.delete_document("a")?;
+    core.memorize_document(input("a", "new", "replacement", "g")?)?;
+    core.compact_scrubbing()?;
+    assert!(documents::rank_vector_snapshot(
+        &old,
+        &core.documents,
+        &[1.0, 0.0],
+        &[1.0, 0.0],
+        1,
+        &options,
+    )?
+    .is_none());
+    core.memorize_document(input("a", "latest", "latest", "g")?)?;
+    let result = core.search_vectors(&[1.0, 0.0], 1, &options)?;
+    assert_eq!(
+        (result[0].document_id.as_str(), result[0].version.as_str()),
+        ("a", "latest")
+    );
+    drop(old);
+    drop(core);
+    let reopened = WarmCore::new(1024, Some(path), Some(super::fixture_config(2)))?;
+    assert!(reopened.rebuild_vector_index(usize::MAX)?);
+    reopened.delete_document("a")?;
+    assert_eq!(
+        reopened.search_vectors(&[1.0, 0.0], 1, &options)?[0].document_id,
+        "b"
+    );
+    Ok(())
+}
+
+#[test]
 fn stale_exact_vector_capture_rejects_scrubbed_base_and_delta_text() -> Result<()> {
     for replaced in ["base", "delta"] {
         let directory = tempfile::tempdir()?;
