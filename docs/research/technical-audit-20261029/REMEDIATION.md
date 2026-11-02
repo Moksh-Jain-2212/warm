@@ -1915,6 +1915,20 @@ The Windows workflow runs the same service checks before core checks to expose
 failures sooner. Windows qualification remains pending; no retry-to-pass or
 platform bypass is used. The qualified core and vector benchmark are unchanged.
 
+PR [#375](https://github.com/writerslogic/warm/pull/375) merged as signed commit
+`1ad2c4c799453043373e3a6c650357d8019eb90d`, preserving the qualified source ancestry.
+Its tree exactly matches tested head `98faa7ae7e62cc3c5649ce74de366806f58547b0`.
+All 73 checks settled: 68 passed and five unchanged conditional jobs skipped.
+Windows passed all 195 HTTP/MCP tests and 877 core tests, with 14 existing core
+diagnostic skips. All ten previously failing tests pass; the earlier empty-response
+cause remains unproven. Five automated review findings were verified against actual
+sibling Python imports and passing fixture tests, then resolved without altering
+frozen evidence. No unresolved review threads or open CodeQL alerts remained.
+All 33 PR commits have valid signatures and DCO trailers. Root main is clean and
+fast-forwarded. [Completion evidence](recovery-query-completion-20261101/completion.json)
+retains the full gate, review dispositions, merge verification and Windows log.
+The four recovery/query followups are complete.
+
 ## Next authorized phase: changing agent memory and Vectra migration
 
 The user queued this phase after the four recovery/query followups are completed.

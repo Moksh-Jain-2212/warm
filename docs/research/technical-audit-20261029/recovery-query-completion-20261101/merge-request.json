@@ -1,0 +1,6 @@
+{
+  "sha": "98faa7ae7e62cc3c5649ce74de366806f58547b0",
+  "merge_method": "merge",
+  "commit_title": "fix: Complete durable retry and query-efficiency followups (#375)",
+  "commit_message": "Persist restart-safe HTTP retry receipts, stage retained text before commit, preserve retryable physical cleanup, and bound query capture memory. Track vector snapshot changes and score stale exact queries outside the store lock. Retain integrated validation and qualified performance evidence.\n\nSigned-off-by: David Condrey <david@writerslogic.com>"
+}
