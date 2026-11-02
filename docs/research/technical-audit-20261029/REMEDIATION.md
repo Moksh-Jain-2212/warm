@@ -2536,3 +2536,32 @@ when external CPU reached 0.3069 of logical capacity; it collected no timings.
 The host observations, failed phase and complete quality results remain in that
 directory. These queries informed development and are not held out. Both attempts
 are exclusive and no-retry; neither supports a latency or performance-advantage claim.
+
+### User-authorized repaired exploratory attempt
+
+The user authorized the separately frozen attempts described in
+[REPAIRED-ATTEMPT.md](vectra-comparison-followup-20261102/REPAIRED-ATTEMPT.md).
+The combined run at
+`/Volumes/A/.hms-bench-cache/vectra-comparison-repaired-20261102-v1` stopped
+during the 100,000-row Vectra import after its worker exceeded the fixed 8 GiB
+per-process RSS ceiling for two consecutive samples. The triggering sample was
+8,700,575,744 bytes; the retained process-tree peak was 8,701,362,176 bytes.
+The previous attempt completed that same import with a sampled process-tree peak
+of approximately 7.949 GiB. This is evidence of a workload near the ceiling,
+not proof of why the two process peaks differed. The pinned Vectra implementation
+copies its item array at each update and serializes the full index for each
+100-record batch; the extent of that pattern's contribution to peak RSS has not
+been measured. The partial summary records incomplete preparation, no
+measurement and no permitted performance claim.
+
+The companion run at `/Volumes/A/.hms-bench-cache/warm-competitors-20261102-v3`
+completed all 16 quality jobs; eight passed their mean and worst-query recall
+gates. At 100,000 rows, each engine passed only at ef 2048. Its measurement
+preflight failed because the first five-second interval included an external CPU
+sample of 0.2383, above the fixed 0.20 threshold; no timing queries ran. The
+earlier companion attempt also failed preflight, with a maximum observed fraction
+of 0.3069 in its first interval. A later separately authorized protocol should
+arrange a quieter host before its single admission check and investigate Vectra's
+memory behavior without weakening the fixed resource or quality gates. The raw
+receipts, observations, summary and failures remain in their respective output
+directories; the previously exposed queries are not held-out evidence.
