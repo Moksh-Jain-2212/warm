@@ -22,6 +22,16 @@ pub struct VectorRecordOperationJs {
     pub id: Option<String>,
 }
 
+#[napi(object, js_name = "VectorRecordQueryResult")]
+pub struct VectorRecordQueryResultJs {
+    pub revision: String,
+    pub results: Vec<core::vector_records::VectorRecordHit>,
+    #[napi(
+        ts_type = "{ route: string; candidateDimensions: number; shortlistLimit?: number | null; graphDegree?: number | null; graphBuildEf?: number | null }"
+    )]
+    pub diagnostics: serde_json::Value,
+}
+
 #[napi]
 // codeql[rust/access-invalid-pointer] False positive: NAPI macro generated FFI bindings
 pub struct WarmMemorySystem {
@@ -79,25 +89,18 @@ impl WarmMemorySystem {
     pub async fn list_vector_records(
         &self,
         options: Option<core::vector_records::VectorRecordListOptions>,
-    ) -> Result<serde_json::Value> {
+    ) -> Result<core::vector_records::VectorRecordListResult> {
         let core = self.core.clone();
-        run_async(move || {
-            Ok(serde_json::to_value(
-                core.list_vector_records(&options.unwrap_or_default())?,
-            )?)
-        })
-        .await
+        run_async(move || core.list_vector_records(&options.unwrap_or_default())).await
     }
 
-    #[napi(
-        ts_return_type = "Promise<{ revision: string; results: VectorRecordHit[]; diagnostics: { route: string; candidateDimensions: number; shortlistLimit?: number | null; graphDegree?: number | null; graphBuildEf?: number | null } }>"
-    )]
+    #[napi(ts_return_type = "Promise<VectorRecordQueryResult>")]
     pub async fn query_vector_records(
         &self,
         vector: Vec<f64>,
         k: f64,
         options: Option<core::vector_records::VectorRecordQueryOptions>,
-    ) -> Result<serde_json::Value> {
+    ) -> Result<VectorRecordQueryResultJs> {
         let core = self.core.clone();
         run_async(move || {
             anyhow::ensure!(
@@ -106,11 +109,13 @@ impl WarmMemorySystem {
                     && (1.0..=core::documents::MAX_K as f64).contains(&k),
                 "k must be an integer in 1..=1000"
             );
-            Ok(serde_json::to_value(core.query_vector_records(
-                &vector,
-                k as usize,
-                &options.unwrap_or_default(),
-            )?)?)
+            let result =
+                core.query_vector_records(&vector, k as usize, &options.unwrap_or_default())?;
+            Ok(VectorRecordQueryResultJs {
+                revision: result.revision,
+                results: result.results,
+                diagnostics: serde_json::to_value(result.diagnostics)?,
+            })
         })
         .await
     }

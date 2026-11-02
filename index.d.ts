@@ -5,7 +5,7 @@ export declare class WarmMemorySystem {
   mutateVectorRecords(operations: Array<{ op: 'insert' | 'upsert'; record: VectorRecordInput } | { op: 'delete'; id: string }>, options?: VectorRecordRevisionOptions): Promise<VectorRecordMutationResult>
   getVectorRecord(id: string, options?: VectorRecordRevisionOptions | undefined | null): Promise<VectorRecordGetResult>
   listVectorRecords(options?: VectorRecordListOptions | undefined | null): Promise<VectorRecordListResult>
-  queryVectorRecords(vector: Array<number>, k: number, options?: VectorRecordQueryOptions | undefined | null): Promise<{ revision: string; results: VectorRecordHit[]; diagnostics: { route: string; candidateDimensions: number; shortlistLimit?: number | null; graphDegree?: number | null; graphBuildEf?: number | null } }>
+  queryVectorRecords(vector: Array<number>, k: number, options?: VectorRecordQueryOptions | undefined | null): Promise<VectorRecordQueryResult>
   constructor(dimensions: number, storagePath?: string | undefined | null, config?: WarmConfigJs | undefined | null)
   /**
    * Replaces the memory API's configuration (policies and defaults; see
@@ -437,6 +437,12 @@ export interface VectorRecordQueryOptions {
   minScore?: number
   mode?: string
   ef?: number
+}
+
+export interface VectorRecordQueryResult {
+  revision: string
+  results: Array<VectorRecordHit>
+  diagnostics: { route: string; candidateDimensions: number; shortlistLimit?: number | null; graphDegree?: number | null; graphBuildEf?: number | null }
 }
 
 export interface VectorRecordRevisionOptions {

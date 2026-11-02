@@ -2507,3 +2507,32 @@ all query IDs, source patch, binary and resource observations are retained under
 describe reproduction. This
 measures recall only on previously exposed input; it does not establish public-API
 latency, total memory, update cost, held-out quality or a competitor advantage.
+
+### Follow-up study outcome and Node binding repair
+
+The new combined attempt at
+`/Volumes/A/.hms-bench-cache/vectra-comparison-followup-20261102-v1` completed
+the GloVe quality jobs but stopped during SciFact WARM fixture validation: a page
+of 1,000 1,024-dimensional vectors exceeded napi-rs's 1,000,000-node limit on
+converting one `serde_json::Value`. Preparation is incomplete, measurement never
+started, and the retained `vector-summary.json` permits no performance claim.
+The exact frozen addon is preserved there as `frozen-warm-sdk.node` with SHA-256
+`11b4d18c0ef1a03341f9fe8df658db31fa3d68cc1a0f41a3a813db2fccd7bd3c`.
+The Node binding now returns typed records and vectors rather than routing the
+entire page or result set through a single JSON conversion; per-record metadata
+still uses bounded JSON conversion. The regression failed on the retained addon
+with the same JSON-node error and passes on the repaired release addon for
+999- and 1,000-record pages and queries, including signed-zero and cursor checks.
+The final addon passed 28 Node tests (three optional embedding tests skipped),
+40 harness checks, strict TypeScript checks and scoped Node/security Clippy with
+warnings denied.
+
+The separately frozen competitor study at
+`/Volumes/A/.hms-bench-cache/warm-competitors-20261102-v2` completed all 16
+quality jobs. At 100,000 rows, both hnswlib and USearch passed the original
+mean/worst recall gates only at ef 2048; ef 128, 256 and 512 failed at least
+the worst-query gate. The measurement phase failed its first quiet-host preflight
+when external CPU reached 0.3069 of logical capacity; it collected no timings.
+The host observations, failed phase and complete quality results remain in that
+directory. These queries informed development and are not held out. Both attempts
+are exclusive and no-retry; neither supports a latency or performance-advantage claim.
