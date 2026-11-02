@@ -1833,6 +1833,15 @@ replacement now drains and syncs that queue first, retaining its owner on failur
 The regression failed before the fix; all 13 compaction tests and strict Clippy pass.
 See [compaction cleanup validation](publication-recovery-20261101/compaction-validation.json).
 
+Integrated production source `d7f5982f4612a16b78071d013ee858c64447a133` passes
+1,051 local tests: 823 library tests, all binaries including 94 HTTP and 48 MCP
+tests, and the selected document/HTTP integration suites. Twelve existing library
+diagnostics remain ignored. Strict scoped Clippy and repository formatting pass;
+see [combined validation](recovery-query-completion-20261101/validation.json).
+The final vector experiment now pins this integrated source rather than only the
+isolated vector commit; the premeasurement plan revision is retained. Performance
+qualification, hosted CI and merge remain pending.
+
 ## Next authorized phase: changing agent memory and Vectra migration
 
 The user queued this phase after the four recovery/query followups are completed.
