@@ -7,6 +7,8 @@ use crate::EmbeddingSpace;
 
 #[napi(object)]
 pub struct WarmConfigJs {
+    /// Create a schema-7 store for native vector records; existing older stores require an offline upgrade.
+    pub vector_records: Option<bool>,
     pub embedding_model: Option<String>,
     pub embedding_revision: Option<String>,
     pub embedding_dimensions: Option<u32>,
@@ -87,6 +89,7 @@ impl WarmConfigJs {
             ),
         };
         let mut cfg = WarmConfig {
+            vector_records: self.vector_records.unwrap_or(false),
             vector_candidates,
             ..WarmConfig::default()
         };

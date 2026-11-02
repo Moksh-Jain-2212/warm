@@ -1,0 +1,42 @@
+{
+  "audit": false,
+  "description": "Schema 7 explicit vector-record binary flags and lossless f64 envelope, with ordered insert/upsert/delete and no fabricated text or HDC data.",
+  "dimensions": 1024,
+  "embeddingSpace": {
+    "dimensions": 3,
+    "metric": "cosine",
+    "model": "golden-model",
+    "normalization": "l2",
+    "revision": "1"
+  },
+  "encrypted": false,
+  "expect": {
+    "vectorCount": 0,
+    "vectorRecords": [
+      {
+        "id": "vector-only",
+        "metadata": {
+          "$warm_vector_record": "user-owned",
+          "kind": "numeric"
+        },
+        "vector": [
+          -0.0,
+          0.1,
+          5e-324
+        ]
+      }
+    ]
+  },
+  "features": [],
+  "name": "v7-vector-records",
+  "padTo": {
+    "vectors_data.bin/seg_0.bin": 67108864
+  },
+  "provenance": "current-code",
+  "schema": 7,
+  "storageFormat": 4,
+  "textEncoder": "multiscale-words-v1",
+  "textSegment": 2,
+  "transaction": "HMS-TXN-3",
+  "verifyVerdict": "ok"
+}

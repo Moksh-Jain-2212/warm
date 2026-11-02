@@ -38,6 +38,7 @@ const DIM: u32 = 1024;
 enum Kind {
     Text,
     Embed,
+    VectorRecords,
     Memory,
     Governance,
 }
@@ -90,6 +91,19 @@ const BASE: Spec = Spec {
 
 fn specs() -> Vec<Spec> {
     vec![
+        Spec {
+            name: "v7-vector-records",
+            kind: Kind::VectorRecords,
+            description: "Schema 7 explicit vector-record binary flags and lossless f64 envelope, with ordered insert/upsert/delete and no fabricated text or HDC data.",
+            schema: 7,
+            ..BASE
+        },
+        Spec {
+            name: "v7-vector-capability",
+            description: "Schema 7 reader capability, retaining binary journal compatibility for ordinary documents.",
+            schema: 7,
+            ..BASE
+        },
         Spec {
             name: "v6-audit-effects",
             description: "Schema 6 audit intents and acknowledgements with compaction and post-compaction writes.",
@@ -280,7 +294,7 @@ fn seed_manifest(store: &Path, version: u32) -> Result<()> {
 fn seed_schema(store: &Path, version: u32) -> Result<()> {
     let path = store.join("store.json");
     // A textual edit keeps the field order the engine writes.
-    let current = format!("\"version\": {},", format::STORE_SCHEMA_VERSION);
+    let current = format!("\"version\": {},", format::STORE_SCHEMA_DEFAULT_VERSION);
     let text = std::fs::read_to_string(&path)?;
     ensure!(text.contains(&current), "store.json without {current}");
     let bytes = text
@@ -309,7 +323,7 @@ fn config_for(spec: &Spec) -> Result<WarmConfig> {
         text_encoder: spec.encoder.parse()?,
         ..Default::default()
     };
-    if spec.kind == Kind::Embed {
+    if matches!(spec.kind, Kind::Embed | Kind::VectorRecords) {
         config.embedding_space = Some(embedding_space());
     }
     if spec.encrypted {
@@ -421,7 +435,7 @@ fn expected_documents(name: &str, deleted: &[&str]) -> Result<Vec<Value>> {
 
 /// Builds the store of `spec` in `store` with the current code and returns its `expect`.
 fn build(spec: &Spec, store: &Path) -> Result<Value> {
-    if spec.schema != format::STORE_SCHEMA_VERSION {
+    if spec.schema != format::STORE_SCHEMA_DEFAULT_VERSION {
         drop(WarmCore::new(
             DIM,
             Some(store.display().to_string()),
@@ -533,6 +547,34 @@ fn build(spec: &Spec, store: &Path) -> Result<Value> {
                 "meaning": {"atoms": 3, "composites": 1, "triples": 1},
             })
         }
+        Kind::VectorRecords => {
+            use writerslogic_warm::core::vector_records::{
+                VectorRecordInput, VectorRecordOperation,
+            };
+            let input = VectorRecordInput {
+                id: "vector-only".into(),
+                vector: vec![-0.0, 0.1, f64::from_bits(1)],
+                metadata: json!({"kind":"numeric", "$warm_vector_record":"user-owned"}),
+            };
+            core.mutate_vector_records(
+                vec![
+                    VectorRecordOperation::Insert {
+                        record: input.clone(),
+                    },
+                    VectorRecordOperation::Upsert {
+                        record: input.clone(),
+                    },
+                    VectorRecordOperation::Delete {
+                        id: input.id.clone(),
+                    },
+                    VectorRecordOperation::Insert {
+                        record: input.clone(),
+                    },
+                ],
+                &Default::default(),
+            )?;
+            json!({"vectorRecords":[input]})
+        }
         Kind::Memory => {
             let facts = memory_facts(core.clone())?;
             core.flush()?;
@@ -587,7 +629,7 @@ fn meta_for(spec: &Spec, expect: Value) -> Value {
         "textEncoder": spec.encoder,
         "encrypted": spec.encrypted,
         "audit": spec.audit,
-        "embeddingSpace": if spec.kind == Kind::Embed { serde_json::to_value(embedding_space()).unwrap() } else { Value::Null },
+        "embeddingSpace": if matches!(spec.kind, Kind::Embed | Kind::VectorRecords) { serde_json::to_value(embedding_space()).unwrap() } else { Value::Null },
         "features": features,
         "verifyVerdict": "ok",
         "expect": expect,
@@ -944,6 +986,33 @@ fn open_and_check(golden: &Golden, store: &Path) -> Result<()> {
         check_memory(&core, &golden.meta["expect"])?;
     } else {
         check_expectations(&core, &golden.meta["expect"], golden.dimensions())?;
+    }
+    if let Some(records) = golden.meta["expect"]["vectorRecords"].as_array() {
+        for record in records {
+            let expected: writerslogic_warm::core::vector_records::VectorRecordInput =
+                serde_json::from_value(record.clone())?;
+            let actual = core
+                .get_vector_record(&expected.id, &Default::default())?
+                .record
+                .context("missing native vector record")?;
+            assert_eq!(actual.metadata, expected.metadata);
+            assert_eq!(
+                actual
+                    .vector
+                    .iter()
+                    .map(|v| v.to_bits())
+                    .collect::<Vec<_>>(),
+                expected
+                    .vector
+                    .iter()
+                    .map(|v| v.to_bits())
+                    .collect::<Vec<_>>()
+            );
+            let found = core.query_vector_records(&[0.0, 1.0, 0.0], 1, &Default::default())?;
+            assert_eq!(found.results[0].item.id, expected.id);
+        }
+        assert_eq!(core.document_count(), records.len());
+        assert_eq!(core.vector_count(), 0);
     }
     if golden.name == "v6-audit-effects" {
         let entries = core.audit_since(0)?;

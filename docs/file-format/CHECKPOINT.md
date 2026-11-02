@@ -15,8 +15,11 @@ checkpoints writes one in place of the document frames it would otherwise write.
 one when checkpoints are enabled (`WarmConfig::document_checkpoint.enabled`, on by default), every
 mutation applied since the open was a document write, encoding or delete, the vector shards are
 empty, and every chunk is lexical-only (no vector, embedding or pending encoding) and holds no
-word positions (`IngestOptions::positions`). Any other
-store compacts to frames, as before, and its next generation has no checkpoint.
+word positions (`IngestOptions::positions`). Explicit schema 7 native vector records are
+not representable, even though their HDC state is lexical: they retain a dense embedding
+and a distinct record kind. They remain in the journal/live overlay; any store containing
+them compacts to frames and its next generation has no checkpoint. Any other ineligible
+store also compacts to frames, as before.
 
 `flush` and closing the engine run such a compaction when the live generation holds at least
 `document_checkpoint.min_journal_bytes` (256 KiB by default) of frames. Ingest closes into a single

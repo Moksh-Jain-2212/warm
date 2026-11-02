@@ -15,6 +15,13 @@ fn governance_report(report: core::cognition::governor::GovernanceReport) -> Gov
     }
 }
 
+#[napi(object, js_name = "VectorRecordOperationInput")]
+pub struct VectorRecordOperationJs {
+    pub op: String,
+    pub record: Option<core::vector_records::VectorRecordInput>,
+    pub id: Option<String>,
+}
+
 #[napi]
 // codeql[rust/access-invalid-pointer] False positive: NAPI macro generated FFI bindings
 pub struct WarmMemorySystem {
@@ -25,6 +32,89 @@ pub struct WarmMemorySystem {
 #[napi]
 // codeql[rust/access-invalid-pointer] False positive: NAPI macro generated FFI bindings
 impl WarmMemorySystem {
+    #[napi(
+        ts_args_type = "operations: Array<{ op: 'insert' | 'upsert'; record: VectorRecordInput } | { op: 'delete'; id: string }>, options?: VectorRecordRevisionOptions",
+        ts_return_type = "Promise<VectorRecordMutationResult>"
+    )]
+    pub async fn mutate_vector_records(
+        &self,
+        operations: Vec<VectorRecordOperationJs>,
+        options: Option<core::vector_records::VectorRecordRevisionOptions>,
+    ) -> Result<serde_json::Value> {
+        let core = self.core.clone();
+        run_async(move || {
+            use core::vector_records::VectorRecordOperation;
+            let operations = operations.into_iter().map(|operation| {
+                match (operation.op.as_str(), operation.record, operation.id) {
+                    ("insert", Some(record), None) => Ok(VectorRecordOperation::Insert { record }),
+                    ("upsert", Some(record), None) => Ok(VectorRecordOperation::Upsert { record }),
+                    ("delete", None, Some(id)) => Ok(VectorRecordOperation::Delete { id }),
+                    _ => anyhow::bail!("vector operation requires insert/upsert with only record, or delete with only id"),
+                }
+            }).collect::<anyhow::Result<Vec<_>>>()?;
+            Ok(serde_json::to_value(core.mutate_vector_records(
+                operations,
+                &options.unwrap_or_default(),
+            )?)?)
+        })
+        .await
+    }
+
+    #[napi(ts_return_type = "Promise<VectorRecordGetResult>")]
+    pub async fn get_vector_record(
+        &self,
+        id: String,
+        options: Option<core::vector_records::VectorRecordRevisionOptions>,
+    ) -> Result<serde_json::Value> {
+        let core = self.core.clone();
+        run_async(move || {
+            Ok(serde_json::to_value(
+                core.get_vector_record(&id, &options.unwrap_or_default())?,
+            )?)
+        })
+        .await
+    }
+
+    #[napi(ts_return_type = "Promise<VectorRecordListResult>")]
+    pub async fn list_vector_records(
+        &self,
+        options: Option<core::vector_records::VectorRecordListOptions>,
+    ) -> Result<serde_json::Value> {
+        let core = self.core.clone();
+        run_async(move || {
+            Ok(serde_json::to_value(
+                core.list_vector_records(&options.unwrap_or_default())?,
+            )?)
+        })
+        .await
+    }
+
+    #[napi(
+        ts_return_type = "Promise<{ revision: string; results: VectorRecordHit[]; diagnostics: { route: string; candidateDimensions: number; shortlistLimit?: number | null } }>"
+    )]
+    pub async fn query_vector_records(
+        &self,
+        vector: Vec<f64>,
+        k: f64,
+        options: Option<core::vector_records::VectorRecordQueryOptions>,
+    ) -> Result<serde_json::Value> {
+        let core = self.core.clone();
+        run_async(move || {
+            anyhow::ensure!(
+                k.is_finite()
+                    && k.fract() == 0.0
+                    && (1.0..=core::documents::MAX_K as f64).contains(&k),
+                "k must be an integer in 1..=1000"
+            );
+            Ok(serde_json::to_value(core.query_vector_records(
+                &vector,
+                k as usize,
+                &options.unwrap_or_default(),
+            )?)?)
+        })
+        .await
+    }
+
     #[napi(constructor)]
     pub fn new(
         dimensions: u32,

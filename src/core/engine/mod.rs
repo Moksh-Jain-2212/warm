@@ -16,6 +16,7 @@ pub(crate) mod memory_access;
 pub(crate) mod multi_hop;
 mod mutation;
 mod mutation_gate;
+mod vector_records;
 
 #[cfg(test)]
 mod deferred_cache_tests;
@@ -95,6 +96,7 @@ pub struct WarmCore {
     /// writes.
     persisted_indices: crate::core::sync::Mutex<Vec<u8>>,
     revision: std::sync::atomic::AtomicU64,
+    vector_record_instance: [u8; 16],
     /// The frame format this store is written in (its `store.json` schema); both are read.
     journal: journal::JournalFormat,
     /// `store.json` schema version of the open store.
@@ -296,6 +298,7 @@ impl WarmCore {
             compaction: crate::core::sync::Mutex::new(()),
             persisted_indices: crate::core::sync::Mutex::new(Vec::new()),
             revision: std::sync::atomic::AtomicU64::new(super::documents::opaque_counter_start()),
+            vector_record_instance: rand::random(),
             journal: journal::JournalFormat::for_schema(schema),
             schema,
             arena,

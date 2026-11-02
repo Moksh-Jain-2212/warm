@@ -10,7 +10,7 @@ is a transaction. Schema 2 writes this JSON form:
 "HMS-TXN-2\0"  followed by  a JSON array of 1..=4096 mutations (UTF-8, no trailing bytes)
 ```
 
-Schemas 3–6 write the `HMS-TXN-3` binary form described below; readers accept both forms.
+Schemas 3–7 write the `HMS-TXN-3` binary form described below; readers accept both forms.
 A transaction is applied atomically: one frame, all or none. An unknown `HMS-TXN-<digits>\0` magic
 is a different journal version: newer ones are refused with "newer than supported", older ones
 (none were released) with the re-encode message. Any other prefix is refused.
@@ -19,13 +19,13 @@ Each mutation is a JSON object with exactly one key naming the variant (serde ex
 
 | Variant | Body | Replay effect |
 |---|---|---|
-| `AuditPending` | `{timestampMs, op, idHash, signature, effectId}` | schema 6: append a bounded, immutable audit intent to the delivery FIFO |
-| `AuditAcknowledged` | `{id: [u8;16]}` | schema 6: remove the matching FIFO head after durable delivery |
+| `AuditPending` | `{timestampMs, op, idHash, signature, effectId}` | schemas 6–7: append a bounded, immutable audit intent to the delivery FIFO |
+| `AuditAcknowledged` | `{id: [u8;16]}` | schemas 6–7: remove the matching FIFO head after durable delivery |
 | `Vector` | `{id, vector}` | set the vector `id`; drops meaning children derived from `id` |
 | `Atom` | `{id, vector}` | meaning memory only |
 | `Composite` | `{id, vector}` | set a composite vector |
 | `StoredTriple` | `{subject_id, relation_id, object_id, composite_id, deleted}` | meaning memory |
-| `Document` | `{id, source_uri, version, metadata, chunks}` | replace the document `id` with its chunks |
+| `Document` | `{id, source_uri, version, metadata, chunks, vector_record?}` | replace the document `id` with its chunks; `vector_record: true` requires schema 7 |
 | `EncodeDocument` | `{id, version, fingerprint, vectors}` | install `vectors` (one per chunk) on the `pending` chunks of document `id` if it is still the revision they were computed for: same `version`, chunk count and content `fingerprint` (u64 over version, byte spans and chunk text); otherwise nothing |
 | `Derived` | `{id, children}` | record meaning children of `id` |
 | `DeleteDocument` | `{id}` | remove the document and its chunk vectors |
@@ -57,8 +57,9 @@ memory-API stamp ([ANCILLARY.md](ANCILLARY.md)).
 
 A chunk memorized with deferred or lexical-only encoding (`IngestOptions.encode`) also carries
 `vector_state`: `"pending"` (its encoding will be installed by an `EncodeDocument`) or
-`"lexical"` (never encoded). Such a chunk has an empty `vector` and is not in the vector
-index. The field is absent when the vector is the chunk's encoding, so chunks written before
+`"lexical"` (never HDC-encoded). Such a chunk has an empty HDC `vector`; a separate dense
+`embedding`, when present, remains searchable. The field is absent when the vector is the
+chunk's encoding, so chunks written before
 the flag existed read as encoded and a store without deferred or lexical documents serializes
 exactly as before.
 
@@ -77,7 +78,7 @@ replay. A governance transaction applies atom changes, recomposes affected owned
 and refreshes derived indices atomically. An explicit `warm-format upgrade` changes the
 schema in a new copy; normal opens never opt old stores into these mutations.
 
-## Binary frames (`HMS-TXN-3`, schemas 3–5)
+## Binary frames (`HMS-TXN-3`, schemas 3–7)
 
 A store records its journal format in `store.json` `version`: 2 writes the JSON array above,
 3 (new stores since 0.7.0) writes binary payloads; readers accept both in any store. Varints
@@ -90,8 +91,10 @@ dictionary= varint(n) { varint(shared) str(suffix) }{n}   terms strictly ascendi
 mutation  = 0x00 bytes(JSON of one mutation, as an element of the HMS-TXN-2 array)
           | 0x01 document
           | 0x02 str(id)                                   DeleteDocument
-document  = str(id) (0x00 | 0x01 str(sourceUri)) str(version) bytes(metadata JSON)
+document  = str(id) source_flags [str(sourceUri)] str(version) bytes(metadata JSON)
             varint(chunks) chunk{chunks}
+source_flags = bit0 source URI follows, bit1 native vector-record kind (schema 7);
+               other bits zero
 chunk     = flags [str(id)] [str(text)] varint(start_byte) varint(end_byte) varint(word_count)
             varint(dim) varint(k) varint(index gap){k} [varint(n) f32le{n}]
             varint(t) varint(term id gap){t} varint(frequency){t}
@@ -105,7 +108,39 @@ indices and term ids strictly ascending). Term ids index the frame's dictionary,
 terms come out in byte order. A binary payload decodes to exactly the mutations its
 `HMS-TXN-2` form would hold; `warm-format` and `verify` read it through that JSON form.
 
+## Native vector records (schema 7)
+
+A native vector record is a `Document` with an explicit `vector_record: true` in JSON or
+bit 1 of `source_flags` in binary. Ordinary documents omit the false JSON field and keep
+their existing binary source byte (`0` or `1`). The metadata key or version string alone
+never makes ordinary user metadata a native record. Readers validate the kind against the
+store schema before applying it.
+
+Its version is `warm-vector-record-v1`, its source URI is absent, and it has exactly one
+chunk with ID `hms:chunk:<document id>:0`. The chunk has span `[0, 0)`, no retained text or
+text-cache reference, empty HDC indices and terms, zero word count, `stemmed: false`, and
+`vector_state: "lexical"`. Its dense embedding is the normalized f32 representation of the
+original vector and remains vector searchable; it must match the envelope-derived values
+bit for bit. Record IDs are 1–65523 UTF-8 bytes, with no NUL or reserved prefix.
+
+Metadata is an internal object with exactly this versioned envelope:
+
+```json
+{"$warm_vector_record":{"version":1,"f64le":"<base64>","metadata":{}}}
+```
+
+`f64le` uses standard base64 for the original little-endian f64 values, preserving finite
+values and signed zero independently of search normalization. User metadata is the inner
+object; the entire serialized envelope, including it, must fit 64 KiB. Vectors must have
+the configured embedding width and a nonzero norm; nonfinite values are rejected. Validation
+checks the complete record shape and reconstructs its normalized embedding on replay.
+
+These records remain journal/overlay records. They cannot be represented by the lexical
+`documents.ckpt` format, and compaction retains them as document frames.
+
 ## Durable audit delivery (schema 6)
+
+Schema 7 retains this schema 6 delivery format and behavior.
 
 An audited vector memorize/delete transaction carries its `AuditPending` in the same frame.
 Compaction carries pending intents in FIFO order and appends its own intent to the staged

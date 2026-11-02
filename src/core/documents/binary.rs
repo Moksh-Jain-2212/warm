@@ -282,10 +282,11 @@ pub(crate) fn write_document(
 ) -> Result<()> {
     debug_assert!(representable(document));
     put_bytes(out, document.id.as_bytes());
+    let kind = u8::from(document.vector_record) << 1;
     match &document.source_uri {
-        None => out.push(0),
+        None => out.push(kind),
         Some(uri) => {
-            out.push(1);
+            out.push(kind | 1);
             put_bytes(out, uri.as_bytes());
         }
     }
@@ -369,10 +370,11 @@ pub(crate) fn read_document(
     terms: &DecodedTerms,
 ) -> Result<StoredDocument> {
     let id = reader.str()?.to_owned();
-    let source_uri = match reader.byte()? {
-        0 => None,
-        1 => Some(reader.str()?.to_owned()),
-        other => bail!("binary journal source flag {other} is invalid"),
+    let flags = reader.byte()?;
+    let source_uri = match flags {
+        0 | 2 => None,
+        1 | 3 => Some(reader.str()?.to_owned()),
+        other => bail!("binary journal document flags {other} are invalid"),
     };
     let version = reader.str()?.to_owned();
     let mut metadata: serde_json::Value =
@@ -509,6 +511,7 @@ pub(crate) fn read_document(
         });
     }
     Ok(StoredDocument {
+        vector_record: flags & 2 != 0,
         id,
         source_uri,
         version,

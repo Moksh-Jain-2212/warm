@@ -113,12 +113,13 @@ pub(crate) const CRC_START: usize = 16;
 pub(crate) fn representable(store: &DocumentStore) -> bool {
     store.nonpositional_chunks == store.chunk_count
         && store.documents.values().all(|document| {
-            document.chunks.iter().all(|chunk| {
-                chunk.vector_state == VectorState::Lexical
-                    && chunk.embedding.is_none()
-                    && chunk.vector.indices.is_empty()
-                    && chunk.terms.positions.is_none()
-            })
+            !document.vector_record
+                && document.chunks.iter().all(|chunk| {
+                    chunk.vector_state == VectorState::Lexical
+                        && chunk.embedding.is_none()
+                        && chunk.vector.indices.is_empty()
+                        && chunk.terms.positions.is_none()
+                })
         })
 }
 
@@ -791,6 +792,7 @@ impl ServingImage {
             .collect();
         Ok((
             Arc::new(StoredDocument {
+                vector_record: false,
                 id: id.to_owned(),
                 source_uri: record.source_uri.map(str::to_owned),
                 version: record.version.to_owned(),
@@ -956,6 +958,7 @@ impl ServingImage {
             }
             documents.push((
                 Arc::new(StoredDocument {
+                    vector_record: false,
                     id: id.to_owned(),
                     source_uri: record.source_uri.map(str::to_owned),
                     version: record.version.to_owned(),

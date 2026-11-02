@@ -30,6 +30,8 @@ pub mod encoding;
 #[cfg(feature = "experimental")]
 pub mod experimental;
 pub(crate) mod schema;
+#[cfg(not(target_arch = "wasm32"))]
+pub mod vector_records;
 #[cfg(feature = "experimental")]
 pub use experimental::{
     algebraic_codebook, block_codes, bloom_memory, bundle_subset, connection_graph,

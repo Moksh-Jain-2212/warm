@@ -958,6 +958,82 @@
         3013,
         "5e5b5b9d"
       ]
+    },
+    "v7-vector-capability": {
+      "audit.effects.bin": [
+        8,
+        "67d6da0f"
+      ],
+      "documents.text": [
+        926,
+        "7ec875f8"
+      ],
+      "golden.json": [
+        3340,
+        "bd1ef46a"
+      ],
+      "indices.json": [
+        120,
+        "a13c86f6"
+      ],
+      "store.json": [
+        225,
+        "23bd0b4e"
+      ],
+      "store.json.crc32": [
+        9,
+        "89f3045a"
+      ],
+      "vectors_data.bin/format.json": [
+        72,
+        "dfdc672e"
+      ],
+      "vectors_data.bin/format.json.crc32": [
+        9,
+        "9cb6b204"
+      ],
+      "vectors_data.bin/seg_0.bin": [
+        2952,
+        "51c59725"
+      ]
+    },
+    "v7-vector-records": {
+      "audit.effects.bin": [
+        8,
+        "67d6da0f"
+      ],
+      "documents.text": [
+        8,
+        "5706c951"
+      ],
+      "golden.json": [
+        970,
+        "5ee3a703"
+      ],
+      "indices.json": [
+        119,
+        "e81a1c76"
+      ],
+      "store.json": [
+        347,
+        "fb09bf7d"
+      ],
+      "store.json.crc32": [
+        9,
+        "ed77802b"
+      ],
+      "vectors_data.bin/format.json": [
+        72,
+        "dfdc672e"
+      ],
+      "vectors_data.bin/format.json.crc32": [
+        9,
+        "9cb6b204"
+      ],
+      "vectors_data.bin/seg_0.bin": [
+        243,
+        "929fbc20"
+      ]
     }
   }
 }

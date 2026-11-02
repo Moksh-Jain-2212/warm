@@ -254,6 +254,11 @@ impl PackedTerms {
 }
 
 impl StoredTerms {
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn is_empty(&self) -> bool {
+        self.keys().len() == 0 && self.positions.is_none()
+    }
+
     #[cfg(test)]
     pub(super) fn record_memory(&self, census: &mut super::census::MemoryCensus) {
         use std::mem::{size_of, size_of_val};
