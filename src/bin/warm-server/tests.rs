@@ -40,13 +40,16 @@ pub(crate) fn state_with(
     args.extend(extra.iter().map(|s| s.to_string()));
     let cli = Cli::try_parse_from(args).unwrap();
     let authenticator = auth::Authenticator::new(false, Some("test-key"), None).unwrap();
-    Arc::new(AppState::new(
-        cli.config,
-        authenticator,
-        routes::route_templates(),
-        #[cfg(feature = "local-models")]
-        None,
-    ))
+    Arc::new(
+        AppState::new(
+            cli.config,
+            authenticator,
+            routes::route_templates(),
+            #[cfg(feature = "local-models")]
+            None,
+        )
+        .unwrap(),
+    )
 }
 
 fn state(directory: &std::path::Path, limit: usize) -> Arc<AppState> {
@@ -341,7 +344,8 @@ fn snapshot_restore_round_trips_and_keeps_the_replaced_store() {
         axum::http::StatusCode::OK,
         &serde_json::json!({"added": 1}),
         false,
-    ));
+    ))
+    .unwrap();
     assert!(state
         .restore_staged("t", &state.staging_root().join("missing"))
         .is_err());

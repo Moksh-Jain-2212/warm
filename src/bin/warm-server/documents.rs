@@ -630,6 +630,7 @@ pub async fn delete_doc(
                 }
             }
         }
+        let erasure = state.idem.erase(&tenant, None)?;
         let before = core.revision();
         let result = (|| {
             if core.delete_document(&id).map_err(ApiError::from_core)? {
@@ -648,6 +649,9 @@ pub async fn delete_doc(
         })();
         if result.is_ok() || core.revision() != before {
             core.bump();
+        }
+        if let Some(erasure) = erasure {
+            erasure.finish()?;
         }
         result
     })

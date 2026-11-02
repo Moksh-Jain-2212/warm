@@ -324,8 +324,8 @@ impl AppState {
         #[cfg(feature = "local-models")] stages: Option<
             Arc<writerslogic_warm::core::models::ModelStages>,
         >,
-    ) -> Self {
-        Self {
+    ) -> Result<Self> {
+        Ok(Self {
             work: WorkLimit::new(
                 cfg.max_concurrent_work,
                 cfg.max_queue,
@@ -333,11 +333,12 @@ impl AppState {
             ),
             metrics: Metrics::new(routes),
             rate: RateLimiter::new(cfg.rate_limit_rps, cfg.rate_limit_burst),
-            idem: Idempotency::new(
+            idem: Idempotency::open(
+                &cfg.data_dir,
                 Duration::from_secs(cfg.idempotency_ttl_seconds),
                 cfg.idempotency_capacity,
                 cfg.idempotency_max_bytes,
-            ),
+            )?,
             ready: AtomicBool::new(false),
             started: Instant::now(),
             epoch: rand::random(),
@@ -348,7 +349,7 @@ impl AppState {
             auth,
             #[cfg(feature = "local-models")]
             stages,
-        }
+        })
     }
 
     /// Whether this server embeds document and query text itself.
@@ -856,6 +857,8 @@ impl AppState {
     pub fn restore_staged(&self, name: &str, staged: &Path) -> Result<String, ApiError> {
         let mut write = self.quiesce(name)?;
         let tenant = write.tenant.clone();
+        let mut erasure = None;
+        let mut erasure_error = None;
         let outcome = (|| -> Result<String> {
             if let Some(core) = write.open() {
                 core.settle()?;
@@ -875,7 +878,14 @@ impl AppState {
                 staged,
                 &backup_id,
             )?;
-            self.idem.invalidate_tenant(name);
+            erasure = match self.idem.erase(name, None) {
+                Ok(barrier) => barrier,
+                Err(error) => {
+                    restore.rollback().context("restore rollback failed")?;
+                    erasure_error = Some(error);
+                    anyhow::bail!("retry receipt invalidation failed");
+                }
+            };
             write.close();
             let reopened = restore.publish().and_then(|()| self.open_core(&tenant.dir));
             match reopened {
@@ -900,7 +910,10 @@ impl AppState {
             }
         })();
         drop(write);
-        match outcome {
+        if let Some(error) = erasure_error {
+            return Err(error);
+        }
+        let result = match outcome {
             Ok(backup) => {
                 tenant.generation.fetch_add(1, Ordering::AcqRel);
                 *tenant.compaction.lock() = CompactionStatus::default();
@@ -908,7 +921,11 @@ impl AppState {
                 Ok(backup)
             }
             Err(error) => Err(ApiError::internal(error)),
+        };
+        if let Some(erasure) = erasure {
+            erasure.finish()?;
         }
+        result
     }
 }
 

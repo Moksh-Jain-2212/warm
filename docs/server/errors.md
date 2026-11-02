@@ -73,10 +73,11 @@ documents.
 
 ### idempotency_reconciliation_required
 409. The original request may have executed, but its response is unavailable: the worker
-panicked, the response could not fit the replay byte budget, or a tenant restore invalidated
-the response. Once store replacement starts, retained keys require reconciliation even
-if the restore later rolls back. The key remains reserved
-until its TTL expires. Inspect the resulting state before deliberately issuing a new
+panicked, a process stopped between reservation and durable response recording, the response
+could not fit the replay byte budget, or erasure/restore invalidated the response. Once store
+replacement starts, retained keys require reconciliation even if restore later rolls back.
+The key remains reserved through its retention window, including across restart. Restart
+conservatively starts a fresh window. Inspect the resulting state before deliberately issuing a new
 operation. This response has no `Retry-After`; blindly retrying with a new key or after
 expiry can repeat a committed mutation.
 
@@ -110,13 +111,13 @@ Unlike transient server errors, this response remains in the idempotency cache. 
 key replays it during its TTL without repeating the durable mutation. If its response
 cannot fit the replay byte budget, the key instead returns
 `idempotency_reconciliation_required`. Reconcile state before starting a deliberate new
-attempt. All retained keys are process-local and lost on restart.
+attempt. Retained receipts and reconciliation markers survive restart.
 
 ### mutation_uncertain
 500. Both journal commit synchronization and rollback synchronization failed, so the
 mutation may survive recovery. The store rejects further writes until reopened. Reopen
 and reconcile stable IDs before retrying; this error does not establish that the mutation
-was absent. Its idempotency key retains the failure within the process-local cache TTL,
+was absent. Its idempotency key retains the failure through the durable receipt TTL,
 or requires reconciliation if the response exceeds the replay byte budget.
 
 ### not_implemented
@@ -139,7 +140,14 @@ scope can be retried to finish it. Reads return a coherent revision or this erro
 503. `--max-tenants` stores are open and none is idle enough to close.
 
 ### tenant_busy
-503. A snapshot or restore of this tenant is running and holds its store exclusively. Requests are refused at once (with `Retry-After`) rather than queued, so one tenant's backup cannot occupy the server's work slots. Other tenants are unaffected.
+503. A snapshot or restore holds the tenant store exclusively, or erasure is invalidating
+its retry receipts. Requests receive `Retry-After`; other tenants are unaffected.
+
+### idempotency_storage_unavailable
+503. Durable retry protection could not reserve, invalidate, or clean up its records.
+Restore access to the receipt storage and restart the server. Reconcile any in-flight
+operation before retrying: a cleanup failure can occur after its business mutation.
+Startup rejects corrupt receipts instead of silently discarding protected keys.
 
 ### shutting_down
 503. The server is draining and accepts no new work.
