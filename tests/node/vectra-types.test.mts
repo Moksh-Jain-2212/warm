@@ -24,6 +24,6 @@ await index.insertItem({ id: 'text-only', text: 'text' })
 // @ts-expect-error mode is constrained
 await index.queryItems([1, 0, 0], { mode: 'hybrid' })
 // @ts-expect-error the owned native store is private
-index.system
+void index.system
 // @ts-expect-error controlled store configuration cannot be overridden
 await VectraMigrationIndex.create({ ...options, native: { vectorRecords: false } })
