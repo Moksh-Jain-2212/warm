@@ -2275,3 +2275,20 @@ counts and overflow. They have not run, and a full generator-to-store regression
 still needed when testing resumes.
 Offline, locked library compile checks passed with all features and with
 local-models alone.
+
+### Lexical-only search and model admission (2026-11-02)
+
+Document text search invoked installed query embedders even with semantic weight
+zero, including the server's lexical search. An embedder's input limit or inference
+failure could therefore reject a valid lexical query. Ordinary and staged search
+now skip query embedding when the effective semantic weight is zero, including a
+zero stage default, while preserving caller-provided vectors and staged lexical
+rewrites or reranking. Search options are validated before an embedder or staged
+rewrite is invoked. A direct staged search checks model identity only when its
+embedder will be used.
+
+Regressions cover local query input limits, stage defaults, direct stage searches,
+unused incompatible embedders, and validation order. They have not run while tests
+remain paused.
+Offline, locked library compile checks passed with all features, local-embed alone,
+and local-models alone.

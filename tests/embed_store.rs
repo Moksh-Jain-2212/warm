@@ -140,6 +140,59 @@ fn model_stages_fall_back_to_the_installed_embedder_for_ingest_and_search() {
 }
 
 #[test]
+fn lexical_search_does_not_require_query_embedding() {
+    let dir = tempfile::tempdir().unwrap();
+    let (pack, sha) = write_tiny(dir.path(), Quantization::F32, Pooling::Cls);
+    let mut cfg = config(&pack, &sha);
+    cfg.local_embed.as_mut().unwrap().limits.max_input_bytes = 16;
+    let core = WarmCore::new(
+        1024,
+        Some(dir.path().join("lexical").display().to_string()),
+        Some(cfg),
+    )
+    .unwrap();
+    core.memorize_document(input("cat", "cat")).unwrap();
+    let query = "cat ".repeat(8);
+    let options = SearchOptions {
+        lexical_weight: Some(1.0),
+        semantic_weight: Some(0.0),
+        ..Default::default()
+    };
+    assert_eq!(core.search_documents(&query, &options).unwrap().len(), 1);
+    assert!(core.search_documents(&query, &Default::default()).is_err());
+    let invalid = SearchOptions {
+        k: Some(0),
+        ..Default::default()
+    };
+    assert!(core
+        .search_documents(&query, &invalid)
+        .unwrap_err()
+        .to_string()
+        .contains("1 <= k"));
+
+    #[cfg(feature = "local-models")]
+    {
+        use writerslogic_warm::core::models::ModelStages;
+        let mut stages = ModelStages::default();
+        stages.params.semantic_weight = 0.0;
+        let stages = Arc::new(stages);
+        core.set_model_stages(Some(stages.clone())).unwrap();
+        assert_eq!(
+            core.search_documents(&query, &Default::default())
+                .unwrap()
+                .len(),
+            1
+        );
+        assert_eq!(
+            core.search_documents_with_models(&query, "", &options, &stages)
+                .unwrap()
+                .len(),
+            1
+        );
+    }
+}
+
+#[test]
 fn embedding_limits_fail_before_mutation_and_batches_share_one_admission() {
     use writerslogic_warm::MemorizeBatchItem;
     let dir = tempfile::tempdir().unwrap();

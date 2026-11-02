@@ -260,6 +260,23 @@ mod tests {
         assert!(core
             .search_documents_with_models("query", "", &options, &incompatible)
             .is_ok());
+        let lexical = crate::SearchOptions {
+            lexical_weight: Some(1.0),
+            semantic_weight: Some(0.0),
+            ..Default::default()
+        };
+        assert!(core
+            .search_documents_with_models("query", "", &lexical, &incompatible)
+            .is_ok());
+        let invalid = crate::SearchOptions {
+            lexical_weight: Some(-1.0),
+            ..Default::default()
+        };
+        assert!(core
+            .search_documents_with_models("query", "", &invalid, &incompatible)
+            .unwrap_err()
+            .to_string()
+            .contains("search weights"));
         Ok(())
     }
 

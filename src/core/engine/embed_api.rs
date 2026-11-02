@@ -153,12 +153,16 @@ impl WarmCore {
         text: &str,
         options: &SearchOptions,
     ) -> Result<Option<Vec<f64>>> {
-        if options.embedding.is_some() || text.trim().is_empty() {
+        if options.embedding.is_some()
+            || options.semantic_weight == Some(0.0)
+            || text.trim().is_empty()
+        {
             return Ok(None);
         }
         let Some(embedder) = self.text_embedder() else {
             return Ok(None);
         };
+        self.validate_document_search(text, options)?;
         let v = embedder.embed_query(&[text])?;
         Ok(Some(v[0].iter().copied().map(f64::from).collect()))
     }

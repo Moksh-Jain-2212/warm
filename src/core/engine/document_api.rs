@@ -1025,20 +1025,32 @@ impl WarmCore {
         stages: &crate::core::models::ModelStages,
     ) -> Result<Vec<DocumentResult>> {
         stages.params.validate()?;
-        if let (Some(embedder), None) = (&stages.embedder, &options.embedding) {
-            self.validate_model_embedder(embedder)?;
-        }
         let k = options.k.unwrap_or(10) as usize;
         ensure!((1..=1000).contains(&k), "require 1 <= k <= 1000");
         let pool = k.max(stages.params.rerank_n) as u32;
+        let mut base_options = options.clone();
+        base_options.k = Some(pool);
+        base_options.lexical_weight = base_options
+            .lexical_weight
+            .or(Some(stages.params.lexical_weight));
+        base_options.semantic_weight = base_options
+            .semantic_weight
+            .or(Some(stages.params.semantic_weight));
+        self.validate_document_search(text, &base_options)?;
+        let semantic = base_options.semantic_weight != Some(0.0);
+        if semantic {
+            if let (Some(embedder), None) = (&stages.embedder, &options.embedding) {
+                self.validate_model_embedder(embedder)?;
+            }
+        }
         let variants = stages.query_variants(text, today)?;
-        let embeddings = match (&stages.embedder, &options.embedding) {
-            (Some(e), None) => {
+        let embeddings = match (&stages.embedder, &options.embedding, semantic) {
+            (Some(e), None, true) => {
                 let queries: Vec<&str> = variants.iter().map(|v| v.0.as_str()).collect();
                 Some(e.embed(&queries, true)?)
             }
             #[cfg(feature = "local-embed")]
-            (None, None) => {
+            (None, None, true) => {
                 let queries: Vec<&str> = variants.iter().map(|v| v.0.as_str()).collect();
                 self.text_embedder()
                     .map(|embedder| embedder.embed_query(&queries))
@@ -1048,10 +1060,7 @@ impl WarmCore {
         };
         let mut prepared = Vec::with_capacity(variants.len());
         for (i, (query, _)) in variants.iter().enumerate() {
-            let mut opts = options.clone();
-            opts.k = Some(pool);
-            opts.lexical_weight = opts.lexical_weight.or(Some(stages.params.lexical_weight));
-            opts.semantic_weight = opts.semantic_weight.or(Some(stages.params.semantic_weight));
+            let mut opts = base_options.clone();
             if let Some(e) = &embeddings {
                 opts.embedding = Some(e[i].iter().copied().map(f64::from).collect());
             }
