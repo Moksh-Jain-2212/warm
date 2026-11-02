@@ -2292,3 +2292,150 @@ unused incompatible embedders, and validation order. They have not run while tes
 remain paused.
 Offline, locked library compile checks passed with all features, local-embed alone,
 and local-models alone.
+
+## Dynamic switching investigation (2026-11-02)
+
+This is a source and literature investigation, not a benchmark or a claim of a
+performance improvement. It covers the proposed switches individually, including
+those outside WARM's current mechanisms, and identifies interaction cases. Tests,
+benchmarks and comparisons remain paused. The user has not authorized paid
+non-live API or cloud work; existing authorization for live runs does not authorize
+development, diagnostics, tuning, or preparation using paid credits.
+
+### What is already fixed, adaptive, or missing
+
+| Area | Current evidence | Candidate switch and source-based assessment |
+| --- | --- | --- |
+| Journal compression | [`write_frame`](../../../src/core/storage.rs) compresses with LZ4 and stores raw bytes when compression is not strictly smaller. The [journal format](../../file-format/JOURNAL.md) infers LZ4 versus raw solely from lengths. | Choose a lossless codec or level per frame, content class, or access tier. A second compressed codec needs an explicit versioned codec identity and compatible readers, scanner, recovery, compaction, encryption, backup and upgrade handling; it cannot be introduced by selecting another compressor behind the existing length flag. A heuristic that skips attempting compression is representable as raw today, but its cost/benefit is unmeasured. |
+| Lexical postings | [Posting blocks](../../../src/core/documents/postings.rs) already use independently chosen bit widths; live posting bytes are derived, while checkpoints have a separate encoding. | Choose among arrays, bitmaps, runs, and bitpacked blocks from local density or run lengths. Treat selection, conversion, mutation, recovery, temporary memory and query decode cost as part of the design. The [Roaring specification](https://github.com/RoaringBitmap/RoaringFormatSpec) is an example of array, bitmap and run containers, not evidence that it improves WARM. |
+| Vector candidates and precision | [Vector configuration](../../../src/core/config.rs) permits an optional prefix graph and shortlist; full embeddings remain stored. [Graph codes](../../../src/core/qgraph/vertex.rs) use compact quantized candidates and can use residual codes. | Switch candidate width, precision, residual or graph representation by dataset, tier or query. Multiple available representations and safe publication would need explicit design; current configuration is not a per-query precision switch. Exact reranking cannot recover omitted candidates. The rejected projected and quantized studies below make this an experimental quality-changing route, not an established optimization. |
+| Vector and lexical query routing | [`auto`](../../../src/core/documents/vector_index.rs) picks a graph if available, otherwise exact; filtered, stale, and other cases can take exact paths. `ef` and explicit modes are caller controls. | Choose exact, graph, `ef`, shortlist, lexical, or hybrid work from filter selectivity, eligibility, current index state or an explicit quality target. Exact versus approximate and lexical versus hybrid have different membership contracts; a score gap is not a proof of recall. Expose the actual route and measure false confidence and worst-query misses. |
+| Ingest encoding and granularity | [`EncodeMode`](../../../src/core/documents.rs) offers eager, deferred and lexical sparse-hypervector encoding; text and separately supplied/generated dense embeddings have their own paths. Deferred requires a text encoder and retained text; lexical-only sparse encoding never catches up automatically. Whole-document mode has its own lexical/positions requirements. | Choose a per-document mode, chunking or positions based on declared use and available resources. This changes which sparse vector queries can see the document and when; it is not a transparent scheduling choice. Dense search visibility must be tracked separately. Never switch a requested permanently indexed representation to lexical-only as a silent overload fallback. |
+| Context fidelity | Memory policies, original text, optional model stages, and an optional [lossless evidence-packet codec](../../../bindings/python/warm-sdk/writerslogic_warm_sdk/evidence.py) exist; no reviewed mechanism establishes a dynamic context-compression controller. | Choose original evidence, excerpts, structured facts, or summaries per query under a declared context budget. Require source links, temporal provenance, visibility of truncation and held-out answer-quality checks; derived summaries must not substitute for deleting sources. This is a semantic policy, not lossless compression. |
+| Compute device and execution | [Model device selection](../../../src/core/models/mod.rs) chooses CPU, Metal or CUDA at model load, with backend-dependent precision. The model embedding [space identity](../../../src/core/models/embed.rs) includes effective dtype, model and query task. | Select CPU/GPU or move work across devices as resources change. Per-request device failover is not currently established. Moving embeddings across effective spaces may be rejected or require a separate store, compatible re-embedding, and validated migration; matching dimensions alone is insufficient. Account for model load, transfer, memory and numerical drift. |
+| Batching | The local embedder has fixed batch/token limits and a private pool; model generators and rerankers have batch controls. The generator explicitly records that Metal batch size changed some outputs. HTTP batch ingest commits one transaction; NDJSON commits multiple batches. | Form bounded microbatches by size, age, model, tenant and deadline. A [Triton dynamic batcher](https://docs.nvidia.com/deeplearning/triton-inference-server/user-guide/docs/user_guide/batcher.html) illustrates bounded queue delay, not evidence of WARM gains. Keep generation output variability, cross-tenant confidentiality, admission and batch transaction semantics visible; do not turn an atomic API request into partial commits. |
+| Concurrency and backpressure | Server [`WorkLimit`](../../../src/bin/warm-server/limits.rs) uses fixed capacity, bounded queue and timeout; embedder calls have independent admission limits. Queue, rate and batch defaults are in [server config](../../../src/bin/warm-server/config.rs). | Adapt active permits, per-kind worker budgets, queue admission or batch deadlines to measured load. Coordinate nested server, Rayon, model and device capacity; bounded waiting and rejection must remain observable. Reducing capacity must not strand existing permits or starve a class of work. |
+| Maintenance | Server compactions are serialized; successful scheduled compaction also checks vector maintenance. Engine maintenance has a background path and vector rebuild uses a build guard. | Trigger or delay compaction, encoding and index rebuild using backlog, mutation age, resource headroom and deadlines. Bound staleness, disk growth and starvation; preserve deletion/scrub obligations and do not hold mutation locks across background I/O. Moving work must not change commit durability. |
+| Tenant and workload allocation | The server has global work slots and optional per-tenant token buckets; this does not establish an adaptive fair scheduler. | Allocate bounded shares among interactive, ingest, maintenance and tenants, with borrowing and aging. Specify fairness, isolation, limits, error behavior, and maximum starvation; protect tenant identity and do not let a controller expand authorized quotas. |
+| Model pipeline | [Model stages](../../../src/core/models/stages.rs) independently configure extraction, rewrites, fusion and reranking. They are not a validated difficulty router. | Select a declared pipeline or escalate by task and quality signal. Fact extraction changes stored lexical/semantic keys; query rewriting and reranking can change results. Different embedders cannot be mixed solely because dimensions match. Require source attribution, option/route reporting, quality calibration, bounded fallback and explicit permission for remote/paid models. |
+| Transport and delivery | HTTP has distinct single, atomic batch and partially committing NDJSON ingest paths, plus bounded bodies and retries. | Choose request grouping, compression, streaming or connection reuse according to payload and deadlines. This cannot silently change response, order, atomicity, idempotency or partial-failure semantics. Client/network routing and remote inference require their own privacy, authentication and billing contracts. |
+| Deployment and recovery | Stores have tenant ownership, journal recovery, idempotency and staged compaction; no reviewed distributed worker failover contract is established. | Switch to another worker or backend only after establishing ownership/fencing, state transfer, durable receipts, tenant authorization, failure detection and recovery. Concurrent writers and ambiguous acknowledgments require special handling; local-to-remote movement needs explicit authorization. This is new architecture, not a configuration change. |
+
+The [kernel zswap documentation](https://docs.kernel.org/admin-guide/mm/zswap.html)
+shows one migration pattern: changing a compressor leaves existing pages attached to
+their original decoder. WARM's journal does not currently have that per-frame codec
+identity. [SQLite's WAL documentation](https://www.sqlite.org/wal.html) illustrates
+that checkpoint scheduling and acknowledgment durability are distinct choices; it
+does not establish WARM behavior or authorize weakening WARM's durability.
+
+### Combined policies worth investigating
+
+The following are hypotheses and interaction screens, not measured winners. Each
+must be compared against the current fixed policy and the constituent switches in
+isolation under the same workload and acceptance rules. A successful individual
+switch does not establish that its combination is safe or useful.
+
+| Combination | Question and interaction that could invalidate it | Required observation |
+| --- | --- | --- |
+| Codec × concurrency × maintenance | Can compression move to low-load maintenance without codec CPU causing request queueing or delaying durable publication? | End-to-end write/read latency, codec CPU, queue time, bytes including duplicate generations, recovery and durability. |
+| Posting representation × filter routing | Does a compact eligible-ID representation help different selectivities after conversion and mutation costs? | Exact ordered IDs/scores, eligibility construction cost, conversion bytes, update and recovery behavior. |
+| Candidate precision × `ef` × shortlist | Can a larger beam offset a compact candidate representation's omissions? The two losses can interact and reranking cannot restore missing candidates. | Per-query route, recall against exact, worst misses, build/steady/peak memory and total query cost. Do not reuse the frozen queries for tuning. |
+| Ingest mode × maintenance × query routing | Does deferring sparse encoding reduce foreground work without unacceptable visibility lag or catch-up spikes? | Sparse and dense visibility separately, pending age, first-query cost, concurrent update/delete/reopen outcomes. |
+| Context fidelity × model pipeline × query strategy | Can excerpts or structured facts preserve answers when rewrite or reranking changes which sources are selected? | Exact source provenance, current and historical answer quality, truncation, complete model/selection cost and hard cases. |
+| Device × microbatch × concurrency | Does batching on a particular device improve a workload after queue delay, transfer, memory contention and numerical variation? | Queue plus inference latency, throughput, memory, output drift, failures, cold-start and device/model identity. |
+| Tenant fairness × priority × admission | Do foreground guarantees hold under a noisy tenant and bulk ingest without starving maintenance or other tenants? | Per-tenant wait, rejected/expired work, throughput, maximum starvation and hard resource bounds. |
+| Scheduling × compression × tenant allocation | Do background jobs stay within CPU, memory and disk budgets while still meeting backlog deadlines across tenants? | Per-tenant backlog age, resource use, completion, foreground tail and fairness. |
+| Transport × batching × retries | Can request grouping reduce overhead without changing atomicity or reapplying work after disconnects? | Committed IDs/revisions, idempotent replay, partial-stream receipts, cancellation and retry outcomes. |
+| Worker failover × admission × transport | Can in-flight work move during overload or failure without duplicate ownership or ambiguous completion? | Fencing, acknowledged-versus-committed state, tenant isolation, duplicate effects, recovery time and explicit failures. |
+| Model pipeline × device × cost policy | Can escalation satisfy a caller's quality and privacy constraints without crossing an embedding space or credit boundary? | Pipeline/model/device identity, route, local and paid cost, quality by slice, timeouts and permission decisions. |
+| Storage tier × codec × query access | Does compressing colder data help after decompression, promotion, temporary duplication and cache misses? | Physical and logical bytes, RSS/peak, read/write amplification, promotion rate and query tails. |
+
+These cases do not exhaust combinations. A constrained pairwise covering design can
+screen a frozen factor set, with targeted three-way and transition cases above;
+pairwise coverage alone cannot establish higher-order safety. [NIST's covering-array
+material](https://tsapps.nist.gov/publication/get_pdf.cfm?pub_id=913805) describes
+the distinction. Factors, allowed combinations and exclusions must be published
+before running the screen; unavailable combinations are recorded as unavailable,
+not silently treated as passing.
+
+An earlier [factored-evidence diagnostic](../../../benchmarks/results/memory_competition_v1/protocol.json)
+is relevant to context and transport combinations: on the same selected source
+groups, the verified packet byte ratio was 0.870756 versus its frozen source-packet
+baseline; scored full-turn support remained 79/84. Its bound was UTF-8 JSON bytes,
+not reader tokens. The [independent record](../../../benchmarks/results/memory_competition_v1/checked_summary.json)
+keeps 400 held-out questions untouched and does not establish answer accuracy,
+latency, or a dynamic format-switching policy. The current Python evidence codec's
+SHA-256 matches the codec hash recorded in that evidence; this is identity checking,
+not a rerun or validation of current behavior.
+
+### Investigation order
+
+1. **Contract-preserving, local choices:** first characterize raw/LZ4 admission,
+   posting layouts, bounded work admission and maintenance scheduling; use the
+   existing source packet as a transport baseline. These have exact comparison or
+   recovery oracles, although any codec extension still needs a format migration.
+   Screen codec × maintenance, postings × filters, and scheduler × fairness before
+   considering a controller. Lower semantic risk is an inference, not a claim of
+   lower runtime cost or an implementation recommendation.
+2. **Capacity changes with output constraints:** investigate device and batching
+   choices together with model identity, numerical stability, queue limits and
+   tenant isolation. Treat generative batching as quality-changing until validated;
+   separately investigate transport and retry boundaries, since the existing batch
+   and stream operations have different commit contracts.
+3. **Quality-changing choices:** investigate graph/precision/beam and
+   context/model-pipeline combinations only against exact and task-specific held-out
+   oracles. The existing failures above are reasons to measure worst cases, not to
+   assume every possible policy fails. Keep the already requested frozen public-API
+   verification separate from policy development and tuning.
+4. **New distributed infrastructure:** investigate local/remote placement and
+   failover after defining owner fencing, recovery, data residency, authorization,
+   paid-service policy, and the caller-visible completion contract. The current
+   single-owner design and paid-credit restriction cannot be treated as implicitly
+   granting those capabilities.
+
+### Decision rules for a future study
+
+1. Inventory existing controls and actual routes for each arm; label each as current,
+   proposed, quality-changing, format-changing, or new infrastructure. Bind code,
+   schema, model identity, data, hardware and policy versions. Establish the exact
+   result, durable state or task-quality oracle appropriate to each arm. Record all
+   startup, transition, rollback, recovery and steady-state costs.
+2. Use separate development and independent held-out workloads with deterministic
+   inputs and explicit resource limits. Freeze candidate factors, eligibility,
+   selection rules, quality floors, tail/cost limits, retry rules and sample sizes
+   before opening holdout results. Include low/peak load, mixed tenants, deletes,
+   restarts, faults, cancellation, out-of-distribution inputs and switching near
+   thresholds. No outcome chosen from holdout data may be described as confirmed on
+   that same holdout.
+3. For reversible lossless paths require equivalent decoded contents and externally
+   required results, valid mixed-version recovery and no security/durability change.
+   For quality-changing paths specify separate mean and tail floors, historical and
+   multi-step task quality, actual routes and misses. Compare end-to-end CPU, wall
+   time, queue/rejection, throughput, RSS/peak, disk/network bytes, energy if measured,
+   and all model or service costs; report the overhead of the decision itself.
+4. Evaluate policies against always-on alternatives and an oracle upper bound; the
+   oracle may use hindsight only as a labeled, non-deployable bound. Record false
+   confidence, calibration, fallback frequency and policy failure, not only average
+   performance. Bound switches and policy overhead, require hysteresis or an
+   equivalent anti-oscillation rule, and verify rollback and concurrency invariants.
+5. No switch may silently downgrade a requested durability, security, tenant,
+   embedding-space, atomicity or data-retention contract. Any semantic/quality
+   change needs an explicit caller policy; a resource shortage may reject or queue
+   rather than silently substitute weaker behavior. Log metadata about the selected
+   policy and reason without storing secret inputs.
+
+Prior results remain binding evidence, not reusable tuning data: the frozen 100,000-row
+arms measured 92.35% mean and 10% worst-query recall at ef=128, and 96.34% and 50%
+at ef=256. The separate 100% development diagnostic is not a frozen study result
+and is unverified end to end and on independent data. The 300-query SciFact
+[projected-candidate study](matryoshka-native-20261102/README.md) rejected both
+projected settings; it collected no qualifying timings. The [quantized-delta
+study](../../../benchmarks/results/streaming_quantized_delta_v1/README.md) rejected
+its selected i8 route on reserved-query recall despite observed local timing changes.
+Neither result validates a dynamic selector or a WARM speed advantage.
+
+When the user lifts the pause, first run the outstanding focused regressions and
+required final gates, then the previously requested 1,000-query public-API
+verification at ef=128, 256 and 512, recording actual routes, recall and misses.
+Any new switching study needs a separately frozen protocol; resuming those checks
+does not itself authorize paid development runs or change the existing study.
