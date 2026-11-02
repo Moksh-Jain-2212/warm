@@ -1,0 +1,55 @@
+{
+  "reviewer": "parallel native-vector-record agent",
+  "reviewed_at_utc": "2026-11-02T07:01:06.103166+00:00",
+  "base_commit": "fac0304f9ac984782c2202ca2e3f304ef2946c02",
+  "scope": "Read-only source review of durable Event wire compatibility and bounded recovery, CBOR index-cache transition/semantic validation, and active dependency removal. Only this review artifact was written.",
+  "inspected_files": {
+    "Cargo.toml": "ffc47007d18b1780f4b90298490bce3e857eb449445eabcb3b6e1a0dd6a6829d",
+    "Cargo.lock": "2fc4a034e5af215be9c559b8b34d47acb5df94e83acbb39e3e7260121f05add1",
+    "bindings/c/Cargo.lock": "ef47de743854d4547f2bf1c91ad7962e427e8924d00c9a37e37e0b5e20df1924",
+    "bindings/uniffi/Cargo.lock": "616788842fd5a6fc66429204996ceb4a8a4e92d005b2552f617b6c21ac0b75d9",
+    "examples/quickstart/rust/Cargo.lock": "3683d08e47203d5588d2a4f0869e4ba5c972234ea2a814bb89056ddde9702b80",
+    "deny.toml": "e027d3e2b86350a9ef530df9b5d3cffc27c8dc894c2ba38b65b9a47ecc24494b",
+    "src/core/experimental/connection_graph.rs": "5ca6a39ed744e589440e02aabd2289df206fb706813981ccecf86063c3958314",
+    "src/core/experimental/connection_graph_codec.rs": "043fff6247fee69101c0c2e72636e58b3f73d9af7e89151545b3b0aeb055dd42",
+    "src/core/engine/mod.rs": "e450a55379421b9ff0fd4ae330dd539a86b3c546599403716e3138d102a041a2",
+    "src/core/engine/index_cache.rs": "c470f0ab1d5dd2006dbd4ccd329a401710278fcc86f8ddd5af053f4391f2c779",
+    "src/core/ivf/nystrom.rs": "ab1f5c2f215560fc6f10efe9aff6cdbd075c5d6d7a918e644a7901b2e4e61fb6",
+    "src/core/ivf/kmeans.rs": "b559aae75e1476a9b6076cfaea77ce00c6de264f947e6cfc12b0a4db9697aae6",
+    "src/core/ivf/pq.rs": "59f5d310a44f94e0d76d8c768f13d64ff964eaf037e5a53658a30dc0d32873dd",
+    "src/core/ivf/query.rs": "fa9f76cfabb1450bfd4ce039ae7862545294e59e11065644c52c12c107ec68f9",
+    "src/core/nsg/mod.rs": "3319b28fbc3ba5f52129c2e42f37d44a8b72cdfdb533634ad9f17a1070a1ea9c",
+    "src/core/nsg/training.rs": "2533abf90016b8ecdb416c1b7e085b744cbb0a84a8e5675e6c5b46fa6d072593",
+    "src/core/nsg/graph.rs": "c83653fa09e5d2f17a3e6d4672fe6bb22cf5f410e9355669490c25d1fd2857c0",
+    "src/core/nsg/search.rs": "e7f091f4ad88c0c64628af8c56edf4435a883de678799ec7368d1417cc73aa48",
+    "src/core/documents/packed_terms.rs": "fd8849b8dd3fa77b5e28a697ecccdbbdb54d80dad561649b17bc7d6bfa931452",
+    "docs/research/technical-audit-20261029/bincode-removal-20261102/legacy-fixtures.json": "be3022b67307e00a0462642981512aa94e57a16880e0667fc71edb8eea716a6f"
+  },
+  "findings": [
+    {
+      "id": "nsg-cached-degree-allocation",
+      "status": "resolved_in_inspected_source",
+      "trigger": "A valid-shaped, checksummed NSG cache can set config.max_degree=usize::MAX. On the next insert rng_select formerly called Vec::with_capacity(max_degree), permitting a capacity-overflow panic during mutation publication.",
+      "location": "src/core/nsg/graph.rs::rng_select; reached through insert_online after cache load",
+      "resolution": "Root bounds initial capacity to min(max_degree, sorted_candidates.len()), preserving selection semantics and covering both cached and caller-supplied oversized settings.",
+      "regression": "src/core/engine/index_cache.rs::tests::cached_degree_cannot_force_allocation_beyond_available_candidates loads the oversized settings, inserts, flushes, reopens, and checks the latest query/vector count.",
+      "verification": "The reviewer inspected the capacity change and regression source. Root reports all 6 index-cache tests and 9 NSG tests pass; the reviewer did not run builds or tests."
+    }
+  ],
+  "observations": [
+    "The fixed Event encoder writes variant tags 0/1/2 and standard little-endian variable-length string sizes. The 16 MiB event budget makes its u32 length encoding safe before narrowing.",
+    "The Event decoder accepts the retained legal/nonminimal widths, rejects lengths exceeding the actual remaining frame before allocation, validates UTF-8, and requires exact consumption. Existing final-tail versus interior-corruption handling remains in read_events.",
+    "Retained fixtures cover 250/251, 65535/65536 and event-limit boundaries. Differential fixture generation was reported by root; this review inspected fixture records and codec logic without rerunning the generator.",
+    "Cache loading requires the new encoding marker, byte magic, current checkpoint and checksums. Legacy or invalid cache content is ignored so durable vectors remain authoritative. Encoding over the byte budget omits that cache without failing the durable flush.",
+    "CBOR reads have an encoded byte bound and recursion limit. NSG cardinality, identity/vector equality and edge ranges are checked before installation. IVF projection/centroid/codebook dimensions and ranges are checked before rebuilding lists.",
+    "The custom projection-matrix deserializer checks rows*columns with checked_mul before constructing the nalgebra DMatrix, avoiding the library deserializer unchecked multiplication path.",
+    "All NSG configuration uses were traced: training bounds ef_construction by n-1; search heap capacities saturate and cap at n; cached auto_threshold is not read; seed only selects RNG state.",
+    "No bincode package remains in the inspected active root/C/UniFFI/quickstart lockfiles or manifests. Historical fixture attribution and the standalone archived generator are distinct from active crate dependencies."
+  ],
+  "limits": [
+    "This was a bounded source review, not a full repository audit, new fuzzing run, benchmark, or independent execution of the reported test suites.",
+    "Reviewed file hashes identify the working-tree state observed here; root is completing additional encrypted-cache and final integration checks.",
+    "The 512 MiB cache limit constrains encoded input bytes. Peak heap amplification during generic CBOR deserialization was not measured by this review.",
+    "No cache migration performance or cross-platform runtime claim is made."
+  ]
+}

@@ -1,0 +1,110 @@
+{
+  "captured_at": "2026-11-02T07:08:34.287172+00:00",
+  "base_commit": "fac0304f9ac984782c2202ca2e3f304ef2946c02",
+  "advisory": {
+    "id": "RUSTSEC-2025-0141",
+    "url": "https://rustsec.org/advisories/RUSTSEC-2025-0141.html",
+    "classification": "unmaintained",
+    "patched_versions": [],
+    "ignore_removed": true
+  },
+  "source_sha256": {
+    "Cargo.lock": "2fc4a034e5af215be9c559b8b34d47acb5df94e83acbb39e3e7260121f05add1",
+    "Cargo.toml": "ffc47007d18b1780f4b90298490bce3e857eb449445eabcb3b6e1a0dd6a6829d",
+    "bindings/c/Cargo.lock": "ef47de743854d4547f2bf1c91ad7962e427e8924d00c9a37e37e0b5e20df1924",
+    "bindings/uniffi/Cargo.lock": "616788842fd5a6fc66429204996ceb4a8a4e92d005b2552f617b6c21ac0b75d9",
+    "deny.toml": "e027d3e2b86350a9ef530df9b5d3cffc27c8dc894c2ba38b65b9a47ecc24494b",
+    "examples/quickstart/rust/Cargo.lock": "3683d08e47203d5588d2a4f0869e4ba5c972234ea2a814bb89056ddde9702b80",
+    "src/core/documents/packed_terms.rs": "fd8849b8dd3fa77b5e28a697ecccdbbdb54d80dad561649b17bc7d6bfa931452",
+    "src/core/engine/mod.rs": "e450a55379421b9ff0fd4ae330dd539a86b3c546599403716e3138d102a041a2",
+    "src/core/experimental/connection_graph.rs": "5ca6a39ed744e589440e02aabd2289df206fb706813981ccecf86063c3958314",
+    "src/core/ivf/nystrom.rs": "ab1f5c2f215560fc6f10efe9aff6cdbd075c5d6d7a918e644a7901b2e4e61fb6",
+    "src/core/nsg/graph.rs": "c83653fa09e5d2f17a3e6d4672fe6bb22cf5f410e9355669490c25d1fd2857c0",
+    "src/core/engine/index_cache.rs": "fb42092921650963bf6d63828e771fbe0322a71305a037bbcb2aafb55273ffe5",
+    "src/core/experimental/connection_graph_codec.rs": "043fff6247fee69101c0c2e72636e58b3f73d9af7e89151545b3b0aeb055dd42"
+  },
+  "active_lockfiles_without_bincode": [
+    "Cargo.lock",
+    "bindings/c/Cargo.lock",
+    "bindings/uniffi/Cargo.lock",
+    "examples/quickstart/rust/Cargo.lock"
+  ],
+  "checks": {
+    "index-cache-final-encrypted.log": {
+      "sha256": "000855a6e36af4240ca7e068196b30658fbde07416342a2d16bbca569ffbaa9d",
+      "test_summaries": [
+        "test result: ok. 7 passed; 0 failed; 0 ignored; 0 measured; 844 filtered out; finished in 1.26s"
+      ]
+    },
+    "default.log": {
+      "sha256": "2be1e945b75c92c5204c5532452a4849bfca2ef275ce2fe04e6f4155c46fd3dc",
+      "test_summaries": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 745 filtered out; finished in 0.92s"
+      ]
+    },
+    "connection-graph.log": {
+      "sha256": "4e5c3f5e235569e472f966b8985d4081c1d810aa5a1df2c6cc3182dacd08f569",
+      "test_summaries": [
+        "test result: ok. 17 passed; 0 failed; 0 ignored; 0 measured; 832 filtered out; finished in 0.22s"
+      ]
+    },
+    "nsg.log": {
+      "sha256": "6a8aabae98c5e22378c3c2d853f4fbd6185108cccaf2e075b24102eeb8747f73",
+      "test_summaries": [
+        "test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 841 filtered out; finished in 0.01s"
+      ]
+    },
+    "packed-terms.log": {
+      "sha256": "a8a7107f70cb8055bb39ca0b392e7845ee5214073284a28d71c08956ee24e572",
+      "test_summaries": [
+        "test result: ok. 8 passed; 0 failed; 0 ignored; 0 measured; 843 filtered out; finished in 0.39s"
+      ]
+    },
+    "recovery.log": {
+      "sha256": "6ea62060d9c307f7ebec9f9367105a765b88b4beed690ccee32e3e8b8b57c968",
+      "test_summaries": [
+        "test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 42.06s",
+        "test result: ok. 6 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 8.28s",
+        "test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 40.22s",
+        "test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 13.69s"
+      ]
+    },
+    "clippy-final-encrypted.log": {
+      "sha256": "f0cdace4629074f8b1664e0bbd9f7bd449bf17a548bfd1dc7b5e20a294362bfa",
+      "test_summaries": []
+    },
+    "fmt-final-encrypted.log": {
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "test_summaries": []
+    },
+    "deny.log": {
+      "sha256": "a01a39637743832df90c4504e3ded54eff297748073366c408ca85d98d9ab13d",
+      "test_summaries": []
+    },
+    "index-cache-complete.log": {
+      "sha256": "8396bae6e4770291a4ff1bb53a005caa875c70e7c1fb4978294f467fba4386cf",
+      "test_summaries": [
+        "test result: FAILED. 6 passed; 1 failed; 0 ignored; 0 measured; 844 filtered out; finished in 0.93s"
+      ]
+    }
+  },
+  "toolchain": "Rust 1.99.0; offline locked jobs2 private target; cargo deny refreshed public advisory data",
+  "commands": [
+    "cargo +1.99.0 test --offline --locked --features security,experimental --lib index_cache",
+    "cargo +1.99.0 test --offline --locked --no-default-features --lib index_cache",
+    "cargo +1.99.0 test --offline --locked --features security,experimental --lib connection_graph",
+    "cargo +1.99.0 test --offline --locked --features security,experimental --lib core::nsg",
+    "cargo +1.99.0 test --offline --locked --features security,experimental --lib packed_terms",
+    "cargo +1.99.0 test --offline --locked --features security,experimental --test format_golden --test format_layout --test format_crash --test reliability",
+    "cargo +1.99.0 clippy --offline --locked --features security,experimental --lib --tests --bins -- -D warnings",
+    "cargo +1.99.0 fmt -- --check",
+    "cargo deny check advisories bans licenses sources"
+  ],
+  "fixture_reproduction": "Restore legacy-generator-Cargo.toml.txt to target/legacy-fixture/Cargo.toml and decompress the saved lock there; cargo +1.99.0 run --offline --locked --manifest-path target/legacy-fixture/Cargo.toml --bin fixture. This standalone reference generator intentionally uses old bincode only to check compatibility, not as a library dependency.",
+  "retained_failed_fixture": "index-cache-complete.log: encrypted reopen test initially cloned the constructor-scrubbed runtime config; fixed test reapplies its test passphrase. No production change was needed for that failure.",
+  "limits": [
+    "No timing/performance qualification",
+    "Whole integration/package/hosted gates pending",
+    "Historical research and independent native benchmark bridge remain unchanged"
+  ]
+}

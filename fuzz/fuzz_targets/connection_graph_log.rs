@@ -3,7 +3,7 @@
 
 #![no_main]
 
-//! The connection graph is rebuilt by replaying an append-only, length-prefixed bincode event
+//! The connection graph is rebuilt by replaying an append-only, length-prefixed event
 //! log. A truncated or corrupt log must stop at the last good event, never panic or allocate
 //! from a length read off the file, and the rebuilt graph must verify against its own log.
 

@@ -37,6 +37,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::entangled::{hash_u64, EntangledHVec};
 
+#[path = "connection_graph_codec.rs"]
+mod codec;
+
 /// Default multiplicative decay applied to the whole field per decay step: 7/8.
 const DEFAULT_DECAY_NUM: i64 = 7;
 const DEFAULT_DECAY_DEN: i64 = 8;
@@ -386,19 +389,9 @@ fn chain_step(prev: u64, ev: &Event) -> u64 {
 /// length prefix inside a record cannot make the reader allocate more than this.
 const MAX_EVENT_BYTES: usize = 16 << 20;
 
-/// Append one length-framed, bincode-encoded event to the durable log.
+/// Append one length-framed event to the durable log.
 fn append_event(writer: &mut File, ev: &Event) -> std::io::Result<()> {
-    let bytes = bincode::serde::encode_to_vec(ev, bincode::config::standard())
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidData, e))?;
-    if bytes.len() > MAX_EVENT_BYTES {
-        return Err(std::io::Error::new(
-            std::io::ErrorKind::InvalidData,
-            format!(
-                "event of {} bytes exceeds the {MAX_EVENT_BYTES} byte log limit",
-                bytes.len()
-            ),
-        ));
-    }
+    let bytes = codec::encode(ev)?;
     writer.seek(SeekFrom::End(0))?;
     writer.write_all(&(bytes.len() as u32).to_le_bytes())?;
     writer.write_all(&bytes)?;
@@ -429,11 +422,8 @@ fn read_events(file: &mut File) -> std::io::Result<(Vec<Event>, u64)> {
         }
         buf.resize(len, 0);
         file.read_exact(&mut buf)?;
-        match bincode::serde::decode_from_slice::<Event, _>(
-            &buf,
-            bincode::config::standard().with_limit::<MAX_EVENT_BYTES>(),
-        ) {
-            Ok((ev, consumed)) if consumed == len => events.push(ev),
+        match codec::decode(&buf) {
+            Ok(ev) => events.push(ev),
             _ if valid + 4 + len as u64 == length => break,
             _ => {
                 return Err(std::io::Error::new(

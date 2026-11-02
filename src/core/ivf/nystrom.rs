@@ -11,9 +11,22 @@ use crate::core::entangled::EntangledHVec;
 #[derive(Serialize, Deserialize)]
 pub(crate) struct NystromProjector {
     /// Transform matrix: (n_landmarks × d_reduced) after SVD
+    #[serde(deserialize_with = "deserialize_transform")]
     pub(crate) transform: DMatrix<f32>,
     /// Landmark vectors for kernel computation
     pub(crate) landmarks: Vec<EntangledHVec>,
+}
+
+fn deserialize_transform<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> std::result::Result<DMatrix<f32>, D::Error> {
+    let (data, rows, columns): (Vec<f32>, usize, usize) = Deserialize::deserialize(deserializer)?;
+    if rows.checked_mul(columns) != Some(data.len()) {
+        return Err(serde::de::Error::custom(
+            "invalid projection matrix dimensions",
+        ));
+    }
+    Ok(DMatrix::from_vec(rows, columns, data))
 }
 
 impl NystromProjector {
