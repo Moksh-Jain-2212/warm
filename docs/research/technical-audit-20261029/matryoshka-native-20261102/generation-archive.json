@@ -1,0 +1,18 @@
+{
+  "directory": "/Volumes/A/.hms-bench-cache/matryoshka-native-20261102-22559c12",
+  "files_sha256": {
+    "bin/evaluate": "d57d8260475f8d03eb9e5518d1254455fa7a9478e9e06fcec482d548c7b7eebe",
+    "bin/generate": "ef78f4a4afbfe1c0699ecb85fe3ee000ad09d100afdaaaf44280d40e744b7ad9",
+    "generated/complete.json": "f9c50a5f991de1ff7db936b54e24a810ffc29db5bccf19b4c23959a1c7bd7e05",
+    "generated/corpus.f32": "8d97f1becfa987563838db9276f983339c0e0c293f463a978cd26f3f8e96a71f",
+    "generated/corpus.progress.json": "85244a03bac431920995fee09b88b7787694cfd770d011ead2346f08749ce3cf",
+    "generated/queries.f32": "83bf98219bd3936d9b1bf84b55b3b34d69c25f0725bb39c3b1dae9e14c2cb850",
+    "generated/queries.progress.json": "c8d61a8b6b1820d67b04d9038de344e633be91811c3d44f10e1b7b761c050bd8",
+    "generated/started.json": "7b92b43ddeed2a6681f16c86c33c544a3af0d4702914c27895222e22df7172db",
+    "generated/tokens.json": "b646dd8bfc9e070350fdd176e343004b237d1e6ce80622deea7ba33033444e0c",
+    "input.json": "87fb9d1e9c67885d40786a5102d604db5e352ba1d80727f155c27e2522cfccef"
+  },
+  "generation_plan_commit": "22559c12",
+  "retrieval_source_commit": "fa2a87be",
+  "large_arrays_and_corpus_are_local_only": true
+}
