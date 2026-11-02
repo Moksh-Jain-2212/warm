@@ -133,12 +133,21 @@ Vectra's BM25 option rebuilds a keyword engine per call and appends up to semant
 keyword hits after its semantic hits. Use semanticK=10, so its total is at most 20;
 retain the actual append order. WARM uses hybrid k=20, candidate_limit=100, equal
 lexical/vector weights and its existing RRF fusion (k=60). These are distinct native
-policies, not equivalent scoring implementations. Preserve returned IDs/scores/
+policies, not equivalent scoring implementations. A synthetic pinned-API check
+found that Vectra throws when too few records remain for BM25 consolidation after
+semantic selection, including empty eligibility. Preserve those per-query errors,
+count them against completion/qualification, and continue other declared cases
+without fallback or workaround. Error wall-times are separate from successful
+latency quantiles; cross-engine speed comparisons require the same successful
+declared query set, so a fast exception cannot qualify as a speedup. Preserve returned IDs/scores/
 route/order before context packing; validate Vectra text reads so swallowed file
 errors cannot look like legitimate empty lexical results.
 
 Apply the same context packer to both: at most 20 unique documents and 4096 tokens,
-using the already pinned Qwen tokenizer without inference. Pack full original document texts joined with two newlines, counting the actual
+using the already pinned Qwen tokenizer without inference. The cached old Node
+tokenizer binding cannot parse that tokenizer JSON; a persistent offline uv/Python
+`tokenizers==0.23.3` worker reads the unchanged file. Include its startup, process
+RSS and request/encoding time in the shared packing accounting. Pack full original document texts joined with two newlines, counting the actual
 concatenated payload, in rank order; stop at the first document that exceeds remaining tokens, and report
 unused budget. Do not silently increase semanticK, append extra WARM results or
 truncate only one engine to ten. Report pre-packing nDCG@10/recall@10 and packed
@@ -195,7 +204,9 @@ above the memory ceiling stop that phase and preserve partial artifacts as incom
 A projected duration beyond these limits requires a revised plan before any run.
 
 A latency advantage requires quality qualification plus >=10% lower median and p95
-than the matched exact vector baseline in all three repetitions, with p99 no more
+than the matched exact vector baseline in all three repetitions. Report ANN ratios
+against both Vectra exact and WARM exact; a WARM-over-Vectra claim must pass against
+Vectra, not only against WARM's own exact route, with p99 no more
 than 5% worse. Hybrid claims additionally require qrel nDCG/recall within 0.01 absolute
 of Vectra at the identical context budget. Otherwise report the measured tradeoff or
 Vectra win. No aggregate claim may hide small-store, filter, update or memory losses.
@@ -218,8 +229,11 @@ an equally durable commit. Include full-file rewrite/serialization costs and fil
 sizes rather than timing only in-memory mutation.
 
 Reuse existing crash harness/fault points where available. In isolated fixture
-stores, test interrupted writes before acknowledgement, after acknowledgement but
-before explicit WARM flush, and after flush; reopen in a distinct process and
+stores, the Node controller's explicit interruption boundaries are operation-return
+before controller acknowledgement, acknowledgement before explicit WARM flush, and
+after flush. The first is not an in-flight native append interruption; that boundary
+is unsupported by this harness and existing Rust fault tests are cited separately.
+At each supported boundary, reopen in a distinct process and
 validate all-or-none batch/old-or-new state or explicit corruption refusal. Preserve
 all failures, exact process stop points and logs. Do not claim deterministic timing
 of an uncontrolled kill or silently retry corruption; a process interruption test
