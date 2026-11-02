@@ -41,6 +41,11 @@
       "types": "./memory.d.ts",
       "require": "./memory.js",
       "import": "./memory.js"
+    },
+    "./vectra": {
+      "types": "./vectra.d.ts",
+      "require": "./vectra.js",
+      "import": "./vectra.js"
     }
   },
   "types": "index.d.ts",
@@ -66,7 +71,7 @@
     "version": "napi version",
     "test": "node --test tests/node/*.test.cjs",
     "test:package": "node scripts/test-package.cjs",
-    "test:types": "tsc --noEmit --strict --target es2022 --module nodenext --moduleResolution nodenext --types node tests/node/types.test.mts tests/node/memory-types.test.mts"
+    "test:types": "tsc --noEmit --strict --target es2022 --module nodenext --moduleResolution nodenext --types node tests/node/types.test.mts tests/node/memory-types.test.mts tests/node/vectra-types.test.mts"
   },
   "devDependencies": {
     "@napi-rs/cli": "^3.10.8",
@@ -99,6 +104,9 @@
     "semantic.d.ts",
     "memory.js",
     "memory.d.ts",
+    "vectra.js",
+    "vectra.d.ts",
+    "vectra-selector.js",
     "*.node",
     "README.md",
     "LICENSE",
@@ -106,6 +114,7 @@
     "docs/PRIVACY.md",
     "docs/INTEGRATION.md",
     "docs/evaluation.md",
-    "docs/memory-api/README.md"
+    "docs/memory-api/README.md",
+    "docs/integrations/vectra-migration.md"
   ]
 }

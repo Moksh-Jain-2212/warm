@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-02T07:06:44.219Z",
+  "adapterSourceCommit": "d7b7709ba0e557522220ec14626d70cecfb1eddc",
+  "nativeSourceCommit": "5154eb94a3350b0143f7e0923a5003fff912f077",
+  "nativeSourceParent": "99028e6561f57451d9777513bc773304ecafdba8",
+  "nativeBuild": {
+    "producerWorktree": "/Volumes/A/warm-vector-records",
+    "toolchain": "1.99.0",
+    "profile": "debug",
+    "features": [
+      "node-api",
+      "security"
+    ],
+    "reusedWithoutRebuilding": true
+  },
+  "localRuntime": {
+    "node": "v26.8.1",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "artifacts": {
+    "native": {
+      "path": "/Volumes/A/warm-vector-records/warm-sdk.darwin-arm64.node",
+      "sha256": "5dc63e8d321aaf4c2cb0815805a8ea7fdf3543226d0476bc0dccf0e147394c26"
+    },
+    "generatedTypes": {
+      "path": "/Volumes/A/warm-vector-records/index.d.ts",
+      "sha256": "2e50119c9b7aa12cbafc3cb605673f32eba8227980590ca630bb905682901b04",
+      "sourceMatchesNativeCommit": true
+    },
+    "retainedPackage": {
+      "path": "/Volumes/A/warm-vectra-adapter/target/vectra-adapter/warm-sdk-0.6.5.tgz",
+      "sha256": "2aedbf620972227a874d6a81972b32fc104b4ae8f7bb7f7f857437cf5329fa48",
+      "integrity": "sha512-mjoXJlEDs7MCgDTJKQ2tasCeOcpgIYUjeaZde+CbP4FtAvE6tirIFFBbMFNzsXMxP9tsua8sI3M1Z3d2+cdfEQ==",
+      "matchesTestedPackageIntegrity": true
+    }
+  },
+  "sourceSha256": {
+    "vectra.js": "8534e7d49f84cffc38c034c244913605d369500b7c4e8e2ac8620eafd8f6e0d1",
+    "vectra.d.ts": "a7e4efc874d4359c2cad427d59f4923feed8493348662ac772726517923152db",
+    "vectra-selector.js": "061a18189ba9bb91732603cb0b2510651909f247c40a4ee465712cb1df2722a9",
+    "package.json": "9a624961ff7044d96044c8f371cf897146f649e17516e615205db6f247f2d1bf",
+    "scripts/test-package.cjs": "ba3fc51abb8cb05f9f765c0df6f01530102529f56cfc78ff2e2b4f510308b841",
+    "docs/integrations/vectra-migration.md": "e22c53239b13206c4fd55f14bb345511b23a126e8b1490da4d9035ebdec89ef8",
+    "tests/node/vectra.test.cjs": "cd2680dcbffc7780a18fbceafb6afeb73f2f89db65956f7ffba14f9bb631dc7c",
+    "tests/node/vectra-selector.test.cjs": "14a72762c36df105001106e52f7d7815ee334a69703b62176fa862f34682018c",
+    "tests/node/vectra-types.test.mts": "b0a2aca224d1080e31ed5f06480480ef840361dd8844453df30f0e9bf821fd64",
+    "tests/node/helpers/vectra-scenario.cjs": "605b760427120887086802cc281d4658d3b74c8fb90341550fe398ca8009433f"
+  },
+  "validation": [
+    {
+      "command": "npm ci --offline --ignore-scripts --no-audit --no-fund",
+      "result": "passed",
+      "log": "npm-ci.log.gz"
+    },
+    {
+      "command": "node --test tests/node/vectra-selector.test.cjs tests/node/vectra.test.cjs",
+      "result": "passed",
+      "tests": 7,
+      "skipped": 0,
+      "log": "qualified-native-tests.log.gz",
+      "sourceCommit": "f1af798c5013f6a0b06b9a15769feb4105183633",
+      "note": "Full suite on the final native addon, before the subsequent metadata filename boundary refinement."
+    },
+    {
+      "command": "node --test --test-name-pattern='actual Vectra export' tests/node/vectra.test.cjs",
+      "result": "passed",
+      "tests": 1,
+      "skipped": 0,
+      "sourceCommit": "d7b7709ba0e557522220ec14626d70cecfb1eddc",
+      "log": "filename-boundary.log.gz",
+      "assertions": [
+        "Portable Vectra UUID metadata filenames import",
+        "Colon/ADS, separators, Unicode, Windows devices, trailing-dot/space and control rejection",
+        "Zero storage.readFile calls for every rejected filename",
+        "Original metadata and filter view survive import",
+        "Failed and partial destinations are quarantined"
+      ]
+    },
+    {
+      "command": "npm run test:types",
+      "result": "passed",
+      "log": "types.log.gz",
+      "note": "Passed against the generated native types; their hash was unchanged for the final native source."
+    },
+    {
+      "command": "npm_config_offline=true npm run test:package",
+      "result": "passed",
+      "log": "qualified-package.log.gz",
+      "assertions": [
+        "CJS and ESM exports",
+        "real native document query",
+        "real native filtered vector query",
+        "original f64 and signed-zero retrieval",
+        "indexed versus original metadata"
+      ]
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "logs": {
+    "qualified-native-tests.log": {
+      "sha256": "d45b3848d63048b644202fc12b8b988fd3cb84b88cd25e5b16ec69286965e386",
+      "gzipSha256": "949e159ac5c1852db66eb253f4c5b427863d169200381a040e763be24fc6a435",
+      "bytes": 861
+    },
+    "types.log": {
+      "sha256": "ca1306e1eb0dc3a419610f393800c04ef38f92c139a91e3e06247cd119c828f5",
+      "gzipSha256": "06985855a08e0d898dde8855fa2217c56db0897cd5d6c1940b0b5fcfbb74aef2",
+      "bytes": 221
+    },
+    "qualified-package.log": {
+      "sha256": "be5ce9ac68c826eb81d60da3aa2db86ccff6e93a96292528683fa01f3480923f",
+      "gzipSha256": "0d23b64e954e3c05e54dfcc93070666f7c67a38a3c5c48010e000c0da2f850a1",
+      "bytes": 287
+    },
+    "npm-ci.log": {
+      "sha256": "b3f6c2cbd4f7d789616c77816dde16bec152948e420def4f41de2e0b1bd25d77",
+      "gzipSha256": "15d7b95db944c7c03ca626c857684871bffa6a5b89e3623b8fc647abbe176859",
+      "bytes": 26
+    },
+    "qualified-pack.json": {
+      "sha256": "e7c38c09fb805deccf51a202adbdeca922a1caf4d509960ab7f40ded84b2695d",
+      "gzipSha256": "78adacf5e7b72af44095f1bd4c12038203224fe70f1185a06bf4079f4d5bb14c",
+      "bytes": 2308
+    },
+    "filename-boundary.log": {
+      "sha256": "5ee8fa78c94c8f950e2028114ae034db3cac11a5fbff5d05d05d7b98c75497f9",
+      "gzipSha256": "3bce4cd8afceb8a287ad7df7a56b405da594944373637c0580bda37c168ec72f",
+      "bytes": 235
+    }
+  },
+  "notes": [
+    "The follow-up receipt commit adds consumer package-integrity logging; packaged adapter production code is unchanged from adapterSourceCommit.",
+    "Native original-vector decoding uses checked fixed-width little-endian 8-byte chunks; the final addon and signed source were independently verified before repeating consumer checks.",
+    "The real addon was reused from its owner; this adapter worktree did not build Rust or run model inference, downloads, paid services, or performance measurements.",
+    "Vector-only migration profile; no fabricated text, hybrid parity, browser compatibility, or bit-identical Vectra scores is claimed.",
+    "Earlier preliminary logs/packages remain under target/vectra-adapter and are not the final qualification artifacts.",
+    "The prior feature qualification receipt and logs remain in before-filename-guard; the final package and focused source-import check were repeated after the filename refinement."
+  ],
+  "adapterFeatureCommit": "f1af798c5013f6a0b06b9a15769feb4105183633"
+}

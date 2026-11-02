@@ -1,0 +1,12 @@
+{
+  "package": "vectra",
+  "version": "0.15.0",
+  "pinnedCommit": "dec2dadc3bb158b06ac72fa9097bee729429a271",
+  "source": "https://github.com/Stevenic/vectra/tree/dec2dadc3bb158b06ac72fa9097bee729429a271",
+  "normalizedSha256": {
+    "src/ItemSelector.ts": "fe5f4d58b34b5c7c0f734c1e58580d574c0de43cf9bd6498889c280bf1f79bd8",
+    "src/LocalIndex.ts": "5b834953e5110fb784bea4830602a17ed844ca740502c1fab6d193e24165475e",
+    "src/storage/LocalFileStorage.ts": "ae98d482a02003c79a2944ff9c0e46522c3f452192dc2f50f3c10de031e47e55",
+    "lib/ItemSelector.js": "9407a00b12b8fdf10809e856e9917e67b312f2ef3ae5d57d24a43156a3d9bafd"
+  }
+}
