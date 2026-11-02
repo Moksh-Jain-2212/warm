@@ -10,7 +10,7 @@ import { fileURLToPath } from 'node:url'
 import { normalize, normalizeRows, scalarCosine, oracleTopK, liveState, auditExact, qrelMetrics, latency, FILTERS, metadata } from './oracle-vector.mjs'
 import { ARMS, timingSchedule, qualityGate, summarize } from './vector.mjs'
 import { parseProcesses, descendants, preflight, writeOnce, readJson, manifest, cloneStore, assertOwnedPath, runMonitored, sha256, exec } from './vector-receipts.mjs'
-import { provider, routeCheck } from './vector-worker.mjs'
+import { provider, routeCheck, scoreOrderPass } from './vector-worker.mjs'
 const require = createRequire(import.meta.url), HERE = path.dirname(fileURLToPath(import.meta.url))
 const sources = { vectraPath: process.env.VECTRA_TEST_PACKAGE, warmPath: process.env.WARM_TEST_PACKAGE, nativeAddon: process.env.WARM_TEST_ADDON }
 for (const [name, value] of Object.entries(sources)) assert.ok(value, `${name} test path is required; actual API checks must not silently skip`)
@@ -55,6 +55,33 @@ test('quality gates distinguish exact numerical ties from ANN misses and fail mi
   for (const repetition of [0, 1, 2]) assert.equal(schedule.filter(job => job.repetition === repetition && job.filter === 'all' && job.dataset === 'scifact')[0].arm, ARMS[repetition].name)
   assert.equal(routeCheck('warm', { mode: 'graph' }, 'all', 'filteredExact', 'prepared'), false)
   assert.equal(routeCheck('warm', { mode: 'graph' }, '10pct', 'filteredExact', 'prepared'), true)
+})
+
+test('quality requires complete unique expected queries on both sides and gates timed ANN results', () => {
+  const row = query => ({ query, hits: [{ ordinal: query }], correctness: true, eligibleCount: 1, oracleRecall: 1, qrel: { ndcg10: 1, recall10: 1, eligibleJudgments: 1 } })
+  const reference = [row(0), row(1)], expected = [0, 1]
+  assert.equal(qualityGate(reference, reference, false, expected).pass, true)
+  for (const invalid of [[row(0), row(0)], [row(0)], [row(0), row(2)]]) {
+    assert.equal(qualityGate(invalid, reference, false, expected).pass, false)
+    assert.equal(qualityGate(reference, invalid, false, expected).pass, false)
+  }
+  const zeroRecall = reference.map(item => ({ ...item, hits: [{ ordinal: item.query + 10 }], oracleRecall: 0 }))
+  assert.equal(qualityGate(zeroRecall, reference, false, expected).pass, false)
+  const missingOracle = reference.map(item => ({ ...item, oracleRecall: null }))
+  assert.equal(qualityGate(missingOracle, reference, false, expected).pass, false)
+  const missingRelevance = reference.map(item => ({ ...item, qrel: null }))
+  assert.equal(qualityGate(missingRelevance, reference, false, expected).pass, false)
+})
+
+test('graph results must retain descending returned and canonical score order', () => {
+  const scores = [1, .8, .8 - 1e-6, .5]
+  const hits = scores.map((score, ordinal) => ({ ordinal, score }))
+  assert.equal(scoreOrderPass(hits, ordinal => scores[ordinal]), true)
+  assert.equal(scoreOrderPass([...hits].reverse(), ordinal => scores[ordinal]), false)
+  const nearTie = [hits[0], { ...hits[2], score: .8000001 }, { ...hits[1], score: .8 }, hits[3]]
+  assert.equal(scoreOrderPass(nearTie, ordinal => scores[ordinal]), true)
+  const outside = [hits[0], { ...hits[3], score: .8000001 }, { ...hits[1], score: .8 }]
+  assert.equal(scoreOrderPass(outside, ordinal => scores[ordinal]), false)
 })
 
 test('resource ownership includes descendants while siblings remain external; admission and copies fail closed', async t => {
@@ -167,6 +194,42 @@ test('actual engines pass tiny oracle, filter, churn, separate-process reopen an
   await assert.rejects(imported.applyBatch([{ op: 'delete', id: received.id }, { op: 'insert', record: received }, { op: 'insert', record: received }]))
   assert.deepEqual(await imported.getItem(received.id), retrieved)
   assert.equal(await sha256(nativeAddon), await sha256(sources.nativeAddon))
+})
+
+test('summary rejects poor timed graph quality and incomplete static or lifecycle identities', async t => {
+  const root = await temporary(t), dataset = { name: 'scifact', rows: 4096, queryCount: 2 }
+  const build = async (name, defect) => {
+    const dir = path.join(root, name); await fs.mkdir(dir)
+    await writeOnce(path.join(dir, 'freeze.json'), { datasets: [dataset] })
+    const receipts = { preparation: [], measurement: [] }
+    const add = async (phase, arm, action, rows, repetition) => {
+      const output = path.join(dir, `${phase}-${receipts[phase].length}.ndjson`)
+      await fs.writeFile(output, rows.map(row => JSON.stringify(row)).join('\n') + '\n')
+      receipts[phase].push({ job: { dataset, arm, engine: arm.engine, action, repetition, output } })
+    }
+    const row = (query, filter, extra = {}) => ({ type: 'query', query, filter, hits: [{ ordinal: query }], correctness: true, eligibleCount: 1, oracleRecall: 1, qrel: { ndcg10: 1, recall10: 1, eligibleJudgments: 1 }, route: 'fullGraph', ...extra })
+    for (const arm of ARMS) {
+      const staticRows = FILTERS.flatMap(filter => [0, 1].map(query => row(query, filter.name)))
+      if (defect === 'static-duplicate' && arm.name === 'warm-graph-128') staticRows[1] = { ...staticRows[0] }
+      await add('preparation', arm, 'quality', staticRows)
+      const lifecycle = FILTERS.flatMap(filter => ['before-maintenance', 'after-maintenance', 'after-flush-separate-process-reopen-and-maintenance'].flatMap(phase => [0, 1].map(query => row(query, filter.name, { phase }))))
+      if (defect === 'lifecycle-duplicate' && arm.name === 'warm-exact') lifecycle[1] = { ...lifecycle[0] }
+      await add('measurement', arm, 'churn', lifecycle)
+      for (let repetition = 0; repetition < 3; repetition++) {
+        const timing = FILTERS.flatMap(filter => (filter.name === 'all' ? [0, 1] : [0]).map(query => row(query, filter.name, { role: 'timing', repetition, elapsedMs: arm.name === 'vectra-exact' ? 2 : 1 })))
+        if (defect === 'timed-zero' && arm.name === 'warm-graph-128' && repetition === 1) for (const item of timing.filter(item => item.filter === 'all')) { item.hits = [{ ordinal: item.query + 10 }]; item.oracleRecall = 0 }
+        await add('measurement', arm, 'timing', timing, repetition)
+      }
+    }
+    for (const phase of ['preparation', 'measurement']) await writeOnce(path.join(dir, `${phase}-finished.json`), { complete: true, receipts: receipts[phase] })
+    return summarize(dir)
+  }
+  const valid = await build('valid', null); assert.equal(valid.globallyComplete, true); assert.equal(valid.performanceClaimPermitted, true)
+  const timed = await build('timed', 'timed-zero'); assert.equal(timed.globallyComplete, false)
+  assert.equal(timed.timing.find(item => item.arm === 'warm-graph-128' && item.filter === 'all' && item.repetition === 1).quality.pass, false)
+  assert.equal(timed.advantage.find(item => item.arm === 'warm-graph-128' && item.filter === 'all').qualified, false)
+  assert.equal((await build('static', 'static-duplicate')).globallyComplete, false)
+  assert.equal((await build('lifecycle', 'lifecycle-duplicate')).globallyComplete, false)
 })
 
 test('partial summary retains errors and cannot claim an advantage', async t => {

@@ -2,7 +2,7 @@
 
 This is an implementation of the preregistered [comparison plan](../../../docs/research/technical-audit-20261029/vectra-comparison-20261102/PLAN.md), not a benchmark result. It uses the public Vectra 0.15.0 and WARM migration APIs, existing numeric embeddings, and an independent f64 cosine oracle. It makes no model calls. Do not execute either study phase until the coordinator has reviewed the final source, workload, fixed budgets, and frozen receipt and supplied the matching grant.
 
-**Stopping checkpoint: not qualified for freezing or study execution.** Independent review identified three unresolved correctness blockers: timed graph results need per-repetition recall/relevance gates against the matched exact outputs; static/lifecycle rows and references need unique complete expected query IDs rather than counts alone; and full-graph results need route-independent descending-score validation. The existing synthetic suite does not establish those missing checks. They remain intentionally unresolved at the requested stopping point. No study freeze, input scoring, timing or model run has occurred. The commands and intended acceptance rules below describe the pending harness, not authorization or evidence that those rules are fully implemented.
+**Preparation only.** Timed results are gated per repetition against matched exact and oracle quality, result and reference sets must have every expected query exactly once, and all routes check score order. Synthetic regressions cover these checks. Freeze and execution remain contingent on integrated measurement-accounting review, a final addon build and the protocol admission gates. No study freeze, input scoring, timing or model run has occurred.
 
 ## Development verification
 

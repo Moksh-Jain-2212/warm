@@ -13,6 +13,10 @@ const now = () => performance.now()
 const rss = () => process.memoryUsage().rss
 const send = message => process.send?.(message)
 
+export function scoreOrderPass(hits, score, epsilon = 2e-6) {
+  return hits.every((hit, i) => i === 0 || (hits[i - 1].score >= hit.score && score(hits[i - 1].ordinal) + epsilon >= score(hit.ordinal)))
+}
+
 export async function loadDataset(spec) {
   const [corpus, queryBytes] = await Promise.all([fs.readFile(spec.corpus), fs.readFile(spec.queries)])
   assert.equal(corpus.length >= spec.rows * spec.dimensions * 4, true)
@@ -205,11 +209,12 @@ export async function runWorker(job) {
       }
     } catch (failure) { payload = { pass: false, error: safeError(failure) } }
     const score = ordinal => ordinal === undefined || !state[ordinal] ? NaN : scalarCosine(data.row(state[ordinal].row), vector)
+    const orderPass = scoreOrderPass(hits, score)
     const exact = job.arm.mode === 'exact' || found.route !== 'fullGraph'
     const audit = exact ? auditExact(hits, expected, score, new Set([...ids].map(id => data.ordinal.get(id)))) : null
     const routePass = routeCheck(job.engine, job.arm, filter.name, found.route, phase)
     const metrics = stateName === 'baseline' && data.qrels.has(data.queryIds[query]) ? qrelMetrics(hits.map(hit => hit.id), data.qrels.get(data.queryIds[query]), ids) : null
-    await append(job.output, { type: 'query', role, phase, query, queryId: data.queryIds[query], state: stateName, filter: filter.name, eligibleCount: expected.eligibleCount, elapsedMs, hits, route: found.route, routeEvidence: found.routeEvidence, diagnostics: found.diagnostics, routePass, payload, payloadHash: hashValue(found.hits), audit, oracleRecall: recallAtK(hits.map(hit => hit.ordinal), expected.hits.map(hit => hit.ordinal)), qrel: metrics, correctness: payload.pass && routePass && (audit?.pass ?? (hits.length === Math.min(10, expected.eligibleCount) && new Set(hits.map(hit => hit.id)).size === hits.length)), rssBytes: rss() })
+    await append(job.output, { type: 'query', role, phase, query, queryId: data.queryIds[query], state: stateName, filter: filter.name, eligibleCount: expected.eligibleCount, elapsedMs, hits, route: found.route, routeEvidence: found.routeEvidence, diagnostics: found.diagnostics, routePass, orderPass, payload, payloadHash: hashValue(found.hits), audit, oracleRecall: recallAtK(hits.map(hit => hit.ordinal), expected.hits.map(hit => hit.ordinal)), qrel: metrics, correctness: payload.pass && routePass && orderPass && (audit?.pass ?? (hits.length === Math.min(10, expected.eligibleCount) && new Set(hits.map(hit => hit.id)).size === hits.length)), rssBytes: rss() })
   }
   if (job.action === 'cold') {
     await recordQuery(0, FILTERS[0], 'baseline', 'cold-first-exact-including-actual-lazy-initialization', 'cold')

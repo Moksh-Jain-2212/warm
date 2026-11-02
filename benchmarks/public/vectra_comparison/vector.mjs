@@ -181,20 +181,27 @@ export async function runPhase(root, phase, grantPath) {
 }
 async function records(file) { return (await fs.readFile(file, 'utf8')).trim().split('\n').filter(Boolean).map(line => JSON.parse(line)) }
 const mean = values => values.length ? values.reduce((a, b) => a + b, 0) / values.length : null
-export function qualityGate(rows, exactRows, exact = false) {
+export function qualityGate(rows, exactRows, exact = false, expectedQueries = exactRows.map(row => row.query)) {
+  const identities = items => {
+    const ids = items.map(row => row.query), expected = new Set(expectedQueries)
+    return expected.size === expectedQueries.length && ids.length === expected.size && new Set(ids).size === ids.length && ids.every(id => expected.has(id))
+  }
+  const identitiesPass = identities(rows) && identities(exactRows)
   const reference = new Map(exactRows.map(row => [row.query, row]))
   const recall = [], oracle = [], ndcg = [], qrel = []
-  let missingReference = 0
+  let missingReference = 0, missingMetrics = 0
   for (const row of rows) {
     const referenceRow = reference.get(row.query)
-    if (!referenceRow || referenceRow.error || row.error) { missingReference++; continue }
+    if (!referenceRow || referenceRow.error || !referenceRow.correctness || row.error || row.eligibleCount !== referenceRow.eligibleCount) { missingReference++; continue }
     const value = recallAtK(row.hits.map(hit => hit.ordinal), referenceRow.hits.map(hit => hit.ordinal)); if (value !== null) recall.push(value)
-    if (row.oracleRecall !== null) oracle.push(row.oracleRecall)
+    if (Number.isFinite(row.oracleRecall)) oracle.push(row.oracleRecall)
+    else if (referenceRow.eligibleCount > 0) missingMetrics++
+    if (referenceRow.qrel?.eligibleJudgments > 0 && (!Number.isFinite(row.qrel?.ndcg10) || !Number.isFinite(row.qrel?.recall10))) missingMetrics++
     if (row.qrel?.ndcg10 !== null && row.qrel?.ndcg10 !== undefined && referenceRow.qrel?.ndcg10 !== null && referenceRow.qrel?.ndcg10 !== undefined) { ndcg.push(row.qrel.ndcg10 - referenceRow.qrel.ndcg10); qrel.push(row.qrel.recall10 - referenceRow.qrel.recall10) }
   }
-  const result = { queries: rows.length, emptyEligibleQueries: rows.filter(row => row.eligibleCount === 0).length, missingReference, meanRecallWarmExact: mean(recall), worstRecallWarmExact: recall.length ? Math.min(...recall) : null, meanRecallOracle: mean(oracle), worstRecallOracle: oracle.length ? Math.min(...oracle) : null, meanNdcgDelta: mean(ndcg), meanQrelRecallDelta: mean(qrel), queriesWithEligibleJudgments: ndcg.length, queriesWithoutEligibleJudgments: rows.filter(row => row.qrel?.eligibleJudgments === 0).length }
+  const result = { queries: rows.length, emptyEligibleQueries: rows.filter(row => row.eligibleCount === 0).length, identitiesPass, missingReference, missingMetrics, meanRecallWarmExact: mean(recall), worstRecallWarmExact: recall.length ? Math.min(...recall) : null, meanRecallOracle: mean(oracle), worstRecallOracle: oracle.length ? Math.min(...oracle) : null, meanNdcgDelta: mean(ndcg), meanQrelRecallDelta: mean(qrel), queriesWithEligibleJudgments: ndcg.length, queriesWithoutEligibleJudgments: rows.filter(row => row.qrel?.eligibleJudgments === 0).length }
   result.basis = exact ? 'Exact per-query score and cutoff-boundary audit; recall differences within accepted ties are descriptive.' : 'ANN recall and relevance thresholds against full exact and independent oracle.'
-  result.pass = rows.length > 0 && !missingReference && rows.every(row => row.correctness) && (exact || ((!recall.length || (result.meanRecallWarmExact >= .99 && result.worstRecallWarmExact >= .90 && result.meanRecallOracle >= .99 && result.worstRecallOracle >= .90)) && (!ndcg.length || (result.meanNdcgDelta >= -.01 && result.meanQrelRecallDelta >= -.01))))
+  result.pass = rows.length > 0 && identitiesPass && !missingReference && !missingMetrics && rows.every(row => row.correctness) && (exact || ((!recall.length || (result.meanRecallWarmExact >= .99 && result.worstRecallWarmExact >= .90 && result.meanRecallOracle >= .99 && result.worstRecallOracle >= .90)) && (!ndcg.length || (result.meanNdcgDelta >= -.01 && result.meanQrelRecallDelta >= -.01))))
   return result
 }
 export async function summarize(root) {
@@ -214,14 +221,13 @@ export async function summarize(root) {
     const staticRows = selected.filter(row => row.action === 'quality')
     const exact = queries.filter(row => row.dataset === dataset.name && row.filter === filter.name && row.arm === 'warm-exact' && row.action === 'quality')
     const exactRoute = arm.mode === 'exact' || filter.name !== 'all'
-    const gate = qualityGate(staticRows, exact, exactRoute)
-    gate.pass &&= staticRows.length === dataset.queryCount
+    const allQueries = Array.from({ length: dataset.queryCount }, (_, i) => i)
+    const gate = qualityGate(staticRows, exact, exactRoute, allQueries)
     quality.push({ dataset: dataset.name, filter: filter.name, arm: arm.name, ...gate, worstQueries: [...staticRows].sort((a, b) => (a.oracleRecall ?? 1) - (b.oracleRecall ?? 1)).slice(0, 20).map(row => ({ query: row.query, oracleRecall: row.oracleRecall, hits: row.hits, audit: row.audit, error: row.error })) })
     for (const phase of ['before-maintenance', 'after-maintenance', 'after-flush-separate-process-reopen-and-maintenance']) {
       const rows = selected.filter(row => row.phase === phase)
       const references = queries.filter(row => row.dataset === dataset.name && row.filter === filter.name && row.arm === 'warm-exact' && row.phase === phase)
-      const lifecycle = qualityGate(rows, references, exactRoute || rows.every(row => row.route !== 'fullGraph'))
-      lifecycle.pass &&= rows.length === dataset.queryCount
+      const lifecycle = qualityGate(rows, references, exactRoute || rows.every(row => row.route !== 'fullGraph'), allQueries)
       lifecycleQuality.push({ dataset: dataset.name, filter: filter.name, arm: arm.name, phase, ...lifecycle })
     }
     const samples = []
@@ -230,19 +236,21 @@ export async function summarize(root) {
       const values = successful.map(row => row.elapsedMs); samples.push(...values)
       const stride = filter.name === 'all' ? 1 : dataset.name === 'scifact' ? 3 : 10
       const expectedQueries = Array.from({ length: Math.ceil(dataset.queryCount / stride) }, (_, i) => i * stride)
-      timing.push({ dataset: dataset.name, filter: filter.name, arm: arm.name, repetition, ...latency(values), expectedQueries, queryIds: successful.map(row => row.query), errors: rows.filter(row => row.error).map(row => ({ query: row.query, elapsedMs: row.elapsedMs, error: row.error })), correctness: rows.every(row => row.correctness) && JSON.stringify(rows.map(row => row.query)) === JSON.stringify(expectedQueries), routeCounts: Object.fromEntries([...new Set(rows.map(row => row.route))].map(route => [route, rows.filter(row => row.route === route).length])) })
+      const references = queries.filter(row => row.dataset === dataset.name && row.filter === filter.name && row.arm === 'warm-exact' && row.role === 'timing' && row.repetition === repetition)
+      const quality = qualityGate(rows, references, exactRoute, expectedQueries)
+      timing.push({ dataset: dataset.name, filter: filter.name, arm: arm.name, repetition, quality, ...latency(values), expectedQueries, queryIds: successful.map(row => row.query), errors: rows.filter(row => row.error).map(row => ({ query: row.query, elapsedMs: row.elapsedMs, error: row.error })), correctness: rows.every(row => row.correctness) && JSON.stringify(rows.map(row => row.query)) === JSON.stringify(expectedQueries), routeCounts: Object.fromEntries([...new Set(rows.map(row => row.route))].map(route => [route, rows.filter(row => row.route === route).length])) })
     }
     timing.push({ dataset: dataset.name, filter: filter.name, arm: arm.name, repetition: 'pooled', ...latency(samples) })
   }
   const advantage = []
-  const globallyComplete = phases.length === 2 && phases.every(phase => phase.complete) && quality.every(row => row.pass) && lifecycleQuality.every(row => row.pass) && timing.filter(row => row.repetition !== 'pooled').every(row => row.correctness) && queries.every(row => row.correctness) && other.filter(row => ['graph-unavailable', 'crash-recovery'].includes(row.type)).every(row => row.pass) && !other.some(row => row.type === 'worker-error')
+  const globallyComplete = phases.length === 2 && phases.every(phase => phase.complete) && quality.every(row => row.pass) && lifecycleQuality.every(row => row.pass) && timing.filter(row => row.repetition !== 'pooled').every(row => row.correctness && row.quality.pass) && queries.every(row => row.correctness) && other.filter(row => ['graph-unavailable', 'crash-recovery'].includes(row.type)).every(row => row.pass) && !other.some(row => row.type === 'worker-error')
   for (const point of quality.filter(point => point.arm !== 'vectra-exact')) for (const baseline of ['vectra-exact', 'warm-exact'].filter(name => name !== point.arm)) {
     const comparisons = []
     for (let repetition = 0; repetition < 3; repetition++) {
       const match = item => item.dataset === point.dataset && item.filter === point.filter && item.repetition === repetition
       const arm = timing.find(item => match(item) && item.arm === point.arm), base = timing.find(item => match(item) && item.arm === baseline)
       const identicalSuccessfulQueries = JSON.stringify(arm.queryIds) === JSON.stringify(base.queryIds) && arm.count > 0
-      comparisons.push({ repetition, identicalSuccessfulQueries, p50Ratio: arm.p50 / base.p50, p95Ratio: arm.p95 / base.p95, p99Ratio: arm.p99 / base.p99, pass: identicalSuccessfulQueries && !arm.errors.length && !base.errors.length && arm.correctness && base.correctness && arm.p50 <= .9 * base.p50 && arm.p95 <= .9 * base.p95 && arm.p99 <= 1.05 * base.p99 })
+      comparisons.push({ repetition, identicalSuccessfulQueries, p50Ratio: arm.p50 / base.p50, p95Ratio: arm.p95 / base.p95, p99Ratio: arm.p99 / base.p99, pass: identicalSuccessfulQueries && !arm.errors.length && !base.errors.length && arm.correctness && base.correctness && arm.quality.pass && base.quality.pass && arm.p50 <= .9 * base.p50 && arm.p95 <= .9 * base.p95 && arm.p99 <= 1.05 * base.p99 })
     }
     advantage.push({ dataset: point.dataset, filter: point.filter, arm: point.arm, baseline, comparisons, qualified: globallyComplete && point.pass && comparisons.every(item => item.pass), interpretation: 'All three matched repetitions required; no best-run selection.' })
   }
