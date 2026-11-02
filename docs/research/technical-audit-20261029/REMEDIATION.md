@@ -2193,7 +2193,9 @@ repeated scans of already explored two-hop adjacency lists, and rejects invalid
 graph row IDs. Stale graph searches use the generation-covered change ledger
 when available, retain the full-scan fallback, and recheck store identity after
 graph traversal. Embedding normalization validates dimensions before allocating
-and no longer copies its input. These changes have not been benchmarked.
+and no longer copies its input. Metadata-only vector-record reads borrow the
+encoded vector while preserving envelope validation. These changes have not
+been benchmarked.
 
 The all-features library compile check passed. Regression cases were added for
 the changed search and normalization paths; the user asked that tests and

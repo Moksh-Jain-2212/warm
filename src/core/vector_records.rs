@@ -126,11 +126,19 @@ pub struct VectorRecordQueryResult {
 #[error("vector record revision conflict: the store instance or revision changed")]
 pub struct VectorRecordRevisionConflict;
 
-#[derive(Serialize, Deserialize)]
-#[serde(deny_unknown_fields)]
+#[derive(Serialize)]
 struct Envelope {
     version: u32,
     f64le: String,
+    metadata: Value,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct BorrowedEnvelope<'a> {
+    version: u32,
+    #[serde(borrow)]
+    f64le: &'a str,
     metadata: Value,
 }
 
@@ -138,7 +146,7 @@ pub(crate) fn is_record(document: &StoredDocument) -> bool {
     document.vector_record
 }
 
-fn envelope(document: &StoredDocument) -> Result<Envelope> {
+fn envelope(document: &StoredDocument) -> Result<BorrowedEnvelope<'_>> {
     ensure!(document.version == VERSION, "invalid vector record version");
     ensure!(
         document
@@ -148,12 +156,11 @@ fn envelope(document: &StoredDocument) -> Result<Envelope> {
         "invalid vector record envelope"
     );
     super::documents::serialized_size(&document.metadata, MAX_RECORD_BYTES)?;
-    let envelope: Envelope = serde_json::from_value(
+    let envelope = BorrowedEnvelope::deserialize(
         document
             .metadata
             .get(ENVELOPE)
-            .context("missing vector record envelope")?
-            .clone(),
+            .context("missing vector record envelope")?,
     )?;
     ensure!(
         envelope.version == 1 && envelope.metadata.is_object(),
@@ -300,4 +307,69 @@ pub(crate) fn validate(
         "invalid vector-only record shape or normalized embedding"
     );
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use serde_json::json;
+
+    #[test]
+    fn record_reads_validate_envelopes_and_preserve_original_vectors() {
+        let input = VectorRecordInput {
+            id: "record".into(),
+            vector: vec![1.0, -0.0],
+            metadata: json!({"nested": {"active": true}}),
+        };
+        let document = prepare(input.clone(), 64, 2).unwrap();
+        let without_vector = read(&document, false).unwrap();
+        assert_eq!(without_vector.id, input.id);
+        assert_eq!(without_vector.metadata, input.metadata);
+        assert!(without_vector.vector.is_none());
+        let with_vector = read(&document, true).unwrap();
+        assert_eq!(with_vector.metadata, input.metadata);
+        assert_eq!(
+            with_vector
+                .vector
+                .unwrap()
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>(),
+            input
+                .vector
+                .iter()
+                .map(|value| value.to_bits())
+                .collect::<Vec<_>>()
+        );
+
+        let mut invalid = Vec::new();
+        let mut missing = document.clone();
+        missing.metadata[ENVELOPE]
+            .as_object_mut()
+            .unwrap()
+            .remove("f64le");
+        invalid.push(missing);
+        let mut extra = document.clone();
+        extra.metadata[ENVELOPE]["extra"] = json!(true);
+        invalid.push(extra);
+        for version in [json!(0), json!(2), json!(1.0), json!("1")] {
+            let mut bad = document.clone();
+            bad.metadata[ENVELOPE]["version"] = version;
+            invalid.push(bad);
+        }
+        let mut wrong_vector_type = document.clone();
+        wrong_vector_type.metadata[ENVELOPE]["f64le"] = json!(42);
+        invalid.push(wrong_vector_type);
+        let mut wrong_metadata_type = document.clone();
+        wrong_metadata_type.metadata[ENVELOPE]["metadata"] = json!([]);
+        invalid.push(wrong_metadata_type);
+        for bad in invalid {
+            assert!(read(&bad, false).is_err());
+            assert!(read(&bad, true).is_err());
+        }
+        let mut bad_encoding = document;
+        bad_encoding.metadata[ENVELOPE]["f64le"] = json!("AAAA");
+        assert!(read(&bad_encoding, false).is_ok());
+        assert!(read(&bad_encoding, true).is_err());
+    }
 }
