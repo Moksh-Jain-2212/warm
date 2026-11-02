@@ -67,6 +67,8 @@ def summarize():
                                                 delta_ticks=cpu[-1]["steal_ticks"] - cpu[0]["steal_ticks"])
     (HERE / "summary.json").write_text(json.dumps(summary, indent=2) + "\n")
     print(json.dumps(summary, indent=2))
+    if not summary["confirmation_acceptance"]:
+        raise SystemExit(1)
 
 
 if __name__ == "__main__":
