@@ -2290,3 +2290,11 @@ The freeze itself scored no study queries. Full post-freeze verification passed;
 neither study phase has been started. An unrelated Cargo test is active on the
 shared host, so no quiet-window admission or timing preflight has been attempted. The measured performance advantage
 remains unproven, and existing failed research results are retained.
+
+After the unrelated Cargo workload cleared, the single no-retry preparation
+phase was admitted against the frozen hash at 09:06:38 UTC on 2026-11-02. Its
+exclusive start marker, controller log, resource observations and eventual finish
+receipt are in the frozen directory. Its two-hour ceiling includes verification;
+no measurement phase or timing preflight has started. The declared workload is
+large and its completion within the ceiling is not established. Preserve any
+partial result or failure; do not restart or retune the phase.
