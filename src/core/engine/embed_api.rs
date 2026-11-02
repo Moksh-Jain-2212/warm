@@ -11,7 +11,7 @@ use std::sync::Arc;
 
 use super::WarmCore;
 use crate::core::config::WarmConfig;
-use crate::core::documents::{self, DocumentInput, SearchOptions};
+use crate::core::documents::{self, DocumentInput, IngestOptions, SearchOptions};
 use crate::core::embed::Embedder;
 use crate::core::encoding::TextEncoder;
 use crate::core::entangled::EntangledHVec;
@@ -95,7 +95,11 @@ impl WarmCore {
     }
 
     /// Fills `embeddings` of every input that has none, embedding all their chunks in one pass.
-    pub(super) fn embed_document_inputs(&self, inputs: &mut [DocumentInput]) -> Result<()> {
+    pub(super) fn embed_document_inputs(
+        &self,
+        inputs: &mut [DocumentInput],
+        options: &IngestOptions,
+    ) -> Result<()> {
         let Some(embedder) = self.text_embedder() else {
             return Ok(());
         };
@@ -112,9 +116,9 @@ impl WarmCore {
             }
             let start = texts.len();
             texts.extend(
-                documents::chunk_document(input)?
+                documents::chunk_spans_with(input, options)?
                     .into_iter()
-                    .map(|c| c.text),
+                    .map(|(start, end)| input.text[start as usize..end as usize].to_owned()),
             );
             spans.push(Some(start..texts.len()));
         }

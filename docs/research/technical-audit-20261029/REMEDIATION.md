@@ -2222,3 +2222,14 @@ final gates, then evaluate all 1,000 frozen queries through the public API at
 ef=128, 256, and 512, recording actual routes, recall, and remaining misses.
 The earlier local 100% diagnostic is not a frozen study result and has not been
 verified end to end or on independent data.
+
+### Whole-document model ingest follow-up (2026-11-02)
+
+Installed local embedders and model stages previously split inputs with the default
+chunker even when whole-document ingest requested a single lexical chunk. This could
+reject valid articles at the ordinary chunk limits or produce multiple embeddings for
+one stored chunk. Both paths now use the requested ingest spans; batch model stages
+reuse the spans validated for the transaction. Regressions cover single and batch
+ingest with local embedders and model stages. The offline, locked all-features
+library compile check passed; the regressions have not been run because tests remain
+paused.

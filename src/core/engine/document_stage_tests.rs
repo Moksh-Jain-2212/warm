@@ -7,7 +7,37 @@ use anyhow::Result;
 use serde_json::json;
 
 use super::WarmCore;
+use crate::core::documents::{EncodeMode, IngestOptions, LexicalQuery};
 use crate::core::models::ModelStages;
+
+#[test]
+fn model_stages_use_whole_document_spans_for_single_and_batch_ingest() -> Result<()> {
+    let directory = tempfile::tempdir()?;
+    let core = WarmCore::new(1024, Some(directory.path().display().to_string()), None)?;
+    core.set_model_stages(Some(Arc::new(ModelStages::default())))?;
+    let options = IngestOptions {
+        encode: EncodeMode::Lexical,
+        positions: true,
+        whole_document: true,
+        ..Default::default()
+    };
+    let text = "harbor lantern ".repeat(5000);
+    let input = |id| {
+        serde_json::from_value(json!({
+            "id": id, "text": text, "chunkWords": 1, "overlapWords": 0
+        }))
+    };
+    assert_eq!(core.memorize_document_with(input("single")?, &options)?, 1);
+    assert_eq!(
+        core.memorize_documents_with(vec![input("batch")?], &options)?,
+        vec![1]
+    );
+    assert_eq!(
+        core.count_lexical(&LexicalQuery::parse("\"harbor lantern\"")?)?,
+        2
+    );
+    Ok(())
+}
 
 #[test]
 fn invalid_stage_installation_preserves_the_active_search_pipeline() -> Result<()> {

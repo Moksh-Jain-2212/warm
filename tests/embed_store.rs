@@ -8,6 +8,7 @@
 
 use std::sync::Arc;
 
+use writerslogic_warm::core::documents::{EncodeMode, IngestOptions};
 use writerslogic_warm::core::embed::testing::{write_tiny, WORDS};
 use writerslogic_warm::core::embed::{EmbedLimits, EmbedOptions, Embedder, Pooling, Quantization};
 use writerslogic_warm::core::encoding::TextEncoder;
@@ -58,6 +59,41 @@ fn config(path: &std::path::Path, sha: &str) -> WarmConfig {
         }),
         ..WarmConfig::default()
     }
+}
+
+#[test]
+fn whole_document_embedding_uses_the_stored_span_for_single_and_batch() {
+    let dir = tempfile::tempdir().unwrap();
+    let (pack, sha) = write_tiny(dir.path(), Quantization::F32, Pooling::Cls);
+    let core = WarmCore::new(
+        1024,
+        Some(dir.path().join("whole").display().to_string()),
+        Some(config(&pack, &sha)),
+    )
+    .unwrap();
+    let options = IngestOptions {
+        encode: EncodeMode::Lexical,
+        positions: true,
+        whole_document: true,
+        ..Default::default()
+    };
+    let make_input = |id| {
+        let mut document = input(id, "cat sat on the mat");
+        document.chunk_words = Some(1);
+        document.overlap_words = Some(0);
+        document
+    };
+    assert_eq!(
+        core.memorize_document_with(make_input("single"), &options)
+            .unwrap(),
+        1
+    );
+    assert_eq!(
+        core.memorize_documents_with(vec![make_input("batch")], &options)
+            .unwrap(),
+        vec![1]
+    );
+    assert_eq!(core.document_embedding_count(), 2);
 }
 
 #[test]

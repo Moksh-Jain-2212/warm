@@ -51,7 +51,7 @@ impl WarmCore {
         #[cfg(feature = "local-embed")]
         let input = {
             let mut input = input;
-            self.embed_document_inputs(std::slice::from_mut(&mut input))?;
+            self.embed_document_inputs(std::slice::from_mut(&mut input), options)?;
             input
         };
         // The store's kept interner, as batches use: a single write otherwise stems and copies
@@ -122,7 +122,7 @@ impl WarmCore {
         #[cfg(feature = "local-embed")]
         let inputs = {
             let mut inputs = inputs;
-            self.embed_document_inputs(&mut inputs)?;
+            self.embed_document_inputs(&mut inputs, options)?;
             inputs
         };
         let mutations = inputs
@@ -135,7 +135,7 @@ impl WarmCore {
                     #[cfg(feature = "local-models")]
                     if let Some(stages) = stages.as_deref() {
                         return self
-                            .prepare_document_with_models(input, stages, options)
+                            .prepare_document_spans_with_models(input, spans, stages, options)
                             .map(|document| Mutation::Document(Arc::new(document)));
                     }
                     documents::prepare_spans(
@@ -832,13 +832,24 @@ impl WarmCore {
 
     fn prepare_document_with_models(
         &self,
-        mut input: DocumentInput,
+        input: DocumentInput,
         stages: &crate::core::models::ModelStages,
         options: &IngestOptions,
     ) -> Result<documents::StoredDocument> {
-        let chunks: Vec<String> = documents::chunk_document(&input)?
-            .into_iter()
-            .map(|c| c.text)
+        let spans = documents::chunk_spans_with(&input, options)?;
+        self.prepare_document_spans_with_models(input, spans, stages, options)
+    }
+
+    fn prepare_document_spans_with_models(
+        &self,
+        mut input: DocumentInput,
+        spans: Vec<(u32, u32)>,
+        stages: &crate::core::models::ModelStages,
+        options: &IngestOptions,
+    ) -> Result<documents::StoredDocument> {
+        let chunks: Vec<String> = spans
+            .iter()
+            .map(|&(start, end)| input.text[start as usize..end as usize].to_owned())
             .collect();
         let keys = stages.fact_keys(&chunks)?;
         if let (Some(embedder), None) = (&stages.embedder, &input.embeddings) {
@@ -851,8 +862,9 @@ impl WarmCore {
                     .collect(),
             );
         }
-        documents::prepare_with_options(
+        documents::prepare_spans(
             input,
+            spans,
             self.dimensions,
             self.config.embedding_space.as_ref().map(|s| s.dimensions),
             keys.as_deref(),
