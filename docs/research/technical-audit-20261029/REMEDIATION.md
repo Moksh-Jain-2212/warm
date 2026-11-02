@@ -1944,6 +1944,14 @@ No paid development API/cloud calls, tuning or model downloads are authorized.
 The core Node npm rename to `warm-sdk`, originally prepared as signed commit
 `bfcbb708f683823a851f05c783529dd86795cdc3`, is now integrated with the new Node
 vector API and temporal workflow for final qualification. It has not been published.
+The integrated native macOS arm64 gate passes 16 default Node tests; its three optional
+embedding tests also pass in a separate addon built from the checked-in tiny fixture.
+Types, packed CommonJS/ESM retrieval and an offline JavaScript-only root plus native
+platform-package install pass. The coordinator verified all eight retained artifact
+hashes and byte-identical production/package sources. See
+[Node qualification](agent-memory-integration-20261102/node-final-verification.json)
+and [independent verification](agent-memory-integration-20261102/node-independent-validation.json).
+The other seven platform packages still require the hosted matrix.
 
 Read-only preparation found that the existing `Memory` Node wrapper already supports
 the complete temporal workflow. Use explicit `latest-by-subject`, stable distinct fact
@@ -2012,11 +2020,13 @@ plus strict scoped Clippy and TypeScript checks. The combined local feature gate
 [integrated validation](agent-memory-integration-20261102/rust-validation.json) retains
 the commands, source manifest and compressed logs. Final hosted CI remains required.
 
-Fresh local generation uses all 5,183 SciFact documents and 300 test queries, the existing
+Fresh local generation completed for all 5,183 SciFact documents and 300 test queries, the existing
 pinned Qwen3-Embedding-0.6B weights and the current native Metal backend. No model/API
 download or paid service is used. Every input fits the current 2,048-token limit. The
 frozen comparison includes full exact, two matched full-graph controls and 256/512-prefix
 arms, selective exact filters, updates/deletes and separate-process restart verification.
-All quality and latency criteria are fixed before measurement. Fresh generation and
-native retrieval results remain pending; no speed, recall or default-selection conclusion
-is established by the historical cached study. The user-facing policy remains opt-in.
+All quality and latency criteria were fixed before measurement. Initial quality results
+fail the preset acceptance gates for both projected configurations; filtered ranking,
+current reads, deletion and process-restart checks pass. The unchanged timing workload
+will quantify the tradeoff only: speed cannot override either quality failure. Full-vector
+defaults are retained, and no setting is recommended from the historical cached study.
