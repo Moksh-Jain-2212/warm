@@ -58,6 +58,7 @@ use super::dense::{MAX_DELTA_CHUNKS, MAX_DELTA_DOCUMENTS};
 use super::index::{text_scrubbed, try_text_of, StoreIdentity};
 use super::{DocumentResult, DocumentStore, Embedding, StoredDocument, TextSegment};
 use crate::core::qgraph::{BuildParams, Graph, VGraph, VSearchParams};
+use crate::core::{EmbeddingSpace, VectorCandidateConfig};
 
 /// Fewest embedded chunks worth a snapshot; smaller stores take the generic exact path.
 pub const SNAPSHOT_MIN_ROWS: usize = 1;
@@ -129,6 +130,10 @@ pub struct VectorQueryOptions {
     pub ef: usize,
     /// Lowest cosine returned, in `[-1, 1]`.
     pub min_score: f64,
+    /// Exact metadata matches, evaluated before full-dimensional ranking.
+    pub filter: Option<serde_json::Value>,
+    pub source_uri: Option<String>,
+    pub document_ids: Option<Vec<String>>,
 }
 
 impl Default for VectorQueryOptions {
@@ -137,8 +142,47 @@ impl Default for VectorQueryOptions {
             mode: VectorIndexMode::Auto,
             ef: DEFAULT_EF,
             min_score: -1.0,
+            filter: None,
+            source_uri: None,
+            document_ids: None,
         }
     }
+}
+
+/// Derived candidate identity, separate from the full stored embedding space.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VectorCandidateIdentity {
+    pub embedding_space: EmbeddingSpace,
+    pub dimensions: usize,
+    pub normalization: String,
+}
+
+/// The route that actually produced one vector response.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum VectorSearchRoute {
+    FullExact,
+    FullGraph,
+    ProjectedGraph,
+    StaleExact,
+    FilteredExact,
+    FallbackExact,
+}
+
+#[derive(Clone, Copy, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VectorSearchDiagnostics {
+    pub route: VectorSearchRoute,
+    pub candidate_dimensions: usize,
+    pub shortlist_limit: Option<usize>,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct VectorSearchResults {
+    pub results: Vec<DocumentResult>,
+    pub diagnostics: VectorSearchDiagnostics,
 }
 
 /// State of the snapshot relative to the live store.
@@ -157,6 +201,12 @@ pub struct VectorIndexStatus {
     pub graph: bool,
     /// Whether maintenance should capture a fresh snapshot.
     pub rebuild_recommended: bool,
+    pub candidate_identity: Option<VectorCandidateIdentity>,
+    pub rerank_candidates: Option<usize>,
+    /// Logical retained graph buffers, excluding stored embeddings, allocator overhead and scratch.
+    pub graph_index_bytes: Option<usize>,
+    /// Residual buffers already included in graph_index_bytes.
+    pub graph_residual_bytes: Option<usize>,
 }
 
 /// A `graph` query reached a store without a graph index.
@@ -361,6 +411,7 @@ impl VectorIndex for ExactScan {
 pub(crate) struct GraphIndex {
     graph: VGraph,
     exact: ExactScan,
+    candidate_dimensions: Option<usize>,
 }
 
 impl VectorIndex for GraphIndex {
@@ -373,6 +424,18 @@ impl VectorIndex for GraphIndex {
     }
 
     fn search(&self, query: &[f32], k: usize, ef: usize) -> Result<Vec<(u32, f32)>> {
+        self.search_candidates(query, k, ef)?
+            .context("query prefix has zero norm; use the full exact route")
+    }
+}
+
+impl GraphIndex {
+    fn search_candidates(
+        &self,
+        query: &[f32],
+        k: usize,
+        ef: usize,
+    ) -> Result<Option<Vec<(u32, f32)>>> {
         ensure!(
             query.len() == self.exact.dim,
             "query has {} dimensions, the index {}",
@@ -381,7 +444,7 @@ impl VectorIndex for GraphIndex {
         );
         let k = k.min(self.rows());
         if k == 0 {
-            return Ok(Vec::new());
+            return Ok(Some(Vec::new()));
         }
         let ef = ef.clamp(k, MAX_EF.max(k));
         let params = VSearchParams {
@@ -390,9 +453,18 @@ impl VectorIndex for GraphIndex {
             ..VSearchParams::default()
         };
         let mut ids = Vec::with_capacity(k);
+        let mut projected = Vec::new();
+        let candidate_query = if let Some(dimensions) = self.candidate_dimensions {
+            if !append_normalized_prefix(query, dimensions, &mut projected)? {
+                return Ok(None);
+            }
+            projected.as_slice()
+        } else {
+            query
+        };
         self.graph
             .searcher()
-            .search(query, k, params, &mut ids)
+            .search(candidate_query, k, params, &mut ids)
             .map_err(|e| anyhow::anyhow!("graph search: {e}"))?;
         let mut hits: Vec<(u32, f32)> = ids
             .into_iter()
@@ -402,8 +474,32 @@ impl VectorIndex for GraphIndex {
         hits.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
         hits.dedup_by(|a, b| a.0 == b.0);
         hits.truncate(k);
-        Ok(hits)
+        Ok(Some(hits))
     }
+}
+
+fn append_normalized_prefix(values: &[f32], dimensions: usize, out: &mut Vec<f32>) -> Result<bool> {
+    ensure!(
+        (1..=values.len()).contains(&dimensions),
+        "invalid vector candidate dimensions"
+    );
+    let prefix = &values[..dimensions];
+    ensure!(
+        prefix.iter().all(|value| value.is_finite()),
+        "vector prefix must be finite"
+    );
+    let norm = prefix
+        .iter()
+        .map(|&value| f64::from(value).powi(2))
+        .sum::<f64>()
+        .sqrt();
+    if norm == 0.0 {
+        return Ok(false);
+    }
+    out.try_reserve(dimensions)
+        .context("cannot allocate normalized vector prefix")?;
+    out.extend(prefix.iter().map(|&value| (f64::from(value) / norm) as f32));
+    Ok(true)
 }
 
 struct RowRef {
@@ -420,6 +516,9 @@ pub(crate) struct VectorSnapshot {
     members: FastSet<usize>,
     exact: ExactScan,
     graph: Option<GraphIndex>,
+    candidate_identity: Option<VectorCandidateIdentity>,
+    rerank_candidates: Option<usize>,
+    zero_prefix: bool,
 }
 
 impl VectorSnapshot {
@@ -431,9 +530,16 @@ impl VectorSnapshot {
         self.graph.is_some()
     }
 
+    pub(crate) fn matches_embedding_space(&self, space: &EmbeddingSpace) -> bool {
+        self.candidate_identity
+            .as_ref()
+            .is_none_or(|identity| &identity.embedding_space == space)
+    }
+
     fn index(&self, mode: VectorIndexMode) -> Result<&dyn VectorIndex> {
         match mode {
             VectorIndexMode::Exact => Ok(&self.exact),
+            VectorIndexMode::Graph if self.zero_prefix => Ok(&self.exact),
             VectorIndexMode::Graph => self
                 .graph
                 .as_ref()
@@ -533,6 +639,28 @@ pub(crate) fn build_vector_snapshot(
     capture: VectorCapture,
     graph_min_rows: usize,
 ) -> Result<VectorSnapshot> {
+    build_vector_snapshot_inner(capture, graph_min_rows, None)
+}
+
+pub(crate) fn build_projected_vector_snapshot(
+    capture: VectorCapture,
+    graph_min_rows: usize,
+    space: &EmbeddingSpace,
+    candidates: &VectorCandidateConfig,
+) -> Result<VectorSnapshot> {
+    candidates.validate(space)?;
+    ensure!(
+        capture.dim == space.dimensions,
+        "candidate and full embedding spaces differ"
+    );
+    build_vector_snapshot_inner(capture, graph_min_rows, Some((space, candidates)))
+}
+
+fn build_vector_snapshot_inner(
+    capture: VectorCapture,
+    graph_min_rows: usize,
+    candidates: Option<(&EmbeddingSpace, &VectorCandidateConfig)>,
+) -> Result<VectorSnapshot> {
     let VectorCapture {
         identity,
         generation,
@@ -549,35 +677,53 @@ pub(crate) fn build_vector_snapshot(
         dim,
         rows: Arc::clone(&embeddings),
     };
+    let mut zero_prefix = false;
     let graph = if rows.len() >= graph_min_rows.max(SNAPSHOT_MIN_ROWS) {
+        let candidate_dimensions = candidates.map_or(dim, |(_, config)| config.dimensions);
         let mut matrix = Vec::new();
         matrix
-            .try_reserve_exact(rows.len() * dim)
+            .try_reserve_exact(
+                rows.len()
+                    .checked_mul(candidate_dimensions)
+                    .context("candidate matrix size overflow")?,
+            )
             .context("cannot allocate the graph build matrix")?;
         for embedding in embeddings.iter() {
-            matrix.extend_from_slice(embedding);
+            if candidates.is_some() {
+                if !append_normalized_prefix(embedding, candidate_dimensions, &mut matrix)? {
+                    zero_prefix = true;
+                    break;
+                }
+            } else {
+                matrix.extend_from_slice(embedding);
+            }
         }
-        let built = Graph::build_owned(matrix, dim, &BuildParams::default())
-            .map_err(|e| anyhow::anyhow!("graph build: {e}"))?;
-        let encoded =
-            VGraph::from_graph(&built, true).map_err(|e| anyhow::anyhow!("graph encode: {e}"))?;
-        drop(built);
-        // The builder's matrix (`rows * dim * 4` bytes) and its per-vertex neighbour lists
-        // are freed now; hand the allocator's free pages back so they leave the resident set.
-        crate::core::os_memory::release_free_heap();
-        ensure!(
-            encoded.len() == rows.len(),
-            "graph index has {} vertices for {} rows",
-            encoded.len(),
-            rows.len()
-        );
-        Some(GraphIndex {
-            graph: encoded,
-            exact: ExactScan {
-                dim,
-                rows: Arc::clone(&embeddings),
-            },
-        })
+        if zero_prefix {
+            None
+        } else {
+            let built = Graph::build_owned(matrix, candidate_dimensions, &BuildParams::default())
+                .map_err(|e| anyhow::anyhow!("graph build: {e}"))?;
+            let encoded = VGraph::from_graph(&built, true)
+                .map_err(|e| anyhow::anyhow!("graph encode: {e}"))?;
+            drop(built);
+            // The builder's candidate matrix and per-vertex neighbour lists
+            // are freed now; hand the allocator's free pages back so they leave the resident set.
+            crate::core::os_memory::release_free_heap();
+            ensure!(
+                encoded.len() == rows.len(),
+                "graph index has {} vertices for {} rows",
+                encoded.len(),
+                rows.len()
+            );
+            Some(GraphIndex {
+                graph: encoded,
+                candidate_dimensions: candidates.map(|(_, config)| config.dimensions),
+                exact: ExactScan {
+                    dim,
+                    rows: Arc::clone(&embeddings),
+                },
+            })
+        }
     } else {
         None
     };
@@ -589,6 +735,13 @@ pub(crate) fn build_vector_snapshot(
         members,
         exact,
         graph,
+        candidate_identity: candidates.map(|(space, config)| VectorCandidateIdentity {
+            embedding_space: space.clone(),
+            dimensions: config.dimensions,
+            normalization: "prefix-l2-v1".into(),
+        }),
+        rerank_candidates: candidates.map(|(_, config)| config.rerank_candidates),
+        zero_prefix,
     })
 }
 
@@ -611,6 +764,10 @@ pub(crate) fn vector_index_status(
             current: false,
             stale_mutations: 0,
             graph: false,
+            candidate_identity: None,
+            rerank_candidates: None,
+            graph_index_bytes: None,
+            graph_residual_bytes: None,
             rebuild_recommended: store.embedded_count() >= SNAPSHOT_MIN_ROWS,
         },
         Some(snapshot) => {
@@ -623,6 +780,16 @@ pub(crate) fn vector_index_status(
                 current: stale == 0,
                 stale_mutations: stale,
                 graph: snapshot.has_graph(),
+                candidate_identity: snapshot.candidate_identity.clone(),
+                rerank_candidates: snapshot.rerank_candidates,
+                graph_index_bytes: snapshot
+                    .graph
+                    .as_ref()
+                    .map(|graph| graph.graph.index_bytes()),
+                graph_residual_bytes: snapshot
+                    .graph
+                    .as_ref()
+                    .map(|graph| graph.graph.residual_bytes()),
                 rebuild_recommended: !same_store || stale >= REBUILD_AFTER_MUTATIONS,
             }
         }
@@ -666,6 +833,7 @@ fn to_result(hit: &Hit, segment: Option<&TextSegment>) -> Result<DocumentResult>
 /// means the snapshot is too stale to answer this query (the exact delta exceeds its
 /// capture limits, fewer than `k` hits survived validation, or a hit's text was scrubbed
 /// before it was read); the caller takes the generic exact path.
+#[cfg(test)]
 pub(crate) fn search_vector_snapshot(
     snapshot: &VectorSnapshot,
     store: &RwLock<DocumentStore>,
@@ -674,17 +842,38 @@ pub(crate) fn search_vector_snapshot(
     k: usize,
     options: &VectorQueryOptions,
 ) -> Result<Option<Vec<DocumentResult>>> {
+    Ok(
+        search_vector_snapshot_with_report(snapshot, store, query, exact_query, k, options)?
+            .map(|response| response.results),
+    )
+}
+
+pub(crate) fn search_vector_snapshot_with_report(
+    snapshot: &VectorSnapshot,
+    store: &RwLock<DocumentStore>,
+    query: &[f32],
+    exact_query: &[f64],
+    k: usize,
+    options: &VectorQueryOptions,
+) -> Result<Option<VectorSearchResults>> {
     let Some(ranked) = rank_vector_snapshot(snapshot, store, query, exact_query, k, options)?
     else {
         return Ok(None);
     };
-    read_vector_hits(ranked, &store.read())
+    let diagnostics = ranked.diagnostics;
+    Ok(
+        read_vector_hits(ranked, &store.read())?.map(|results| VectorSearchResults {
+            results,
+            diagnostics,
+        }),
+    )
 }
 
-/// The ranked hits of [`search_vector_snapshot`]; [`read_vector_hits`] reads their text.
+/// Ranked snapshot hits; [`read_vector_hits`] reads their text.
 pub(crate) struct RankedVectorHits {
     hits: Vec<Hit>,
     segment: Option<Arc<TextSegment>>,
+    diagnostics: VectorSearchDiagnostics,
 }
 
 struct StaleExactCapture {
@@ -822,7 +1011,7 @@ pub(crate) fn rank_vector_snapshot(
     let exact_index = index.kind() == VectorIndexKind::Exact;
     let extra = usize::try_from(stale).unwrap_or(usize::MAX).min(4 * k);
     let fetch = (k + extra + 8).min(snapshot.rows());
-    if stale != 0 && exact_index {
+    if stale != 0 && (exact_index || snapshot.candidate_identity.is_some()) {
         return rank_stale_exact_snapshot(
             snapshot,
             store,
@@ -832,10 +1021,28 @@ pub(crate) fn rank_vector_snapshot(
             options.min_score,
         );
     }
+    let fetch = if !exact_index {
+        if let Some(limit) = snapshot.rerank_candidates {
+            ensure!(k <= limit, "k exceeds configured vector rerank candidates");
+            limit.min(snapshot.rows())
+        } else {
+            fetch
+        }
+    } else {
+        fetch
+    };
     let graph_hits = if exact_index {
         Vec::new()
     } else {
-        index.search(query, fetch, options.ef)?
+        let Some(hits) = snapshot
+            .graph
+            .as_ref()
+            .expect("selected graph missing")
+            .search_candidates(query, fetch, options.ef)?
+        else {
+            return Ok(None);
+        };
+        hits
     };
     let mut found: Vec<Hit> = Vec::with_capacity(fetch);
     if stale == 0 {
@@ -895,13 +1102,34 @@ pub(crate) fn rank_vector_snapshot(
             return Ok(None);
         }
     }
-    Ok(Some(finish_vector_hits(
-        found,
-        segment,
-        exact_query,
-        k,
-        options.min_score,
-    )))
+    let mut ranked = finish_vector_hits(found, segment, exact_query, k, options.min_score);
+    ranked.diagnostics = VectorSearchDiagnostics {
+        route: if exact_index {
+            if snapshot.zero_prefix && options.mode != VectorIndexMode::Exact {
+                VectorSearchRoute::FallbackExact
+            } else {
+                VectorSearchRoute::FullExact
+            }
+        } else if snapshot
+            .candidate_identity
+            .as_ref()
+            .is_some_and(|identity| identity.dimensions < snapshot.dim)
+        {
+            VectorSearchRoute::ProjectedGraph
+        } else {
+            VectorSearchRoute::FullGraph
+        },
+        candidate_dimensions: if exact_index {
+            snapshot.dim
+        } else {
+            snapshot
+                .candidate_identity
+                .as_ref()
+                .map_or(snapshot.dim, |identity| identity.dimensions)
+        },
+        shortlist_limit: (!exact_index).then_some(fetch),
+    };
+    Ok(Some(ranked))
 }
 
 #[inline(never)]
@@ -952,13 +1180,9 @@ fn rank_stale_exact_snapshot(
         return Ok(None);
     }
 
-    Ok(Some(finish_vector_hits(
-        found,
-        segment,
-        exact_query,
-        k,
-        min_score,
-    )))
+    let mut ranked = finish_vector_hits(found, segment, exact_query, k, min_score);
+    ranked.diagnostics.route = VectorSearchRoute::StaleExact;
+    Ok(Some(ranked))
 }
 
 fn finish_vector_hits(
@@ -984,6 +1208,11 @@ fn finish_vector_hits(
     RankedVectorHits {
         hits: found,
         segment,
+        diagnostics: VectorSearchDiagnostics {
+            route: VectorSearchRoute::FullExact,
+            candidate_dimensions: exact_query.len(),
+            shortlist_limit: None,
+        },
     }
 }
 

@@ -31,7 +31,10 @@ impl WarmMemorySystem {
         storage_path: Option<String>,
         config: Option<WarmConfigJs>,
     ) -> Result<Self> {
-        let cfg = config.map(|c| c.into_config());
+        let cfg = config
+            .map(|c| c.into_config())
+            .transpose()
+            .map_err(napi_err)?;
         let core = WarmCore::new(dimensions, storage_path, cfg).map_err(napi_err)?;
         let core = Arc::new(core);
         Ok(Self {
@@ -101,6 +104,32 @@ impl WarmMemorySystem {
     ) -> Result<Vec<DocumentResult>> {
         let core = self.core.clone();
         run_async(move || core.search_documents(&text, &options.unwrap_or_default())).await
+    }
+
+    /// Full-dimensional cosine results; optional graph prefixes only select candidates.
+    /// Filters, stale projected snapshots and zero prefixes use full exact ranking.
+    #[napi]
+    pub async fn search_vectors(
+        &self,
+        embedding: Vec<f64>,
+        k: f64,
+        options: Option<VectorSearchOptions>,
+    ) -> Result<Vec<DocumentResult>> {
+        let core = self.core.clone();
+        run_async(move || {
+            anyhow::ensure!(
+                k.is_finite()
+                    && k.fract() == 0.0
+                    && (1.0..=crate::core::documents::MAX_K as f64).contains(&k),
+                "k must be an integer in 1..=1000"
+            );
+            core.search_vectors(
+                &embedding,
+                k as usize,
+                &options.unwrap_or_default().into_options()?,
+            )
+        })
+        .await
     }
 
     #[napi]

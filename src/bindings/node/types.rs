@@ -13,6 +13,42 @@ pub(super) fn hex_encode(bytes: &[u8]) -> String {
     encoded
 }
 
+/// Vector route options; filters use full exact ranking before top-k selection.
+#[napi(object)]
+#[derive(Default)]
+pub struct VectorSearchOptions {
+    pub mode: Option<String>,
+    pub ef: Option<f64>,
+    pub min_score: Option<f64>,
+    pub filter: Option<serde_json::Value>,
+    pub source_uri: Option<String>,
+    pub document_ids: Option<Vec<String>>,
+}
+
+impl VectorSearchOptions {
+    pub(super) fn into_options(self) -> anyhow::Result<crate::core::documents::VectorQueryOptions> {
+        use crate::core::documents::{VectorIndexMode, VectorQueryOptions, DEFAULT_EF, MAX_EF};
+        let mode = match self.mode {
+            None => VectorIndexMode::Auto,
+            Some(mode) => VectorIndexMode::parse(&mode)
+                .ok_or_else(|| anyhow::anyhow!("mode must be auto, exact or graph"))?,
+        };
+        let ef = self.ef.unwrap_or(DEFAULT_EF as f64);
+        anyhow::ensure!(
+            ef.is_finite() && ef.fract() == 0.0 && (1.0..=MAX_EF as f64).contains(&ef),
+            "ef must be an integer in 1..=4096"
+        );
+        Ok(VectorQueryOptions {
+            mode,
+            ef: ef as usize,
+            min_score: self.min_score.unwrap_or(-1.0),
+            filter: self.filter,
+            source_uri: self.source_uri,
+            document_ids: self.document_ids,
+        })
+    }
+}
+
 #[napi(object)]
 pub struct AuditEntryJs {
     pub timestamp_ms: f64,

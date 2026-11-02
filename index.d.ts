@@ -18,6 +18,11 @@ export declare class WarmMemorySystem {
   memorizeDocuments(inputs: Array<DocumentInput>): Promise<Array<number>>
   chunkDocument(input: DocumentInput): Promise<Array<DocumentChunk>>
   searchDocuments(text: string, options?: SearchOptions | undefined | null): Promise<Array<DocumentResult>>
+  /**
+   * Full-dimensional cosine results; optional graph prefixes only select candidates.
+   * Filters, stale projected snapshots and zero prefixes use full exact ranking.
+   */
+  searchVectors(embedding: Array<number>, k: number, options?: VectorSearchOptions | undefined | null): Promise<Array<DocumentResult>>
   deleteDocument(id: string): Promise<boolean>
   /**
    * One page of stored documents in id order, without their text. Pass the last id of the
@@ -369,10 +374,24 @@ export interface TextMetrics {
   punctuationCount: number
 }
 
+/** Vector route options; filters use full exact ranking before top-k selection. */
+export interface VectorSearchOptions {
+  mode?: string
+  ef?: number
+  minScore?: number
+  filter?: any
+  sourceUri?: string
+  documentIds?: Array<string>
+}
+
 export interface WarmConfigJs {
   embeddingModel?: string
   embeddingRevision?: string
   embeddingDimensions?: number
+  /** Opt-in normalized graph prefix; supply together with vectorRerankCandidates. */
+  vectorCandidateDimensions?: number
+  /** Full-vector rerank shortlist (1..=4096); must cover the requested k. */
+  vectorRerankCandidates?: number
   nsgMaxDegree?: number
   nsgEfConstruction?: number
   nsgAutoThreshold?: number

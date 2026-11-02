@@ -55,15 +55,16 @@ pub(crate) use search::{
 pub(crate) use text::TextSegment;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) use vector_index::{
-    build_vector_snapshot, capture_vector_rows, search_vector_snapshot, vector_index_status,
-    VectorIndexSlot,
+    build_projected_vector_snapshot, build_vector_snapshot, capture_vector_rows,
+    search_vector_snapshot_with_report, vector_index_status, VectorIndexSlot,
 };
 #[cfg(all(test, not(target_arch = "wasm32")))]
 pub(crate) use vector_index::{rank_vector_snapshot, read_vector_hits};
 #[cfg(not(target_arch = "wasm32"))]
 pub use vector_index::{
-    GraphUnavailable, VectorIndex, VectorIndexKind, VectorIndexMode, VectorIndexStatus,
-    VectorQueryOptions, DEFAULT_EF, DEFAULT_GRAPH_MIN_ROWS, MAX_EF, MAX_K, REBUILD_AFTER_MUTATIONS,
+    GraphUnavailable, VectorCandidateIdentity, VectorIndex, VectorIndexKind, VectorIndexMode,
+    VectorIndexStatus, VectorQueryOptions, VectorSearchDiagnostics, VectorSearchResults,
+    VectorSearchRoute, DEFAULT_EF, DEFAULT_GRAPH_MIN_ROWS, MAX_EF, MAX_K, REBUILD_AFTER_MUTATIONS,
     SNAPSHOT_MIN_ROWS,
 };
 
