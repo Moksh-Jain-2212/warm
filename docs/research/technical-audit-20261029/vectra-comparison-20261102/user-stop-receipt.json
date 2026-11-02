@@ -1,0 +1,1237 @@
+{
+  "scope": "User-requested interruption; no additional study queries or timings were run after the stop request.",
+  "freezeHash": "bdc3c2b02e1b93b48895280da89d434a3fd9570bb09770f96a5b67ceea37d4b6",
+  "kind": "user-requested-stop",
+  "stoppedAtUtc": "2026-11-02T10:11:54.204Z",
+  "controllerPid": 31746,
+  "workerPid": 63924,
+  "controllerSignal": "SIGKILL",
+  "workerGroupSignal": "SIGKILL",
+  "activeJob": "preparation-0038-glove-100000-warm-quality",
+  "noRetry": true,
+  "measurementStarted": false,
+  "completedJobs": 38,
+  "incompleteJobs": 1,
+  "activeJobPartial": {
+    "path": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/results/preparation-0038-glove-100000-warm-quality.ndjson",
+    "sha256": "be43fa2a3ec444540e88dfc1a7b87cca70942534235747ff67562ddf9d061611",
+    "unfilteredQueries": 1000,
+    "selectedQueryRowsSha256": "47886b0950da1d743ad5e4433effd872c9665acb069644fb5826c184ab47cdfe",
+    "previouslyObservedOracleRecall": {
+      "mean": 0.9634,
+      "worst": 0.5,
+      "independentlyRecomputed": false
+    }
+  },
+  "trees": {
+    "results": {
+      "files": [
+        {
+          "path": "preparation-0000-glove-128-oracle-oracle.ndjson",
+          "bytes": 3160193,
+          "allocatedBytes": 3162112,
+          "sha256": "fe978d43109b12fc58623701f7bf462903424323ce0c1cb4fc41b418d336e18e"
+        },
+        {
+          "path": "preparation-0001-glove-128-vectra-prepare.ndjson",
+          "bytes": 1596,
+          "allocatedBytes": 8192,
+          "sha256": "b677ce0c902fa3658a776df80ab627e336f39f18f7f691de25e50563768adabd"
+        },
+        {
+          "path": "preparation-0002-glove-128-vectra-validate.ndjson",
+          "bytes": 695,
+          "allocatedBytes": 8192,
+          "sha256": "104bc1413523c480f2c4e5c684752e37bbad951b52c528e1b8adf492b5822fcd"
+        },
+        {
+          "path": "preparation-0003-glove-128-warm-prepare.ndjson",
+          "bytes": 2560,
+          "allocatedBytes": 8192,
+          "sha256": "23a1fe6097785af14bdce0af979f0ab2e096f556d93ae6510df16a1bc4b9a22f"
+        },
+        {
+          "path": "preparation-0004-glove-128-warm-validate.ndjson",
+          "bytes": 692,
+          "allocatedBytes": 8192,
+          "sha256": "3dc2a16db62702a0afe0e5f2e6d1a09d3271e278c1d9bc34d8cae706a1f84b33"
+        },
+        {
+          "path": "preparation-0005-glove-128-vectra-quality.ndjson",
+          "bytes": 4117214,
+          "allocatedBytes": 4120576,
+          "sha256": "9b6f4cb4b73cae04fe2cf6bf0ebd8cec7c136c69a0ed7f8d8d38f726504f0a85"
+        },
+        {
+          "path": "preparation-0006-glove-128-warm-quality.ndjson",
+          "bytes": 4149259,
+          "allocatedBytes": 4153344,
+          "sha256": "d634108cf4b256477ec5e3e3e345359cdbd71029e62f748f8fffc7c1b2fae5d3"
+        },
+        {
+          "path": "preparation-0007-glove-128-warm-unavailable.ndjson",
+          "bytes": 761,
+          "allocatedBytes": 8192,
+          "sha256": "62a9c427d93dba9110898aa80102858d356b29a045c20e9bca5f86edf81a0048"
+        },
+        {
+          "path": "preparation-0008-glove-128-warm-unavailable.ndjson",
+          "bytes": 770,
+          "allocatedBytes": 8192,
+          "sha256": "ff64db4d9f20814a00f151c90b3bf2dc81dd2d364e81ebe0793575578484e077"
+        },
+        {
+          "path": "preparation-0009-glove-128-warm-unavailable.ndjson",
+          "bytes": 770,
+          "allocatedBytes": 8192,
+          "sha256": "19605faacca1dcc63246e5a1f034d7cca223bbfd06eed77fc69854d27e60d797"
+        },
+        {
+          "path": "preparation-0010-glove-1000-oracle-oracle.ndjson",
+          "bytes": 3855075,
+          "allocatedBytes": 3858432,
+          "sha256": "223ae124d47e3081d09bd718d323346b5a182f7e012db61d21fc2476bc2de9bd"
+        },
+        {
+          "path": "preparation-0011-glove-1000-vectra-prepare.ndjson",
+          "bytes": 1602,
+          "allocatedBytes": 8192,
+          "sha256": "f8864c623a87dd848799ed2129964e3639d98308eac3efbd2040c697b9a4be7a"
+        },
+        {
+          "path": "preparation-0012-glove-1000-vectra-validate.ndjson",
+          "bytes": 706,
+          "allocatedBytes": 8192,
+          "sha256": "b7955005fb0fccaeacedb990027d16c77e037657f4469e1ffb2047ac243b4ab6"
+        },
+        {
+          "path": "preparation-0013-glove-1000-warm-prepare.ndjson",
+          "bytes": 2570,
+          "allocatedBytes": 8192,
+          "sha256": "56730de85a61b406f52dbc6bba5927a51816e5dcc41cd8a88d980bb06eedd0fe"
+        },
+        {
+          "path": "preparation-0014-glove-1000-warm-validate.ndjson",
+          "bytes": 701,
+          "allocatedBytes": 8192,
+          "sha256": "7f4e3823bee611d334a24313a1bb4946d4b755287554ca59749835a4a24ddd98"
+        },
+        {
+          "path": "preparation-0015-glove-1000-vectra-quality.ndjson",
+          "bytes": 4640537,
+          "allocatedBytes": 4644864,
+          "sha256": "7a1b332fbed579ef2215ef0a4c141392bc695d5bc6986cf3cdc8627a730b0d63"
+        },
+        {
+          "path": "preparation-0016-glove-1000-warm-quality.ndjson",
+          "bytes": 4671773,
+          "allocatedBytes": 4677632,
+          "sha256": "7bcda1fe0a7814e8e22891eb1cf2b884919250b294fcf9d71f313ecf37620127"
+        },
+        {
+          "path": "preparation-0017-glove-1000-warm-unavailable.ndjson",
+          "bytes": 772,
+          "allocatedBytes": 8192,
+          "sha256": "f683b01b54b83e6844aa0327a8a0d766308ceb622a6093a174a63a19d8954615"
+        },
+        {
+          "path": "preparation-0018-glove-1000-warm-unavailable.ndjson",
+          "bytes": 772,
+          "allocatedBytes": 8192,
+          "sha256": "f34e3d712cd00dfe8d6baee2018eb92b1de74f73443546817fabb4a4dcde9f1d"
+        },
+        {
+          "path": "preparation-0019-glove-1000-warm-unavailable.ndjson",
+          "bytes": 763,
+          "allocatedBytes": 8192,
+          "sha256": "970c917b70fbaddef0c569b325b47e73ab039c71cd257a53f2eadb556d2fcb6e"
+        },
+        {
+          "path": "preparation-0020-glove-10000-oracle-oracle.ndjson",
+          "bytes": 3958442,
+          "allocatedBytes": 3964928,
+          "sha256": "a4b91500c62d94d71c6f965dc2ac5f48ce928a6e50df7dec426bbc234391aa94"
+        },
+        {
+          "path": "preparation-0021-glove-10000-vectra-prepare.ndjson",
+          "bytes": 1607,
+          "allocatedBytes": 8192,
+          "sha256": "f0e691e566d2eef9e5904fb3075748f7823e5c9ed9845606df91e51aed9457ba"
+        },
+        {
+          "path": "preparation-0022-glove-10000-vectra-validate.ndjson",
+          "bytes": 700,
+          "allocatedBytes": 8192,
+          "sha256": "37aa0a3536f1f99acf0259951751550ccd9bda1f9700c1cd66042ffc6cf1a1d5"
+        },
+        {
+          "path": "preparation-0023-glove-10000-warm-prepare.ndjson",
+          "bytes": 2573,
+          "allocatedBytes": 8192,
+          "sha256": "bcae63687aa6cdd70b32157cd87ea6581b5a1d6d5df7a2eee537fbc96aedcc96"
+        },
+        {
+          "path": "preparation-0024-glove-10000-warm-validate.ndjson",
+          "bytes": 697,
+          "allocatedBytes": 8192,
+          "sha256": "32ff5a11fb29f739901839fe751ee07f8d7a45c734bff63f730400c752c3d3e3"
+        },
+        {
+          "path": "preparation-0025-glove-10000-vectra-quality.ndjson",
+          "bytes": 4664422,
+          "allocatedBytes": 4669440,
+          "sha256": "448bc7c87033fefd80413f4f978013e3207966d1a8731dfb8e85db7c8d61e110"
+        },
+        {
+          "path": "preparation-0026-glove-10000-warm-quality.ndjson",
+          "bytes": 4698804,
+          "allocatedBytes": 4702208,
+          "sha256": "944ce4b9e9b6ec9e8b859626072ceab3360405432baeac9ede3986f89e0e0c2b"
+        },
+        {
+          "path": "preparation-0027-glove-10000-warm-quality.ndjson",
+          "bytes": 4556082,
+          "allocatedBytes": 4562944,
+          "sha256": "54e1d8e2cf95e5dfb797d60f3decafd8eea5dbbd399a9558efead623327f0290"
+        },
+        {
+          "path": "preparation-0028-glove-10000-warm-quality.ndjson",
+          "bytes": 4557256,
+          "allocatedBytes": 4562944,
+          "sha256": "4e1b0474b9e49e0572a614e81cfe331bf88b8df00e27e5920214c976e1ab072b"
+        },
+        {
+          "path": "preparation-0029-glove-10000-warm-quality.ndjson",
+          "bytes": 4557149,
+          "allocatedBytes": 4562944,
+          "sha256": "2775669228960eed416abb8a0f6591dd7cc944b50fc3a6b47a47a60eb82b765e"
+        },
+        {
+          "path": "preparation-0030-glove-100000-oracle-oracle.ndjson",
+          "bytes": 4025354,
+          "allocatedBytes": 4030464,
+          "sha256": "d3d9b337c191f8c2ff628a2af63d206367dcfcb05e016017797b62576bfc8ae8"
+        },
+        {
+          "path": "preparation-0031-glove-100000-vectra-prepare.ndjson",
+          "bytes": 1621,
+          "allocatedBytes": 8192,
+          "sha256": "9e2717c030a939e991dc21e26fc887d13d8fb53a13f2ae49b758ce0555b179ca"
+        },
+        {
+          "path": "preparation-0032-glove-100000-vectra-validate.ndjson",
+          "bytes": 704,
+          "allocatedBytes": 8192,
+          "sha256": "831e1d18b98bbd7e172b4f66cee74ad3a681ddfe3d4bb64b742f8a4f5a06f2d1"
+        },
+        {
+          "path": "preparation-0033-glove-100000-warm-prepare.ndjson",
+          "bytes": 2582,
+          "allocatedBytes": 8192,
+          "sha256": "482b06c4d58708b846eb0545abb7a636323136548d587f4dfd940cd0cb1685ba"
+        },
+        {
+          "path": "preparation-0034-glove-100000-warm-validate.ndjson",
+          "bytes": 710,
+          "allocatedBytes": 8192,
+          "sha256": "58708ba4cb496e25c4c8ab54d09f6b34860a5a9cd51c248d7d83dc216b0fcbf0"
+        },
+        {
+          "path": "preparation-0035-glove-100000-vectra-quality.ndjson",
+          "bytes": 4691603,
+          "allocatedBytes": 4694016,
+          "sha256": "6e2c4aa14c408119ad98790bad11874fdb1eeddbdd1187d4348c7755667ad0e2"
+        },
+        {
+          "path": "preparation-0036-glove-100000-warm-quality.ndjson",
+          "bytes": 4729396,
+          "allocatedBytes": 4734976,
+          "sha256": "ef1202cea44662d6c4d0929fac1c473da5bc1c0f96cf553a84fd639326d8055d"
+        },
+        {
+          "path": "preparation-0037-glove-100000-warm-quality.ndjson",
+          "bytes": 4587484,
+          "allocatedBytes": 4587520,
+          "sha256": "66c70355e55f2a33f10f912c05ff9b169284caca34c18776f1a14c4ca9ddd109"
+        },
+        {
+          "path": "preparation-0038-glove-100000-warm-quality.ndjson",
+          "bytes": 1503911,
+          "allocatedBytes": 1507328,
+          "sha256": "be43fa2a3ec444540e88dfc1a7b87cca70942534235747ff67562ddf9d061611"
+        }
+      ],
+      "logicalBytes": 71150878,
+      "allocatedBytes": 71376896,
+      "allocationUnitBytes": 512
+    },
+    "jobs": {
+      "files": [
+        {
+          "path": "preparation-0000-glove-128-oracle-oracle.json",
+          "bytes": 699,
+          "allocatedBytes": 8192,
+          "sha256": "cdcbd7eadfe5eab01bd9e8c63ff1094998d871cf71d446c9d4005ceffa9bd9ff"
+        },
+        {
+          "path": "preparation-0001-glove-128-vectra-prepare.json",
+          "bytes": 825,
+          "allocatedBytes": 8192,
+          "sha256": "5066d50903b29be44f6167c5643befdb5eb743ceca987935133953b6f3971896"
+        },
+        {
+          "path": "preparation-0002-glove-128-vectra-validate.json",
+          "bytes": 827,
+          "allocatedBytes": 8192,
+          "sha256": "47322242393c55eb9524e5787c91ac2ac2570032447ed441d100959c10c3cdda"
+        },
+        {
+          "path": "preparation-0003-glove-128-warm-prepare.json",
+          "bytes": 819,
+          "allocatedBytes": 8192,
+          "sha256": "6dd66dfe95ab2763fcce2356ef4e227071508e2f91b4b11f84fb96b454ce2b42"
+        },
+        {
+          "path": "preparation-0004-glove-128-warm-validate.json",
+          "bytes": 821,
+          "allocatedBytes": 8192,
+          "sha256": "f166441d95afde91521b87288dc186e1fbebc2fd2185d9ad17808b51d96b6032"
+        },
+        {
+          "path": "preparation-0005-glove-128-vectra-quality.json",
+          "bytes": 1058,
+          "allocatedBytes": 8192,
+          "sha256": "13b9db16a05cf45f99a24c71c8d8b7f039ac79289589994ed89e3b6add1d9d1c"
+        },
+        {
+          "path": "preparation-0006-glove-128-warm-quality.json",
+          "bytes": 1048,
+          "allocatedBytes": 8192,
+          "sha256": "cab021ac84103c0accbbcc70b66db277768b5d43b4033e68a308d92e8874d33f"
+        },
+        {
+          "path": "preparation-0007-glove-128-warm-unavailable.json",
+          "bytes": 1079,
+          "allocatedBytes": 8192,
+          "sha256": "911571753c51303625aa703b889ebc424407e115d09aae76b7e30b2f1de1feb9"
+        },
+        {
+          "path": "preparation-0008-glove-128-warm-unavailable.json",
+          "bytes": 1079,
+          "allocatedBytes": 8192,
+          "sha256": "3e4957bcc55be024759d0d366c19187cf37ce6eb917e1e29854ffe9f996348da"
+        },
+        {
+          "path": "preparation-0009-glove-128-warm-unavailable.json",
+          "bytes": 1079,
+          "allocatedBytes": 8192,
+          "sha256": "cc9ffe006dfa91f6818801b1897aaef5a1aaa1c1c1e66d3b5b031bab0e578b67"
+        },
+        {
+          "path": "preparation-0010-glove-1000-oracle-oracle.json",
+          "bytes": 702,
+          "allocatedBytes": 8192,
+          "sha256": "813cc656f68fff5f0c40e5a24839e66cc2f4f3a74ddc3a2612fa276dc3f362bf"
+        },
+        {
+          "path": "preparation-0011-glove-1000-vectra-prepare.json",
+          "bytes": 829,
+          "allocatedBytes": 8192,
+          "sha256": "8b05dc54398c96d71cf885bf80a56f5e0f781cbfdfd401e4e7928e374989bd6f"
+        },
+        {
+          "path": "preparation-0012-glove-1000-vectra-validate.json",
+          "bytes": 831,
+          "allocatedBytes": 8192,
+          "sha256": "238640a778aac0b8d8eee0fdcbf0c3ca531b67a141a6c2417b1c66acf4fd0f9b"
+        },
+        {
+          "path": "preparation-0013-glove-1000-warm-prepare.json",
+          "bytes": 823,
+          "allocatedBytes": 8192,
+          "sha256": "9cf2b572ff379716a9ce8ccb563027eb73aa298b3fe6431dd8e80f291147f3d4"
+        },
+        {
+          "path": "preparation-0014-glove-1000-warm-validate.json",
+          "bytes": 825,
+          "allocatedBytes": 8192,
+          "sha256": "19c7e11179ea5f4783f9ef142941db9d25c88f7bc8a119ff1ee6c5f934d43623"
+        },
+        {
+          "path": "preparation-0015-glove-1000-vectra-quality.json",
+          "bytes": 1063,
+          "allocatedBytes": 8192,
+          "sha256": "f6a1fed784b6e106518d8bdd721c6f637526f7dbe029f864b75db8bffd8f2d80"
+        },
+        {
+          "path": "preparation-0016-glove-1000-warm-quality.json",
+          "bytes": 1053,
+          "allocatedBytes": 8192,
+          "sha256": "98032b6814ab42d868eb2d775266d1b3aa3d0a8a558273adb1597080788262be"
+        },
+        {
+          "path": "preparation-0017-glove-1000-warm-unavailable.json",
+          "bytes": 1084,
+          "allocatedBytes": 8192,
+          "sha256": "b1838411ce193eaba020554bb71a0d9d461d93306ffa88540aa934d5179e1850"
+        },
+        {
+          "path": "preparation-0018-glove-1000-warm-unavailable.json",
+          "bytes": 1084,
+          "allocatedBytes": 8192,
+          "sha256": "b95243e5eb64170030ecd1a248d7ce254af88202e0a79f04dcca76f390be124a"
+        },
+        {
+          "path": "preparation-0019-glove-1000-warm-unavailable.json",
+          "bytes": 1084,
+          "allocatedBytes": 8192,
+          "sha256": "fe88394649cd8f689329bff612bcbf58d9d75cc5401c353c9a47934e09d5a958"
+        },
+        {
+          "path": "preparation-0020-glove-10000-oracle-oracle.json",
+          "bytes": 705,
+          "allocatedBytes": 8192,
+          "sha256": "d28aa0db370f76355898cf3cb8e25d7d75d89a036db3656e036e6f019098ac8c"
+        },
+        {
+          "path": "preparation-0021-glove-10000-vectra-prepare.json",
+          "bytes": 833,
+          "allocatedBytes": 8192,
+          "sha256": "8ce83f232e5606c8c81fe48a5c0967eb450784b51089c7a404477d418fee5993"
+        },
+        {
+          "path": "preparation-0022-glove-10000-vectra-validate.json",
+          "bytes": 835,
+          "allocatedBytes": 8192,
+          "sha256": "e9a7fe6173d7eabb686923fb5af71bfcfc8b781ceda93da04bde8c04425826c6"
+        },
+        {
+          "path": "preparation-0023-glove-10000-warm-prepare.json",
+          "bytes": 827,
+          "allocatedBytes": 8192,
+          "sha256": "5792eda246dffa353d67f17a479680137f298f5c5f7946e8c07f69dca9ec2574"
+        },
+        {
+          "path": "preparation-0024-glove-10000-warm-validate.json",
+          "bytes": 829,
+          "allocatedBytes": 8192,
+          "sha256": "50d7cba626eee422d6625dac75bf122b71fa984f5a20a42ff96da209fb0a4f7f"
+        },
+        {
+          "path": "preparation-0025-glove-10000-vectra-quality.json",
+          "bytes": 1068,
+          "allocatedBytes": 8192,
+          "sha256": "8659ececc0a2389c6b8e2f2fad373ed1d500f15bb29bf4a36cb5c49a9da75308"
+        },
+        {
+          "path": "preparation-0026-glove-10000-warm-quality.json",
+          "bytes": 1058,
+          "allocatedBytes": 8192,
+          "sha256": "a239683f5bb268b958f387d40f9d7ab11b3e266c499a72be5c8fff6c59cb2546"
+        },
+        {
+          "path": "preparation-0027-glove-10000-warm-quality.json",
+          "bytes": 1081,
+          "allocatedBytes": 8192,
+          "sha256": "f4b3c391f36fbf11e8e88f820230fc245c5c8631bcbaf4e668084c5ae08cec44"
+        },
+        {
+          "path": "preparation-0028-glove-10000-warm-quality.json",
+          "bytes": 1081,
+          "allocatedBytes": 8192,
+          "sha256": "cca6535a40f70c8b0271e94fc2d8fd600d56bce27adbd8eb0016964403054b24"
+        },
+        {
+          "path": "preparation-0029-glove-10000-warm-quality.json",
+          "bytes": 1081,
+          "allocatedBytes": 8192,
+          "sha256": "ed74e6b93636e61b104ff5a781e26bc6dc657de1277a621f4f105b6b4f48afa0"
+        },
+        {
+          "path": "preparation-0030-glove-100000-oracle-oracle.json",
+          "bytes": 708,
+          "allocatedBytes": 8192,
+          "sha256": "6605cde0fe56836287ce455d7e7d52d2c4a740483f2f3bbf62f48e82a6b6239f"
+        },
+        {
+          "path": "preparation-0031-glove-100000-vectra-prepare.json",
+          "bytes": 837,
+          "allocatedBytes": 8192,
+          "sha256": "52ba41e8f60e7df8edb0f0beda41cbecc1850b6917addd23991983ccc9e69faf"
+        },
+        {
+          "path": "preparation-0032-glove-100000-vectra-validate.json",
+          "bytes": 839,
+          "allocatedBytes": 8192,
+          "sha256": "9094d92095312be70cd279829c326118951efce3ba276eda55b57a7b7f9b746e"
+        },
+        {
+          "path": "preparation-0033-glove-100000-warm-prepare.json",
+          "bytes": 831,
+          "allocatedBytes": 8192,
+          "sha256": "ac6beee0da34ab14c756e1a81eddc09b3a09e557f14b0a1f28a49470d8c80382"
+        },
+        {
+          "path": "preparation-0034-glove-100000-warm-validate.json",
+          "bytes": 833,
+          "allocatedBytes": 8192,
+          "sha256": "c25e2ac156e107f3dd6378b521e820871699a8baf22412a9a27a103e8382da05"
+        },
+        {
+          "path": "preparation-0035-glove-100000-vectra-quality.json",
+          "bytes": 1073,
+          "allocatedBytes": 8192,
+          "sha256": "fa03e0ec052d8a57e0171e75cb4ed690cbff7c7bb98b7bf08aa2fbcc01ba34ad"
+        },
+        {
+          "path": "preparation-0036-glove-100000-warm-quality.json",
+          "bytes": 1063,
+          "allocatedBytes": 8192,
+          "sha256": "c753a16d87e0eaf79bfe4c35b064b837cca85c7e2259929561ebdeb15a513fb0"
+        },
+        {
+          "path": "preparation-0037-glove-100000-warm-quality.json",
+          "bytes": 1086,
+          "allocatedBytes": 8192,
+          "sha256": "d9b458098192da58191ad6c213f9be801066e2053dc282992e99dc2eba52d03e"
+        },
+        {
+          "path": "preparation-0038-glove-100000-warm-quality.json",
+          "bytes": 1086,
+          "allocatedBytes": 8192,
+          "sha256": "60a0351441fa1385595cc1d73c70fe760abe8b99e679772735a2cc5b9511c35a"
+        }
+      ],
+      "logicalBytes": 36466,
+      "allocatedBytes": 319488,
+      "allocationUnitBytes": 512
+    },
+    "receipts": {
+      "files": [
+        {
+          "path": "preparation-0000-glove-128-oracle-oracle.json",
+          "bytes": 946,
+          "allocatedBytes": 8192,
+          "sha256": "1434e3d9d5ef4f588fc6cc90aef5475054fa17b2063e91fc2688c8056c9df12d"
+        },
+        {
+          "path": "preparation-0000-glove-128-oracle-oracle.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0000-glove-128-oracle-oracle.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0001-glove-128-vectra-prepare.json",
+          "bytes": 1584,
+          "allocatedBytes": 8192,
+          "sha256": "90748666dc8d88cbc0dd8c10b1e32ec911ff98f2dd73bae443df439ce835d3ea"
+        },
+        {
+          "path": "preparation-0001-glove-128-vectra-prepare.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0001-glove-128-vectra-prepare.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0002-glove-128-vectra-validate.json",
+          "bytes": 1205,
+          "allocatedBytes": 8192,
+          "sha256": "65a9e372a58cf8271ec8987b5fa1c9ee3c2ba0e6eaa170351df18259b83479a6"
+        },
+        {
+          "path": "preparation-0002-glove-128-vectra-validate.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0002-glove-128-vectra-validate.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0003-glove-128-warm-prepare.json",
+          "bytes": 1596,
+          "allocatedBytes": 8192,
+          "sha256": "9f6d756e599511b0b07d49e7488904c47d8e406de0e69aae778c55d10435874c"
+        },
+        {
+          "path": "preparation-0003-glove-128-warm-prepare.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0003-glove-128-warm-prepare.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0004-glove-128-warm-validate.json",
+          "bytes": 1210,
+          "allocatedBytes": 8192,
+          "sha256": "d2b8b970f79fa2866c88e7895d3029d3aaba565a82113b7e605ce65871fd4737"
+        },
+        {
+          "path": "preparation-0004-glove-128-warm-validate.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0004-glove-128-warm-validate.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0005-glove-128-vectra-quality.json",
+          "bytes": 1225,
+          "allocatedBytes": 8192,
+          "sha256": "7989ba2c8435c9f0860af487bc740c8f854ce0b5ef62ce3ce0975285b85daaaf"
+        },
+        {
+          "path": "preparation-0005-glove-128-vectra-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0005-glove-128-vectra-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0006-glove-128-warm-quality.json",
+          "bytes": 1220,
+          "allocatedBytes": 8192,
+          "sha256": "e537af973f5f746eced438d3ce9c2d4cfa381634415f4b6616bde271bd1196d5"
+        },
+        {
+          "path": "preparation-0006-glove-128-warm-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0006-glove-128-warm-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0007-glove-128-warm-unavailable.json",
+          "bytes": 1118,
+          "allocatedBytes": 8192,
+          "sha256": "97c21ac8e687cad57bc86ea986f0e5ab370de71aa7bc2df8f38856e51315b17c"
+        },
+        {
+          "path": "preparation-0007-glove-128-warm-unavailable.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0007-glove-128-warm-unavailable.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0008-glove-128-warm-unavailable.json",
+          "bytes": 1117,
+          "allocatedBytes": 8192,
+          "sha256": "0ea741ecd03f481e87fd6788fd6ab1ef9007e7e5e03c6560a79ecb7670ae4330"
+        },
+        {
+          "path": "preparation-0008-glove-128-warm-unavailable.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0008-glove-128-warm-unavailable.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0009-glove-128-warm-unavailable.json",
+          "bytes": 1116,
+          "allocatedBytes": 8192,
+          "sha256": "643492872f18584b5aaa93d2faee299a17e9dfef07214cbab7ae72291bc88518"
+        },
+        {
+          "path": "preparation-0009-glove-128-warm-unavailable.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0009-glove-128-warm-unavailable.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0010-glove-1000-oracle-oracle.json",
+          "bytes": 948,
+          "allocatedBytes": 8192,
+          "sha256": "c3ec7afc6516b189178139dedeab8241e42671c40d108341f6d741bc9e773751"
+        },
+        {
+          "path": "preparation-0010-glove-1000-oracle-oracle.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0010-glove-1000-oracle-oracle.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0011-glove-1000-vectra-prepare.json",
+          "bytes": 1588,
+          "allocatedBytes": 8192,
+          "sha256": "a309f6f8ebaa9d92668773a74f4f2be25aa9c81e6009f6733461705ff2889a14"
+        },
+        {
+          "path": "preparation-0011-glove-1000-vectra-prepare.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0011-glove-1000-vectra-prepare.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0012-glove-1000-vectra-validate.json",
+          "bytes": 1207,
+          "allocatedBytes": 8192,
+          "sha256": "b2313af5462be84245eef7a1a778f0917ba79c6e9702fcf0f886291dc8060683"
+        },
+        {
+          "path": "preparation-0012-glove-1000-vectra-validate.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0012-glove-1000-vectra-validate.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0013-glove-1000-warm-prepare.json",
+          "bytes": 1599,
+          "allocatedBytes": 8192,
+          "sha256": "db756fbf8a116d0cdd5b70a0a4de15f93e6976115498a8d3cf7437e20a21a467"
+        },
+        {
+          "path": "preparation-0013-glove-1000-warm-prepare.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0013-glove-1000-warm-prepare.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0014-glove-1000-warm-validate.json",
+          "bytes": 1201,
+          "allocatedBytes": 8192,
+          "sha256": "f9f85c7afb4e4cd26270aaf47e13c5fbeba2200666ff70adbe3cf5044f67008c"
+        },
+        {
+          "path": "preparation-0014-glove-1000-warm-validate.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0014-glove-1000-warm-validate.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0015-glove-1000-vectra-quality.json",
+          "bytes": 1227,
+          "allocatedBytes": 8192,
+          "sha256": "02d9d5778f49f73338c2e1d9784416ddc472a3f1eaee1a17f97a4bba79be4e2f"
+        },
+        {
+          "path": "preparation-0015-glove-1000-vectra-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0015-glove-1000-vectra-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0016-glove-1000-warm-quality.json",
+          "bytes": 1225,
+          "allocatedBytes": 8192,
+          "sha256": "296e7c7fd436847711f879cdf284813724f1bb64431e6d9b772b9cff964b55f7"
+        },
+        {
+          "path": "preparation-0016-glove-1000-warm-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0016-glove-1000-warm-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0017-glove-1000-warm-unavailable.json",
+          "bytes": 1119,
+          "allocatedBytes": 8192,
+          "sha256": "e28e8522417bc428a65b049e503c81491149cd130a69a1ee79bdca16659fdd96"
+        },
+        {
+          "path": "preparation-0017-glove-1000-warm-unavailable.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0017-glove-1000-warm-unavailable.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0018-glove-1000-warm-unavailable.json",
+          "bytes": 1121,
+          "allocatedBytes": 8192,
+          "sha256": "1ba7083f67d02f6f6b5c007e317102eb8a52286e17ce21a00757e522a192e972"
+        },
+        {
+          "path": "preparation-0018-glove-1000-warm-unavailable.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0018-glove-1000-warm-unavailable.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0019-glove-1000-warm-unavailable.json",
+          "bytes": 1121,
+          "allocatedBytes": 8192,
+          "sha256": "f4f3c16e25bbca64a711943ba6ad5df65ff347599a368a76da5c9c9d2b5da971"
+        },
+        {
+          "path": "preparation-0019-glove-1000-warm-unavailable.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0019-glove-1000-warm-unavailable.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0020-glove-10000-oracle-oracle.json",
+          "bytes": 950,
+          "allocatedBytes": 8192,
+          "sha256": "d5ac6394fa98c48a9317557c9fccfe7dac7dbc57d4f6972d82f20d5fa79b392d"
+        },
+        {
+          "path": "preparation-0020-glove-10000-oracle-oracle.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0020-glove-10000-oracle-oracle.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0021-glove-10000-vectra-prepare.json",
+          "bytes": 1608,
+          "allocatedBytes": 8192,
+          "sha256": "7f17e393820ca7db96d4b46c6297bab32e79db5b10694056f51e94708a054820"
+        },
+        {
+          "path": "preparation-0021-glove-10000-vectra-prepare.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0021-glove-10000-vectra-prepare.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0022-glove-10000-vectra-validate.json",
+          "bytes": 1210,
+          "allocatedBytes": 8192,
+          "sha256": "b051e2a2bcfc80333f32c39074730c23998db89c831c24703c671ecf8c5335ba"
+        },
+        {
+          "path": "preparation-0022-glove-10000-vectra-validate.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0022-glove-10000-vectra-validate.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0023-glove-10000-warm-prepare.json",
+          "bytes": 1605,
+          "allocatedBytes": 8192,
+          "sha256": "9eda9c742812daa7fddaf2abe2fd67c1146569a6f6b505cc1c8e56d976bcd2c3"
+        },
+        {
+          "path": "preparation-0023-glove-10000-warm-prepare.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0023-glove-10000-warm-prepare.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0024-glove-10000-warm-validate.json",
+          "bytes": 1204,
+          "allocatedBytes": 8192,
+          "sha256": "e52618c33e72bdaef911fdb660b41bb3e5a31dadf6f5a04d02414539362cfabf"
+        },
+        {
+          "path": "preparation-0024-glove-10000-warm-validate.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0024-glove-10000-warm-validate.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0025-glove-10000-vectra-quality.json",
+          "bytes": 1228,
+          "allocatedBytes": 8192,
+          "sha256": "07421d7499957375f6f6d3d856432ccfb6229b8a4774a05935850ba9c12d4746"
+        },
+        {
+          "path": "preparation-0025-glove-10000-vectra-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0025-glove-10000-vectra-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0026-glove-10000-warm-quality.json",
+          "bytes": 1229,
+          "allocatedBytes": 8192,
+          "sha256": "384c1cbac0714996e512ae1e7ed0d5f81f8cbf9bb6bf0c8a9984e5e2bf6019b3"
+        },
+        {
+          "path": "preparation-0026-glove-10000-warm-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0026-glove-10000-warm-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0027-glove-10000-warm-quality.json",
+          "bytes": 1227,
+          "allocatedBytes": 8192,
+          "sha256": "e0b07a726062659769786013af9a1c811ddc0c50ee424aee0a0e3a2b51405633"
+        },
+        {
+          "path": "preparation-0027-glove-10000-warm-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0027-glove-10000-warm-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0028-glove-10000-warm-quality.json",
+          "bytes": 1226,
+          "allocatedBytes": 8192,
+          "sha256": "0617d997e808be09ab55d12e4366badbb4fbf9f246efd8034cfd4d11c500458d"
+        },
+        {
+          "path": "preparation-0028-glove-10000-warm-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0028-glove-10000-warm-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0029-glove-10000-warm-quality.json",
+          "bytes": 1224,
+          "allocatedBytes": 8192,
+          "sha256": "638313815ad4779042d516d05d439c747edcfb4a81863fd7922d72d4a999cc32"
+        },
+        {
+          "path": "preparation-0029-glove-10000-warm-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0029-glove-10000-warm-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0030-glove-100000-oracle-oracle.json",
+          "bytes": 954,
+          "allocatedBytes": 8192,
+          "sha256": "8c618420c058dbfd0dbade45171c32e54a34f8559273a2f8f419764ac3d39440"
+        },
+        {
+          "path": "preparation-0030-glove-100000-oracle-oracle.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0030-glove-100000-oracle-oracle.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0031-glove-100000-vectra-prepare.json",
+          "bytes": 1620,
+          "allocatedBytes": 8192,
+          "sha256": "d18a1af62b5561b5b6647d0c8e0f4df04fb64a39870dee92c25daf77f8aee4cf"
+        },
+        {
+          "path": "preparation-0031-glove-100000-vectra-prepare.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0031-glove-100000-vectra-prepare.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0032-glove-100000-vectra-validate.json",
+          "bytes": 1221,
+          "allocatedBytes": 8192,
+          "sha256": "10f249e5b5af5b54dbdf98453679f1a62b7eef76fe518e6e370e7d5e96fa86fe"
+        },
+        {
+          "path": "preparation-0032-glove-100000-vectra-validate.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0032-glove-100000-vectra-validate.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0033-glove-100000-warm-prepare.json",
+          "bytes": 1611,
+          "allocatedBytes": 8192,
+          "sha256": "402762ad37db27a37cf0f20542517574df4f081b8486509b6d3b54e99efbe111"
+        },
+        {
+          "path": "preparation-0033-glove-100000-warm-prepare.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0033-glove-100000-warm-prepare.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0034-glove-100000-warm-validate.json",
+          "bytes": 1219,
+          "allocatedBytes": 8192,
+          "sha256": "58030463ac3c70993262800a4e436f43aa0e23f8deded58bb25c0b7995ec4d59"
+        },
+        {
+          "path": "preparation-0034-glove-100000-warm-validate.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0034-glove-100000-warm-validate.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0035-glove-100000-vectra-quality.json",
+          "bytes": 1235,
+          "allocatedBytes": 8192,
+          "sha256": "51101b67ca4ba544810fcb6deafc040988c78a7e8fb6e0db99c5a2a1f176c0d0"
+        },
+        {
+          "path": "preparation-0035-glove-100000-vectra-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0035-glove-100000-vectra-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0036-glove-100000-warm-quality.json",
+          "bytes": 1235,
+          "allocatedBytes": 8192,
+          "sha256": "0a968ad0ce21f2b19d4ea3e984e3387acc0532fa9e37c91d2e406cea8f9da782"
+        },
+        {
+          "path": "preparation-0036-glove-100000-warm-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0036-glove-100000-warm-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0037-glove-100000-warm-quality.json",
+          "bytes": 1233,
+          "allocatedBytes": 8192,
+          "sha256": "0d81274443335b55a7ef9a61a677c6fcb7a67ef81ac08ae214408d62b1e4e2a6"
+        },
+        {
+          "path": "preparation-0037-glove-100000-warm-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0037-glove-100000-warm-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0038-glove-100000-warm-quality.json.stderr.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        },
+        {
+          "path": "preparation-0038-glove-100000-warm-quality.json.stdout.log",
+          "bytes": 0,
+          "allocatedBytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        }
+      ],
+      "logicalBytes": 47732,
+      "allocatedBytes": 311296,
+      "allocationUnitBytes": 512
+    }
+  },
+  "phaseReceipts": {
+    "preparation-stopped.json": {
+      "path": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/preparation-stopped.json",
+      "sha256": "9a08230060369dcd946dedec9a9eaf9ee582767f86fac36ecae2cc3b5bcc3b09"
+    },
+    "preparation-finished.json": {
+      "path": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/preparation-finished.json",
+      "sha256": "84524fb342abe3e0f4852348b81b1ac1b3f26c179971033e2cb637ef00214df8"
+    },
+    "preparation-started.json": {
+      "path": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/preparation-started.json",
+      "sha256": "35a07e86f5e683f7a233f77759c05f8089f798f98405c676911d7fa6176f8c8d"
+    },
+    "preparation-grant.json": {
+      "path": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/preparation-grant.json",
+      "sha256": "7991799f8b906b17d0f4a2c5ab61952aaf54b8c3ae9d46f513276cc0eea49e39"
+    }
+  },
+  "hostObservations": {
+    "path": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/preparation-host.ndjson",
+    "bytes": 1017163098,
+    "note": "Raw monitor observations retained locally; not hashed in the stop receipt."
+  },
+  "noAutomaticRestart": true
+}

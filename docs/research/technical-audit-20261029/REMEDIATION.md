@@ -2313,3 +2313,25 @@ oracle gate: 9,235/10,000 oracle IDs recovered (mean 0.9235, worst 0.10). The
 recomputes these 1,000 queries against saved oracle IDs and hashes the selected
 rows; the remaining filters and final worker receipt were still in progress. No
 timing or speed comparison follows from this quality result.
+
+### User-requested stop of the comparison
+
+The user requested that testing stop. The active preparation controller and its
+`glove-100000` `warm-graph-256` worker were terminated; no study worker or timing
+phase remains running. Thirty-eight jobs had completed, and the active job was
+partial. A clearly labeled reconstructed `preparation-finished.json` records the
+user-requested incomplete outcome; `preparation-stopped.json` retains the stop
+metadata. The exclusive start marker remains in place, so the phase must not be
+restarted or retried. The [stop receipt](vectra-comparison-20261102/user-stop-receipt.json)
+binds the frozen input, partial result, completed result/job/receipt files and
+phase markers by hash; the raw results and host observations remain in the frozen
+cache directory. No timing preflight or measurement phase was started.
+
+The completed unfiltered `ef=256` subset at 100,000 GloVe rows had previously
+reported mean oracle recall 0.9634 and worst recall 0.50, both below the required
+0.99/0.90 thresholds. These values were read from the worker output before the
+stop and have not been independently recomputed; the selected rows are retained
+and hashed. Earlier independently recomputed `ef=128` failures are preserved in
+the linked interim receipts above. No speedup or overall comparison result is
+established. Do not resume testing without a new explicit user request; any future
+work must respect the frozen protocol's no-retry rule and preserve this attempt.
