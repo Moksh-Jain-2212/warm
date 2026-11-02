@@ -2200,3 +2200,24 @@ been benchmarked.
 The all-features library compile check passed. Regression cases were added for
 the changed search and normalization paths; the user asked that tests and
 comparisons not be run at this stage.
+
+### Stale graph delta resource follow-up (2026-11-02)
+
+Review found that a stale graph query could collect every changed embedded chunk,
+including by scanning all live documents after change-ledger coverage was lost,
+and score those chunks while holding the store read lock. The graph path now
+captures at most the ledger's 128 changed IDs and 1,024 matching embedded chunks;
+missing coverage or an exceeded chunk limit requests the existing generic exact
+fallback rather than returning a partial delta. Delta hit construction and
+canonical scoring happen after the store read lock is released. The fallback may
+still scan the live store; this change does not claim a total query-memory or
+latency bound.
+
+Regression cases cover both limits at minus one, at the limit, and plus one,
+and the vector-record public query's reported exact-fallback route after ledger
+overflow. These tests have not been run. Testing and comparisons remain paused
+at the user's request; when permitted, run the focused regressions and required
+final gates, then evaluate all 1,000 frozen queries through the public API at
+ef=128, 256, and 512, recording actual routes, recall, and remaining misses.
+The earlier local 100% diagnostic is not a frozen study result and has not been
+verified end to end or on independent data.

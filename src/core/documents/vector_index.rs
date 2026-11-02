@@ -34,9 +34,10 @@
 //!   generic exact path. Every captured row is scored outside the lock, retaining the best
 //!   `k` eligible base rows before merging bounded delta chunks. Graph queries retain their
 //!   approximate candidate contract and validate owners against the live store; their delta
-//!   discovery uses the covered change ledger or scans the live collection if coverage is
-//!   unavailable. Exact capture holds a bit per snapshot row and at most the dense index's delta
-//!   document/chunk limits. When fewer than `k` hits survive, the caller takes the generic exact path.
+//!   discovery uses the covered change ledger and falls back to generic exact search if coverage
+//!   or the bounded delta is unavailable. Exact capture holds a bit per snapshot row and at most
+//!   the dense index's delta document/chunk limits. When fewer than `k` hits survive, the caller
+//!   takes the generic exact path.
 //!   `rebuild_recommended` asks maintenance for a fresh capture
 //!   after [`REBUILD_AFTER_MUTATIONS`] mutations, so the stale window is bounded by the
 //!   maintenance interval.
@@ -820,7 +821,6 @@ fn compare_hits(a: &Hit, b: &Hit) -> Ordering {
 fn append_graph_delta(
     snapshot: &VectorSnapshot,
     document: &Arc<StoredDocument>,
-    query: &[f32],
     found: &mut Vec<Hit>,
 ) -> Result<()> {
     if snapshot.members.contains(&(Arc::as_ptr(document) as usize)) {
@@ -836,7 +836,7 @@ fn append_graph_delta(
         found.push(Hit {
             document: Arc::clone(document),
             chunk: u32::try_from(chunk).context("chunk index over u32")?,
-            score: f64::from(dot(query, embedding)),
+            score: 0.0,
         });
     }
     Ok(())
@@ -1118,23 +1118,35 @@ pub(crate) fn rank_vector_snapshot(
         }
         let changed = {
             let changes = store.vector_changes.read();
-            changes
-                .since(snapshot.generation, store.generation)
-                .map(|ids| {
-                    ids.filter_map(|id| store.get(id).cloned())
-                        .collect::<Vec<_>>()
-                })
+            let Some(ids) = changes.since(snapshot.generation, store.generation) else {
+                return Ok(None);
+            };
+            let mut changed = Vec::new();
+            changed
+                .try_reserve_exact(MAX_DELTA_DOCUMENTS.min(store.documents.len()))
+                .context("cannot allocate graph delta owners")?;
+            let mut chunks = 0usize;
+            for document in ids.filter_map(|id| store.get(id)) {
+                for chunk in &document.chunks {
+                    if chunk
+                        .embedding
+                        .as_ref()
+                        .is_some_and(|embedding| embedding.len() == snapshot.dim)
+                    {
+                        chunks += 1;
+                        if chunks > MAX_DELTA_CHUNKS {
+                            return Ok(None);
+                        }
+                    }
+                }
+                changed.push(Arc::clone(document));
+            }
+            changed
         };
-        if let Some(changed) = changed {
-            for document in &changed {
-                append_graph_delta(snapshot, document, query, &mut found)?;
-            }
-        } else {
-            for document in store.documents.values() {
-                append_graph_delta(snapshot, document, query, &mut found)?;
-            }
-        }
         drop(store);
+        for document in &changed {
+            append_graph_delta(snapshot, document, &mut found)?;
+        }
         if found.len() < k.min(snapshot.rows()) {
             return Ok(None);
         }
@@ -1503,7 +1515,7 @@ mod tests {
     }
 
     #[test]
-    fn stale_graph_uses_tracked_changes_or_complete_fallback() {
+    fn stale_graph_uses_tracked_changes_or_requests_exact_fallback() {
         for changed in [
             MAX_DELTA_DOCUMENTS - 1,
             MAX_DELTA_DOCUMENTS,
@@ -1538,11 +1550,93 @@ mod tests {
             );
             let expected = live_scan_results(&store, &[1.0, 0.0], 8, -1.0);
             let store = RwLock::new(store);
-            assert_eq!(
-                graph_snapshot_results(&snapshot, &store, 8),
-                expected,
-                "changed={changed}"
+            let ranked = search_vector_snapshot(
+                &snapshot,
+                &store,
+                &[1.0, 0.0],
+                &[1.0, 0.0],
+                8,
+                &VectorQueryOptions {
+                    mode: VectorIndexMode::Graph,
+                    ef: 64,
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+            assert_eq!(ranked.is_some(), changed <= MAX_DELTA_DOCUMENTS);
+            let results = ranked.unwrap_or_else(|| {
+                super::super::search(
+                    &store.read(),
+                    "",
+                    &super::super::SearchOptions {
+                        k: Some(8),
+                        embedding: Some(vec![1.0, 0.0]),
+                        lexical_weight: Some(0.0),
+                        semantic_weight: Some(1.0),
+                        min_semantic_score: Some(-1.0),
+                        ..Default::default()
+                    },
+                    Some(2),
+                )
+                .unwrap()
+            });
+            let actual: Vec<_> = results
+                .into_iter()
+                .map(|hit| (hit.document_id, hit.id, hit.semantic_score.unwrap()))
+                .collect();
+            assert_eq!(actual, expected, "changed={changed}");
+        }
+    }
+
+    #[test]
+    fn stale_graph_bounds_delta_chunks_without_truncating() {
+        for chunks in [MAX_DELTA_CHUNKS - 1, MAX_DELTA_CHUNKS, MAX_DELTA_CHUNKS + 1] {
+            let mut store = DocumentStore::default();
+            put_vector(&mut store, "base", "base", vec![vec![0.0, 1.0]]);
+            let snapshot =
+                build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), 1).unwrap();
+            put_vector(
+                &mut store,
+                "delta",
+                &vec!["delta"; chunks].join(" "),
+                vec![vec![1.0, 0.0]; chunks],
             );
+            let expected = live_scan_results(&store, &[1.0, 0.0], 10, -1.0);
+            let store = RwLock::new(store);
+            let ranked = search_vector_snapshot(
+                &snapshot,
+                &store,
+                &[1.0, 0.0],
+                &[1.0, 0.0],
+                10,
+                &VectorQueryOptions {
+                    mode: VectorIndexMode::Graph,
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+            assert_eq!(ranked.is_some(), chunks <= MAX_DELTA_CHUNKS);
+            let results = ranked.unwrap_or_else(|| {
+                super::super::search(
+                    &store.read(),
+                    "",
+                    &super::super::SearchOptions {
+                        k: Some(10),
+                        embedding: Some(vec![1.0, 0.0]),
+                        lexical_weight: Some(0.0),
+                        semantic_weight: Some(1.0),
+                        min_semantic_score: Some(-1.0),
+                        ..Default::default()
+                    },
+                    Some(2),
+                )
+                .unwrap()
+            });
+            let actual: Vec<_> = results
+                .into_iter()
+                .map(|hit| (hit.document_id, hit.id, hit.semantic_score.unwrap()))
+                .collect();
+            assert_eq!(actual, expected, "chunks={chunks}");
         }
     }
 

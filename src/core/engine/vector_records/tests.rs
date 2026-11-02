@@ -604,6 +604,40 @@ fn native_only_graph_route_and_mixed_ownership_survive_kind_changes() -> Result<
 }
 
 #[test]
+fn native_graph_query_reports_exact_fallback_after_change_ledger_overflow() -> Result<()> {
+    let directory = tempfile::tempdir()?;
+    let core = open(directory.path())?;
+    upsert(&core, record("base"))?;
+    assert!(core.rebuild_vector_index(1)?);
+    core.mutate_vector_records(
+        (0..129)
+            .map(|index| VectorRecordOperation::Insert {
+                record: VectorRecordInput {
+                    id: format!("delta{index:03}"),
+                    vector: vec![1.0, index as f64 / 1000.0, 0.0],
+                    metadata: json!({}),
+                },
+            })
+            .collect(),
+        &Default::default(),
+    )?;
+    let result = core.query_vector_records(
+        &[1.0, 0.0, 0.0],
+        1,
+        &VectorRecordQueryOptions {
+            mode: Some("graph".into()),
+            ..Default::default()
+        },
+    )?;
+    assert_eq!(
+        result.diagnostics.route,
+        documents::VectorSearchRoute::FallbackExact
+    );
+    assert_eq!(result.results[0].item.id, "delta000");
+    Ok(())
+}
+
+#[test]
 fn offline_verifier_and_replay_reject_wrong_or_missing_embedding_configuration() -> Result<()> {
     let directory = tempfile::tempdir()?;
     let core = open(directory.path())?;
