@@ -1,0 +1,29 @@
+{
+  "stage": "retrieval_source_before_data_evaluation",
+  "native_source_commit": "23c0774d8d8b96ab047c944ea4143faf99e88b75",
+  "native_api_original_commit": "ad39918870952804301ddb7581986b514c655748",
+  "retrieval_binary": "/Volumes/A/warm-matryoshka-fresh/target/native-eval/release/evaluate",
+  "retrieval_binary_sha256": "d57d8260475f8d03eb9e5518d1254455fa7a9478e9e06fcec482d548c7b7eebe",
+  "input_sha256": "87fb9d1e9c67885d40786a5102d604db5e352ba1d80727f155c27e2522cfccef",
+  "files_sha256": {
+    "PLAN.md": "156711556ab6c45742aebf04fbf157394950f3df69c1bbeeb6c584af1aa782f6",
+    "README.md": "56d29c21ab09c9efc49b85087e87238ab16ddea14162c099a82d6cb4e67d1adf",
+    "analyze.py": "fbd536d6eb4b731641bfaec16929cb26a656ccff6ee710d7deb8609bf424e8d8",
+    "metrics.py": "ea6e952d8597dc1bb8f53f999907e67041da87a384909f7a3008d59b6e57769c",
+    "run_retrieval.py": "29a089514f83b2084e6f2a4e646270b62c03c5b85715d8b6c9c9aa473faeb20f",
+    "test_host.py": "919f8eb49c8c938216754f39040fadfd4e028ba125a31281411ee2e940eee51e",
+    "test_metrics.py": "80d1e86c72bb49a7b87a569e7625a7ef7aaf0dc5d542ed5da28d235fa1f309e2",
+    "driver/Cargo.toml": "dbac85060e85b2a5474fe4fce1fc156c774ea3c0f65761272a864c28766e33e6",
+    "driver/Cargo.lock": "76185c43bd4b5d4840f17b438425a26bb32250f4f6d03b903abd0c58de937a54",
+    "driver/src/bin/evaluate.rs": "7b680e9119aff4dbdbe2ab822a71c70ff780b4ccc4b364fe64f35cb1ac58f522"
+  },
+  "checks": {
+    "native_harness_tests": 3,
+    "python_tests": 7,
+    "release_build": "passed",
+    "strict_clippy_evaluate": "passed"
+  },
+  "process_restart": "mutate and reopen are separate sequential subprocesses; distinct PIDs asserted",
+  "timing_boundary": "Only search_vectors_with_report call; no output conversion, validation, RSS sample, embedding, open, build or warmup",
+  "source_verified_before_real_retrieval": true
+}
