@@ -2215,7 +2215,8 @@ latency bound.
 
 Regression cases cover both limits at minus one, at the limit, and plus one,
 and the vector-record public query's reported exact-fallback route after ledger
-overflow. These tests have not been run. Testing and comparisons remain paused
+overflow. `cargo check --offline --locked --all-features --lib` passed after the
+fix; these tests have not been run. Testing and comparisons remain paused
 at the user's request; when permitted, run the focused regressions and required
 final gates, then evaluate all 1,000 frozen queries through the public API at
 ef=128, 256, and 512, recording actual routes, recall, and remaining misses.
