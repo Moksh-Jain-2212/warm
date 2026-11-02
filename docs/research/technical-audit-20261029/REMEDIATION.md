@@ -1763,7 +1763,7 @@ signed merge tree matches the tested head; root main was clean and fast-forwarde
 Only the existing owner-review allowance was used. Evidence:
 [readiness final gate](readiness-completion-20261101/final-gate.json.gz).
 
-## Recovery and query efficiency followup (2026-11-01; implementation in progress)
+## Recovery and query efficiency followup (2026-11-01; qualification complete)
 
 The user authorized parallel completion of the remaining code opportunities:
 restart-safe HTTP retries, recovery from retained-text publication/cleanup failures,
@@ -1870,8 +1870,24 @@ See [tracked-source validation](recovery-query-completion-20261101/tracked-valid
 The [tracked Linux plan](vector-contention-20261101/tracked-linux-1024/README.md)
 preserves every workload and quality threshold. Before measurement its completion
 allowance increases to 900 seconds because the prior complete run nearly exhausted
-600 seconds; this does not relax latency, writer or correctness criteria. Hosted
-qualification, final CI and merge remain pending.
+600 seconds; this does not relax latency, writer or correctness criteria.
+
+The single tracked Linux run
+[41387201348](https://github.com/writerslogic/warm/actions/runs/41387201348)
+passes every fixed qualification gate in 537.555 seconds. All 92,880 oracle checks
+pass, and all 92,160 measured ordered answers match across revisions. Median
+per-process stale-idle p99 falls 85.31%, 52.10% and 17.74% at 16, 128 and 768
+dimensions; fresh p50/p99 changes are non-positive. Required writer lock-wait
+reductions exceed 99.99% for the scheduled scoring-entry contention workload.
+All 119 host observations pass. These findings apply to the fixed 8,192-row Linux
+VM workload, not arbitrary writer arrivals, production workloads or Vectra.
+Earlier failed experiments remain preserved. The exact compressed export, source
+verification and byte-identical summary reproduction are retained in the linked
+tracked evidence; the coordinator also independently decoded and reproduced it.
+
+All four followups now have integrated implementation and acceptance evidence.
+The complete feature/platform PR gate and merge remain pending; no release or
+ToIP publication is implied.
 
 ## Next authorized phase: changing agent memory and Vectra migration
 
