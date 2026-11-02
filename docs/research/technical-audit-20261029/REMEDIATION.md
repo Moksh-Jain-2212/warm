@@ -1952,6 +1952,13 @@ combines explanation, whole-chain purge and a final process restart asserting bo
 versions remain absent; a public close binding is currently absent. The `purge`
 TypeScript comment also needs alignment with current compaction behavior.
 
+The [Node temporal example](../../../examples/temporal-memory.cjs) now covers that
+complete workflow in four independent processes, including replacement after an
+initial restart. Its regression verifies current and historical values, predecessor
+explanation, explicit whole-chain purge and final absence after restart. All four
+Node memory tests and TypeScript checks pass locally; the purge declaration now
+describes synchronous text-segment rebuilding. Full integrated CI remains required.
+
 Vectra 0.15.0 is the current npm comparator, and the inspected packaged implementations
 match the user's pinned source after line-ending normalization. Its implementation
 already uses a bounded top-k heap despite older documentation describing a full sort.
@@ -1983,3 +1990,31 @@ several blue possessions does not establish an explicit favorite-color preferenc
 can have independent value and lower retrieval cost. Existing dry-run consolidation keeps
 source history unless destructive removal is separately enabled; any new policy should
 build on those controls. No pruning experiment or data removal has run.
+
+## Fresh Matryoshka development (2026-11-02; qualification pending)
+
+The user requested full embeddings with short-vector candidate search and full-vector
+reranking, then rejected old cached vectors as the basis for the new evaluation.
+An opt-in native candidate policy now normalizes prefixes for graph construction and
+traversal while retaining full stored embeddings and canonical final cosine scores.
+The defaults remain unchanged. Filters use complete exact eligibility; stale projected
+snapshots and zero-norm prefixes fall back to full exact search. Actual route diagnostics
+distinguish these paths. Native and Node input bounds, mutation/reopen behavior, full
+scores and filtered negative scores have focused regression coverage. See the
+[retrieval contract](../../guides/retrieval-contracts.md#optional-matryoshka-candidates).
+
+The Qwen3 backend also has an explicit generic Documents query task, with its instruction
+included in the effective embedding identity. Existing conversation tasks and full
+output width are preserved. Its 31 model tests and strict Clippy pass locally;
+[validation](document-retrieval-task-20261102/validation.json) records the exact source.
+The native candidate implementation passes 37 focused Rust tests and eight Node tests,
+plus strict scoped Clippy and TypeScript checks. A combined feature gate is in progress.
+
+Fresh local generation uses all 5,183 SciFact documents and 300 test queries, the existing
+pinned Qwen3-Embedding-0.6B weights and the current native Metal backend. No model/API
+download or paid service is used. Every input fits the current 2,048-token limit. The
+frozen comparison includes full exact, two matched full-graph controls and 256/512-prefix
+arms, selective exact filters, updates/deletes and separate-process restart verification.
+All quality and latency criteria are fixed before measurement. Fresh generation and
+native retrieval results remain pending; no speed, recall or default-selection conclusion
+is established by the historical cached study. The user-facing policy remains opt-in.
