@@ -1,0 +1,25 @@
+{
+  "pr": "https://github.com/writerslogic/warm/pull/376",
+  "qualified_head": "9292bfb57223f664c87eeb8964b1fc72f9cc740d",
+  "merge": "113f8ad12b0790d0aad5050267c46996379ee659",
+  "merged_at": "2026-11-02T07:36:52Z",
+  "merge_signature_verified": true,
+  "tested_tree_equals_merged_tree": true,
+  "checks": {
+    "success": 147,
+    "skipped": 23,
+    "neutral": 1
+  },
+  "signed_dco_source_commits": 22,
+  "skips": "Publication, attestation and environment-gated jobs; tag-only rebuild; owner-exempt signoff independently checked. No functional test is omitted by these jobs.",
+  "source_bundle_alerts": "The two Scorecard binary-artifact findings were verified Git source archives and individually dismissed as false positives; disposition preserved.",
+  "no_npm_publication": true,
+  "artifacts": {
+    "final-gate.json.gz": "ac779626a02d579f42ca0e4a6c72aa0d53b88aa98c6c3e0e3b30db5d0a03ada4",
+    "final-signatures.log.gz": "a08f0a4b16859881e55798ef5f3f7520d3d73c28caa8b73b935b303c44c4f27e",
+    "merge-request.json": "b248f7b337b63694396b0a5feef85b2076a50f58a982e1b054446e647622fc03",
+    "merge-response.json": "ab3edb2a054382faf1d3cc08003cb61ece25a4fa3bd604a75917d0ea4ded5ce1",
+    "merge-verified.json": "d48091d9bb67ed0b4f1fb409765e4d1e6e372e1105902a41f19bdc8e553b7b75",
+    "source-bundle-alert-disposition.json": "d7b005b8faf6f926895e5a33953e9dccc6ddf385b80643ab0d10b8aae49ec2c2"
+  }
+}

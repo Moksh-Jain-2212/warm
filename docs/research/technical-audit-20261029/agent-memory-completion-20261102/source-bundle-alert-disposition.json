@@ -1,0 +1,18 @@
+{
+  "captured_at": "2026-11-02T06:41:18.060233+00:00",
+  "verification": "git bundle verify + git diff --stat against ba980ffc16e01981bf1d025debfb83d6e7334aac",
+  "alerts": [
+    {
+      "number": 150,
+      "state": "dismissed",
+      "reason": "Verified Git source bundle for two signed research candidates; both changesets contain only src/core/documents/search.rs relative to the recorded prerequisite. This is reproducibility source, not an executable artifact.",
+      "url": "https://github.com/writerslogic/warm/security/code-scanning/150"
+    },
+    {
+      "number": 151,
+      "state": "dismissed",
+      "reason": "Verified Git source bundle for the signed vector fast-path research candidate. Relative to its recorded prerequisite it contains Rust source/tests and JSON/gzip validation receipts, with no compiled executable. This preserves reproducibility source.",
+      "url": "https://github.com/writerslogic/warm/security/code-scanning/151"
+    }
+  ]
+}
