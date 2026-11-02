@@ -55,11 +55,29 @@ const { WarmMemorySystem } = require('writerslogic-warm')
 const { Memory } = require('writerslogic-warm/memory')
 
 const memory = new Memory(new WarmMemorySystem(4096, './store'), { supersession: 'latest-by-subject' })
-await memory.remember('Alice lives in Paris', { subject: 'alice/city', validFrom: new Date('2020-01-01') })
-await memory.remember('Alice lives in Berlin', { subject: 'alice/city', validFrom: new Date('2025-01-01') })
+await memory.remember('Alice lives in Paris', { id: 'home-1', subject: 'alice/city', validFrom: new Date('2020-01-01') })
+await memory.remember('Alice lives in Berlin', { id: 'home-2', subject: 'alice/city', validFrom: new Date('2025-01-01') })
 await memory.recall('where does Alice live')                       // Berlin
 await memory.recall('where does Alice live', { asOf: new Date('2021-06-01') })   // Paris
 ```
+
+The runnable [Node temporal workflow](../../examples/temporal-memory.cjs) uses distinct stable
+IDs, a shared subject and explicit validity dates. From the repository root, after
+`npm run build`, use a new directory and run each step as a separate process:
+
+```sh
+node examples/temporal-memory.cjs remember ./temporal-demo
+node examples/temporal-memory.cjs replace ./temporal-demo
+node examples/temporal-memory.cjs forget ./temporal-demo
+node examples/temporal-memory.cjs verify ./temporal-demo
+```
+
+`replace` returns Berlin for current recall, Paris for `asOf: 2021-06-01`, and an explanation
+linking the replacement to its predecessor. The example reapplies `latest-by-subject` on
+every open: policies are runtime configuration, while facts and supersession links persist.
+`forget` targets the latest ID with `{ includeChain: true, purge: true, dryRun: false }`, then
+flushes. The final process reports empty current, historical and document results and `null`
+for both IDs. This workflow uses lexical retrieval and needs no embedding model or service.
 
 Python (`warm-sdk`, against `warm-server`):
 

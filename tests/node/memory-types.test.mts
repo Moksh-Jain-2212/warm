@@ -15,7 +15,7 @@ const created: boolean = stored.created
 const found: Recalled[] = await memory.recall('Alice', { history: 'all', asOf: Date.now(), explain: true })
 const status: 'current' | 'superseded' | 'expired' | 'not-yet-valid' | undefined = found[0]?.status
 const terms: string[] | undefined = found[0]?.explanation?.matchedTerms
-const report: ForgetReport = await memory.forget({ ids: [id] }, { includeChain: true, dryRun: true })
+const report: ForgetReport = await memory.forget({ ids: [id] }, { includeChain: true, purge: true, dryRun: false })
 const fact = await memory.get(id)
 const history = await memory.history(id)
 void [created, status, terms, report, fact, history, MemoryError]
