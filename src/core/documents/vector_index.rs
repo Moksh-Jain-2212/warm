@@ -12,8 +12,9 @@
 //! same rows. Every [`VectorIndex`] maps a query to row ids and the snapshot maps rows back
 //! to documents. Readers share the snapshot through one `Arc`, so a query holds the store's
 //! read lock only to read the generation and the text segment for fresh queries. Stale
-//! exact queries hold it while scanning live base rows and the delta; graph scoring stays
-//! outside the lock before stale-hit validation and the delta pass.
+//! exact queries capture live-row eligibility and bounded delta owners under the lock,
+//! then score their immutable embeddings after releasing it. Graph scoring stays outside
+//! the lock before stale-hit validation and the delta pass.
 //!
 //! Data layout: `rows[i]` owns the document of row `i` and the chunk index inside it;
 //! `exact.rows[i]` is that chunk's embedding handle, l2-normalised `f32` values rounded from
@@ -34,10 +35,11 @@
 //!   merge is complete because no base row outside that bounded set can outrank all kept base
 //!   rows. Graph queries keep their approximate candidate contract. Documents the snapshot
 //!   does not cover (inserted or replaced since the capture) are scored in a delta pass over
-//!   the live documents: one walk over `store.documents` with a hash probe per document plus
-//!   a dot product per uncovered chunk. That pass is bounded by the store size and never
-//!   costs more than the generic exact path; when fewer than `k` hits survive, the caller
-//!   falls back to that path. `rebuild_recommended` asks maintenance for a fresh capture
+//!   the live documents. Exact-mode capture holds a bit per snapshot row and at most the
+//!   dense index's delta document/chunk limits; exceeding either limit takes the complete
+//!   generic exact path. Graph queries score uncovered chunks under the lock. When fewer
+//!   than `k` hits survive, the caller falls back to the generic exact path.
+//!   `rebuild_recommended` asks maintenance for a fresh capture
 //!   after [`REBUILD_AFTER_MUTATIONS`] mutations, so the stale window is bounded by the
 //!   maintenance interval.
 //! - third implementation slot: [`VectorIndexKind::Scan`] is reserved for the graph-free
@@ -54,6 +56,7 @@ use crate::core::sync::{Mutex, MutexGuard, RwLock};
 use anyhow::{bail, ensure, Context, Result};
 use serde::{Deserialize, Serialize};
 
+use super::dense::{MAX_DELTA_CHUNKS, MAX_DELTA_DOCUMENTS};
 use super::index::{text_scrubbed, try_text_of};
 use super::{DocumentResult, DocumentStore, Embedding, StoredDocument, TextSegment};
 use crate::core::qgraph::{BuildParams, Graph, VGraph, VSearchParams};
@@ -305,6 +308,8 @@ impl ExactScan {
                     .then(self.row.cmp(&other.row))
             }
         }
+        #[cfg(test)]
+        tests::before_canonical_scoring();
         let k = k.min(self.rows.len());
         let mut best = BinaryHeap::<Candidate>::with_capacity(k);
         for (row, values) in self.rows.iter().enumerate() {
@@ -652,9 +657,9 @@ fn to_result(hit: &Hit, segment: Option<&TextSegment>) -> Result<DocumentResult>
 }
 
 /// Answers an unfiltered vector query from the snapshot. `query` is l2-normalised. `None`
-/// means the snapshot is too stale to answer this query (fewer than `k` hits survived
-/// validation, or a hit's text was scrubbed before it was read); the caller takes the
-/// generic exact path.
+/// means the snapshot is too stale to answer this query (the exact delta exceeds its
+/// capture limits, fewer than `k` hits survived validation, or a hit's text was scrubbed
+/// before it was read); the caller takes the generic exact path.
 pub(crate) fn search_vector_snapshot(
     snapshot: &VectorSnapshot,
     store: &RwLock<DocumentStore>,
@@ -674,6 +679,72 @@ pub(crate) fn search_vector_snapshot(
 pub(crate) struct RankedVectorHits {
     hits: Vec<Hit>,
     segment: Option<Arc<TextSegment>>,
+}
+
+struct StaleExactCapture {
+    live_rows: Vec<u64>,
+    delta: Vec<Arc<StoredDocument>>,
+    segment: Option<Arc<TextSegment>>,
+}
+
+fn capture_stale_exact(
+    snapshot: &VectorSnapshot,
+    store: &DocumentStore,
+) -> Result<Option<StaleExactCapture>> {
+    let mut live_rows = Vec::new();
+    let words = snapshot.rows.len().div_ceil(64);
+    live_rows
+        .try_reserve_exact(words)
+        .context("cannot allocate vector snapshot eligibility")?;
+    live_rows.resize(words, 0);
+    let mut previous = None;
+    let mut live = false;
+    for (row, captured) in snapshot.rows.iter().enumerate() {
+        let owner = Arc::as_ptr(&captured.document);
+        if previous != Some(owner) {
+            live = store
+                .get(&captured.document.id)
+                .is_some_and(|document| Arc::ptr_eq(document, &captured.document));
+            previous = Some(owner);
+        }
+        if live {
+            live_rows[row / 64] |= 1 << (row % 64);
+        }
+    }
+    let mut delta = Vec::new();
+    delta
+        .try_reserve_exact(MAX_DELTA_DOCUMENTS.min(store.documents.len()))
+        .context("cannot allocate vector snapshot delta owners")?;
+    let mut chunks = 0;
+    for document in store.documents.values() {
+        if snapshot.members.contains(&(Arc::as_ptr(document) as usize)) {
+            continue;
+        }
+        let before = chunks;
+        for chunk in &document.chunks {
+            if chunk
+                .embedding
+                .as_ref()
+                .is_some_and(|embedding| embedding.len() == snapshot.dim)
+            {
+                chunks += 1;
+                if chunks > MAX_DELTA_CHUNKS {
+                    return Ok(None);
+                }
+            }
+        }
+        if chunks != before {
+            if delta.len() == MAX_DELTA_DOCUMENTS {
+                return Ok(None);
+            }
+            delta.push(Arc::clone(document));
+        }
+    }
+    Ok(Some(StaleExactCapture {
+        live_rows,
+        delta,
+        segment: store.text_segment(),
+    }))
 }
 
 /// The hits with their text, or `None` when the text of one was scrubbed since the ranking
@@ -726,7 +797,7 @@ pub(crate) fn rank_vector_snapshot(
         "minScore must be in [-1,1]"
     );
     let index = snapshot.index(options.mode)?;
-    let (generation, segment) = {
+    let (generation, mut segment) = {
         let store = store.read();
         (store.generation, store.text_segment())
     };
@@ -759,39 +830,57 @@ pub(crate) fn rank_vector_snapshot(
                 score,
             });
         }
+    } else if exact_index {
+        let captured = {
+            let store = store.read();
+            capture_stale_exact(snapshot, &store)?
+        };
+        let Some(captured) = captured else {
+            return Ok(None);
+        };
+        segment = captured.segment;
+        let hits = snapshot.exact.search_canonical(exact_query, k, |row| {
+            captured.live_rows[row / 64] & (1 << (row % 64)) != 0
+        });
+        for (row, score) in hits {
+            let row = &snapshot.rows[row as usize];
+            found.push(Hit {
+                document: Arc::clone(&row.document),
+                chunk: row.chunk,
+                score,
+            });
+        }
+        for document in &captured.delta {
+            for (chunk, stored) in document.chunks.iter().enumerate() {
+                if stored
+                    .embedding
+                    .as_ref()
+                    .is_some_and(|embedding| embedding.len() == snapshot.dim)
+                {
+                    found.push(Hit {
+                        document: Arc::clone(document),
+                        chunk: u32::try_from(chunk).context("chunk index over u32")?,
+                        score: 0.0,
+                    });
+                }
+            }
+        }
+        if found.len() < k.min(snapshot.rows()) {
+            return Ok(None);
+        }
     } else {
         let store = store.read();
-        if exact_index {
-            let hits = snapshot.exact.search_canonical(exact_query, k, |row| {
-                let captured = &snapshot.rows[row].document;
-                store
-                    .get(&captured.id)
-                    .is_some_and(|live| Arc::ptr_eq(live, captured))
-            });
-            for (row, score) in hits {
-                let row = &snapshot.rows[row as usize];
+        for (row, score) in graph_hits {
+            let row = &snapshot.rows[row as usize];
+            let live = store
+                .get(&row.document.id)
+                .is_some_and(|live| Arc::ptr_eq(live, &row.document));
+            if live {
                 found.push(Hit {
                     document: Arc::clone(&row.document),
                     chunk: row.chunk,
-                    score,
+                    score: f64::from(score),
                 });
-            }
-        } else {
-            for (row, score) in graph_hits
-                .into_iter()
-                .map(|(row, score)| (row, f64::from(score)))
-            {
-                let row = &snapshot.rows[row as usize];
-                let live = store
-                    .get(&row.document.id)
-                    .is_some_and(|live| Arc::ptr_eq(live, &row.document));
-                if live {
-                    found.push(Hit {
-                        document: Arc::clone(&row.document),
-                        chunk: row.chunk,
-                        score,
-                    });
-                }
             }
         }
         for document in store.documents.values() {
@@ -873,6 +962,19 @@ mod tests {
     use crate::core::documents::{prepare, DocumentInput};
     use crate::core::encoding::TextEncoder;
     use serde_json::json;
+    use std::cell::RefCell;
+    use std::sync::{atomic::AtomicBool, atomic::Ordering as AtomicOrdering, mpsc};
+    use std::time::Duration;
+
+    thread_local! {
+        static CANONICAL_HOOK: RefCell<Option<Box<dyn FnOnce()>>> = const { RefCell::new(None) };
+    }
+
+    pub(super) fn before_canonical_scoring() {
+        if let Some(hook) = CANONICAL_HOOK.with(|slot| slot.borrow_mut().take()) {
+            hook();
+        }
+    }
 
     fn matrix(rows: &[[f32; 4]]) -> ExactScan {
         let rows: Vec<Embedding> = rows
@@ -1088,6 +1190,163 @@ mod tests {
                     }
                 }
             }
+        }
+    }
+
+    #[test]
+    fn stale_exact_scoring_allows_writes_and_retains_a_coherent_ordered_capture() {
+        let mut initial = DocumentStore::default();
+        for row in 0..65 {
+            put_vector(
+                &mut initial,
+                &format!("d{row:03}"),
+                "base",
+                vec![vec![1.0, row as f64 / 100.0]],
+            );
+        }
+        let snapshot = build_vector_snapshot(
+            capture_vector_rows(&initial, 2).unwrap().unwrap(),
+            usize::MAX,
+        )
+        .unwrap();
+        put_vector(&mut initial, "d000", "before", vec![vec![0.8, 0.6]]);
+        delete_vector(&mut initial, "d064");
+        put_vector(&mut initial, "inserted", "before", vec![vec![1.0, 0.0]]);
+        let expected = live_scan_results(&initial, &[1.0, 0.0], 65, -1.0);
+        let store = Arc::new(RwLock::new(initial));
+        let (score_tx, score_rx) = mpsc::channel();
+        let (done_tx, done_rx) = mpsc::channel();
+        let writer_store = Arc::clone(&store);
+        let writer = std::thread::spawn(move || {
+            score_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+            let mut live = writer_store.write();
+            put_vector(&mut live, "d000", "after", vec![vec![0.0, 1.0]]);
+            delete_vector(&mut live, "d001");
+            put_vector(&mut live, "inserted", "after", vec![vec![0.0, 1.0]]);
+            put_vector(&mut live, "new-winner", "after", vec![vec![1.0, 0.0]]);
+            drop(live);
+            done_tx.send(()).unwrap();
+        });
+        let progressed = Arc::new(AtomicBool::new(false));
+        let observed = Arc::clone(&progressed);
+        CANONICAL_HOOK.with(|slot| {
+            *slot.borrow_mut() = Some(Box::new(move || {
+                score_tx.send(()).unwrap();
+                observed.store(
+                    done_rx.recv_timeout(Duration::from_secs(5)).is_ok(),
+                    AtomicOrdering::SeqCst,
+                );
+            }));
+        });
+        let actual = snapshot_results(&snapshot, &store, &[1.0, 0.0], 65, -1.0);
+        writer.join().unwrap();
+        assert!(
+            progressed.load(AtomicOrdering::SeqCst),
+            "writer blocked during scoring"
+        );
+        assert_eq!(actual, expected);
+        assert_ne!(
+            actual,
+            live_scan_results(&store.read(), &[1.0, 0.0], 65, -1.0)
+        );
+    }
+
+    #[test]
+    fn stale_exact_capture_preserves_live_rows_across_bitmap_boundaries() {
+        for rows in [63, 64, 65, 127, 128, 129] {
+            let mut store = DocumentStore::default();
+            for row in 0..rows {
+                put_vector(
+                    &mut store,
+                    &format!("d{row:03}"),
+                    "tie",
+                    vec![vec![1.0, 0.0]],
+                );
+            }
+            let snapshot =
+                build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), usize::MAX)
+                    .unwrap();
+            put_vector(&mut store, "d000", "replacement", vec![vec![0.0, 1.0]]);
+            delete_vector(&mut store, &format!("d{:03}", rows - 1));
+            put_vector(&mut store, "new", "new", vec![vec![1.0, 0.0]]);
+            let store = RwLock::new(store);
+            for k in [1, rows] {
+                for minimum in [-1.0, 0.5] {
+                    assert_eq!(
+                        snapshot_results(&snapshot, &store, &[1.0, 0.0], k, minimum),
+                        live_scan_results(&store.read(), &[1.0, 0.0], k, minimum),
+                        "rows={rows} k={k} min={minimum}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn stale_exact_capture_bounds_delta_documents_and_chunks_without_truncating() {
+        for (documents, chunks, accepted) in [
+            (MAX_DELTA_DOCUMENTS - 1, 1, true),
+            (MAX_DELTA_DOCUMENTS, 1, true),
+            (MAX_DELTA_DOCUMENTS + 1, 1, false),
+            (1, MAX_DELTA_CHUNKS - 1, true),
+            (1, MAX_DELTA_CHUNKS, true),
+            (1, MAX_DELTA_CHUNKS + 1, false),
+        ] {
+            let mut store = DocumentStore::default();
+            put_vector(&mut store, "base", "base", vec![vec![0.0, 1.0]]);
+            let snapshot =
+                build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), usize::MAX)
+                    .unwrap();
+            for document in 0..documents {
+                put_vector(
+                    &mut store,
+                    &format!("delta{document:03}"),
+                    &vec!["delta"; chunks].join(" "),
+                    vec![vec![1.0, 0.0]; chunks],
+                );
+            }
+            let expected = live_scan_results(&store, &[1.0, 0.0], 10, -1.0);
+            let store = RwLock::new(store);
+            let capture = capture_stale_exact(&snapshot, &store.read()).unwrap();
+            assert_eq!(
+                capture.is_some(),
+                accepted,
+                "documents={documents} chunks={chunks}"
+            );
+            let ranked = search_vector_snapshot(
+                &snapshot,
+                &store,
+                &[1.0, 0.0],
+                &[1.0, 0.0],
+                10,
+                &VectorQueryOptions {
+                    mode: VectorIndexMode::Exact,
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+            assert_eq!(ranked.is_some(), accepted);
+            let results = ranked.unwrap_or_else(|| {
+                super::super::search(
+                    &store.read(),
+                    "",
+                    &super::super::SearchOptions {
+                        k: Some(10),
+                        embedding: Some(vec![1.0, 0.0]),
+                        lexical_weight: Some(0.0),
+                        semantic_weight: Some(1.0),
+                        min_semantic_score: Some(-1.0),
+                        ..Default::default()
+                    },
+                    Some(2),
+                )
+                .unwrap()
+            });
+            let actual: Vec<_> = results
+                .into_iter()
+                .map(|hit| (hit.document_id, hit.id, hit.semantic_score.unwrap()))
+                .collect();
+            assert_eq!(actual, expected, "documents={documents} chunks={chunks}");
         }
     }
 
