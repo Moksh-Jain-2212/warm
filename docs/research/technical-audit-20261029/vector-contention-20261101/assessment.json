@@ -1,0 +1,27 @@
+{
+  "source": "0e49e592f8d7d3fddd68a842748a4c462408c4ed",
+  "performance_qualified": false,
+  "predeclared_query_gate": "Median per-process query p50 and p99 increase no more than 15% for fresh_idle and stale_idle at each dimension; concurrent query latency reported without hiding tradeoffs",
+  "query_gate_passed": false,
+  "writer_gate_passed": true,
+  "correctness": {
+    "oracle_checks": 6480,
+    "processes": 10,
+    "all_ordered_results_equal": true
+  },
+  "failed_condition": {
+    "dimensions": 16,
+    "phase": "fresh_idle",
+    "metric": "median_process_query_p99",
+    "baseline_ns": 35875,
+    "current_ns": 44708,
+    "percent_increase": 24.621602787456442,
+    "maximum_percent_increase": 15
+  },
+  "source_inspection": "Fresh branch and canonical scorer are identical ignoring whitespace and the candidate test-only pause hook; both probe archives use identical replacement instrumentation. Surrounding-function code generation may still differ.",
+  "host_limit": "Coordinating workers held builds/tests; unrelated host activity was present in endpoint snapshots. Per-sample overlap and causal attribution are unknown.",
+  "retries": 0,
+  "post_measurement_tuning": false,
+  "threshold_changed": false,
+  "decision": "Preserve the candidate and failed gate for coordinator review. No performance qualification or general speed claim."
+}

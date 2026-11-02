@@ -1,0 +1,87 @@
+{
+  "revision": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+  "probe_sha256": "0fc4ce4e0ed204930346cabac65dddad8a41060af1c38fb999bbcf205fa90ea0",
+  "instrumented_vector_sha256": "206ae3aa93404d1aac0b28325a1f502fbeadf72d2b4d53e79c72eaba8a639293",
+  "harness_sha256": "c35777ef2f4ccf1cd90967ed3ba9fc733243fb0483f9a55af55bcb7f0350cb48",
+  "plan_source": {
+    "scope": "Local synthetic stale exact-vector contention; independent of the earlier historical retrieval-tail experiment",
+    "baseline": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+    "current": null,
+    "compiler": "Rust 1.99.0, opt-level 3 test profile, debug 0, default features, jobs 2",
+    "rows": 8192,
+    "dimensions": [
+      16,
+      128,
+      768
+    ],
+    "k": 10,
+    "warmup_queries": 8,
+    "samples_per_phase": 64,
+    "phases": [
+      "fresh_idle",
+      "stale_idle",
+      "stale_writer"
+    ],
+    "stale_changes": "Replace IDs 0..16, delete IDs 16..24, insert IDs 8192..8200; writer replaces already-uncovered ID 0 once per query",
+    "writer_protocol": "Preconstruct replacement; query signals writer at canonical scoring entry without waiting; measure acquisition wait and complete insert; immutable pre-query full-scan oracle checked after every sample",
+    "memory": "Query-thread allocator calls and peak net requested bytes while rank_vector_snapshot runs; excludes corpus, writer allocations, output serialization, and allocator metadata/RSS",
+    "preimplementation_diagnostic": "One baseline process, after explicit quiet signal and before production edits; retained separately and excluded from paired comparisons",
+    "orders": [
+      [
+        "baseline",
+        "current"
+      ],
+      [
+        "current",
+        "baseline"
+      ],
+      [
+        "baseline",
+        "current"
+      ],
+      [
+        "current",
+        "baseline"
+      ],
+      [
+        "baseline",
+        "current"
+      ]
+    ],
+    "execution_budget_seconds": 240,
+    "acceptance": {
+      "correctness": "Every complete ordered (document ID, chunk index, canonical score bits) list equals a coherent brute-force oracle; deterministic paused-scoring writer test and delta/bitmap boundaries pass",
+      "writer": "Median per-process writer lock-wait p50 decreases at least 50% at dimensions 128 and 768",
+      "query": "Median per-process query p50 and p99 increase no more than 15% for fresh_idle and stale_idle at each dimension; concurrent query latency reported without hiding tradeoffs",
+      "allocation": "Additional stale capture remains bounded by 512 KiB bitmap plus 128 document Arcs and at most 1024 scored delta hits; no embedding or document-text copy",
+      "limits": "No production/hardware/general corpus claim; host is shared desktop, processes run serially only during explicit build/test quiet window; no tuning or automatic reruns after measurements"
+    },
+    "source_pinning": "Current source SHA is filled after implementation and correctness checks, before its build and first paired sample; no acceptance/workload changes after diagnostic"
+  },
+  "command": [
+    "cargo",
+    "+1.99.0",
+    "test",
+    "--offline",
+    "--locked",
+    "--lib",
+    "--no-run",
+    "--message-format=json"
+  ],
+  "settings": {
+    "CARGO_TARGET_DIR": "/Volumes/A/warm-vector-contention/target/vector-contention/build",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_PROFILE_DEV_OPT_LEVEL": "3",
+    "CARGO_PROFILE_TEST_OPT_LEVEL": "3",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "RAYON_NUM_THREADS": "1"
+  },
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+  "started_at": "2026-11-02T01:42:47.724008+00:00",
+  "status": "built",
+  "exit_code": 0,
+  "binary": "/Volumes/A/warm-vector-contention/target/vector-contention/baseline-probe",
+  "binary_sha256": "93ea04ce31960cb7cb711e7da65c490a2bb2a7bb9eae362a785da6c4a2fc5a09",
+  "collector_correction": "Successful compilation initially reported failed because harness expected warm instead of manifest library writerslogic_warm; corrected collector and recollected cached artifact with same command, no timings or source changes."
+}

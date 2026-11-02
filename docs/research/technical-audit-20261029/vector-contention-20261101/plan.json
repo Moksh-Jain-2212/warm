@@ -1,0 +1,55 @@
+{
+  "scope": "Local synthetic stale exact-vector contention; independent of the earlier historical retrieval-tail experiment",
+  "baseline": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+  "current": "0e49e592f8d7d3fddd68a842748a4c462408c4ed",
+  "compiler": "Rust 1.99.0, opt-level 3 test profile, debug 0, default features, jobs 2",
+  "rows": 8192,
+  "dimensions": [
+    16,
+    128,
+    768
+  ],
+  "k": 10,
+  "warmup_queries": 8,
+  "samples_per_phase": 64,
+  "phases": [
+    "fresh_idle",
+    "stale_idle",
+    "stale_writer"
+  ],
+  "stale_changes": "Replace IDs 0..16, delete IDs 16..24, insert IDs 8192..8200; writer replaces already-uncovered ID 0 once per query",
+  "writer_protocol": "Preconstruct replacement; query signals writer at canonical scoring entry without waiting; measure acquisition wait and complete insert; immutable pre-query full-scan oracle checked after every sample",
+  "memory": "Query-thread allocator calls and peak net requested bytes while rank_vector_snapshot runs; excludes corpus, writer allocations, output serialization, and allocator metadata/RSS",
+  "preimplementation_diagnostic": "One baseline process, after explicit quiet signal and before production edits; retained separately and excluded from paired comparisons",
+  "orders": [
+    [
+      "baseline",
+      "current"
+    ],
+    [
+      "current",
+      "baseline"
+    ],
+    [
+      "baseline",
+      "current"
+    ],
+    [
+      "current",
+      "baseline"
+    ],
+    [
+      "baseline",
+      "current"
+    ]
+  ],
+  "execution_budget_seconds": 240,
+  "acceptance": {
+    "correctness": "Every complete ordered (document ID, chunk index, canonical score bits) list equals a coherent brute-force oracle; deterministic paused-scoring writer test and delta/bitmap boundaries pass",
+    "writer": "Median per-process writer lock-wait p50 decreases at least 50% at dimensions 128 and 768",
+    "query": "Median per-process query p50 and p99 increase no more than 15% for fresh_idle and stale_idle at each dimension; concurrent query latency reported without hiding tradeoffs",
+    "allocation": "Additional stale capture remains bounded by 512 KiB bitmap plus 128 document Arcs and at most 1024 scored delta hits; no embedding or document-text copy",
+    "limits": "No production/hardware/general corpus claim; host is shared desktop, processes run serially only during explicit build/test quiet window; no tuning or automatic reruns after measurements"
+  },
+  "source_pinning": "Current source SHA is filled after implementation and correctness checks, before its build and first paired sample; no acceptance/workload changes after diagnostic"
+}
