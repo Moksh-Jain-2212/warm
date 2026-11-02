@@ -7,9 +7,9 @@ No study data has been scored and no study timing has run. The vector and hybrid
 harnesses use a shared phase driver, one preparation deadline, one measurement
 deadline, one preflight, and a single no-retry schedule. The combined freeze binds
 the selected Node addon, input and installed dependency files, hybrid sources,
-tokenizer, Python runtime and fixed schedules. Final integrated source validation and an
-execution feasibility assessment remain necessary before freezing; a standalone
-vector-only freeze would not qualify the combined comparison.
+tokenizer, Python runtime and fixed schedules. The final source and inputs can now be frozen; execution still requires a
+feasibility review, phase admission and the fixed quiet-window preflights. A
+standalone vector-only freeze would not qualify the combined comparison.
 
 The declared matrix has 62,000 vector static-quality queries and 2,400 hybrid
 static-quality queries. Even if all other preparation work took zero time, the
