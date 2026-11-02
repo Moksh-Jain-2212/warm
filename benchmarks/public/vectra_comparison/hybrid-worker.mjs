@@ -23,7 +23,7 @@ export async function runWorker(config, onObservation = async () => {}) {
   assert(config.measure === undefined, 'timing is selected only by the admitted phase')
   const synthetic = config.purpose === 'synthetic-development'
   assert(!measured || (!synthetic && process.send && config.monitorPid === process.ppid), 'timing requires the frozen monitored study controller')
-  let expectedAddon = null
+  let expectedAddon = null, expectedRuntime = null
   if (!synthetic) {
     assert.equal(config.purpose, 'frozen-study')
     const freeze = await checkedJson(config.freezePath, config.freezeSha256)
@@ -40,6 +40,11 @@ export async function runWorker(config, onObservation = async () => {}) {
     }
     assert.equal(freeze.tokenizerBridgeSha256, sha256(await readFile(new URL('./hybrid-tokenizer.py', import.meta.url))))
     assert.equal(freeze.nodeVersion, process.version)
+    assert.equal(config.uvPath, freeze.uvPath)
+    assert.equal(config.tokenizerPath, freeze.tokenizerPath)
+    assert.equal(config.tokenizerSha256, freeze.tokenizerSha256)
+    expectedRuntime = freeze.pythonRuntime
+    assert(expectedRuntime && isAbsolute(expectedRuntime.executable) && isAbsolute(expectedRuntime.tokenizersRoot), 'frozen tokenizer runtime required')
     assert(Array.isArray(freeze.artifacts) && freeze.artifacts.length > 0, 'frozen module/addon artifacts required')
     for (const artifact of freeze.artifacts) {
       assert(isAbsolute(artifact.path) && /^[a-f0-9]{64}$/.test(artifact.sha256), 'absolute hash-bound artifact required')
@@ -71,7 +76,7 @@ export async function runWorker(config, onObservation = async () => {}) {
       rssAfter: process.memoryUsage().rss, peakRssBytes: process.resourceUsage().maxRSS * 1024 }
   }
   const tokenizerStart = performance.now()
-  const countTokens = await createTokenCounter(config.uvPath ?? 'uv', config.tokenizerPath, config.tokenizerSha256)
+  const countTokens = await createTokenCounter(config.uvPath ?? 'uv', config.tokenizerPath, config.tokenizerSha256, expectedRuntime)
   const tokenizerSetupMs = performance.now() - tokenizerStart
   const observations = []
   let openMs = null

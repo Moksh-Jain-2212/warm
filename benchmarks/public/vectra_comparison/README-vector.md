@@ -28,12 +28,13 @@ Create a configuration outside the source tree using absolute paths:
   "warmPath": "/absolute/clean-integrated-warm-source",
   "warmSourceCommit": "FULL_COMMITTED_SHA",
   "nativeAddon": "/absolute/clean-integrated-warm-source/warm-sdk.darwin-arm64.node",
+  "hybrid": { "uvPath": "/absolute/uv", "tokenizerPath": "/absolute/tokenizer.json" },
   "vectraPath": "/absolute/node_modules/vectra",
   "vectraLockfile": "/absolute/package-lock.json"
 }
 ```
 
-The addon must be the file actually selected by `warmPath/index.js`. The repository loader does not honor `NAPI_RS_NATIVE_LIBRARY_PATH`. Freeze checks the public loader, source HEAD/clean tracked state, addon and Node hashes, JS/types/lockfiles, installed Vectra tree, dependency versions/integrities, all input hashes, protocol hash, harness files and thread configuration. Commit the harness first. `NODE_OPTIONS` must be unset. No package installation, network access, model generation, store creation or query occurs during freeze.
+This combined freeze also binds hybrid source, the Qwen tokenizer, offline uv/Python and imported tokenizer runtime files, hybrid query IDs, and its fixed schedule. Unset `PYTHONPATH`, `PYTHONHOME` and `VIRTUAL_ENV`. The addon must be the file actually selected by `warmPath/index.js`. The repository loader does not honor `NAPI_RS_NATIVE_LIBRARY_PATH`. Freeze checks the public loader, source HEAD/clean tracked state, addon and Node hashes, JS/types/lockfiles, installed Vectra tree, dependency versions/integrities and installed package file hashes, all input hashes, protocol hash, harness files and thread configuration. Commit the harness first. `NODE_OPTIONS` must be unset. No package installation, network access, model generation, store creation or query occurs during freeze.
 
 ```sh
 /absolute/node benchmarks/public/vectra_comparison/vector.mjs freeze /absolute/NEW-output-directory /absolute/config.json
@@ -51,7 +52,7 @@ The output directory must not already exist. The coordinator's separate grant fo
 }
 ```
 
-After explicit approval, run preparation once. Measurement requires its own grant with `phase: "measurement"`, completed preparation, all WARM builds/inference stopped, and both fixed external-load preflights passing.
+After explicit approval, run preparation once. Measurement requires its own grant with `phase: "measurement"`, completed preparation and its correctness admission gate, all WARM builds/inference stopped, and both fixed external-load preflights passing. The controller watchdog observes the full phase, including gaps between workers; a violation during a copy is retained and blocks the next job, although that copy can finish after the deadline.
 
 ```sh
 /absolute/node benchmarks/public/vectra_comparison/vector.mjs preparation /absolute/output /absolute/preparation-grant.json
@@ -59,7 +60,7 @@ After explicit approval, run preparation once. Measurement requires its own gran
 /absolute/node benchmarks/public/vectra_comparison/vector.mjs summarize /absolute/output
 ```
 
-Each phase has one exclusive start marker and a two-hour deadline. There is no resume, overwrite, automatic retry, arm selection, slow-sample exclusion or threshold tuning. Summarize even an incomplete execution; its retained summary reports missing data and exits nonzero on an incomplete/failed global qualification. Summary output is also exclusive; reproducing a summary requires a separate materialized evidence directory with the original inputs and phase/result receipts, without an existing `vector-summary.json`.
+The shared controller runs vector and hybrid jobs under the same phase deadlines and measurement preflight. Each phase has one exclusive start marker and a two-hour deadline. There is no resume, overwrite, automatic retry, arm selection, slow-sample exclusion or threshold tuning. Summarize even an incomplete execution; its retained summary reports missing data and exits nonzero on an incomplete/failed global qualification. Summary output is also exclusive; reproducing a summary requires a separate materialized evidence directory with the original inputs and phase/result receipts, without an existing `vector-summary.json`.
 
 ## Measurement boundaries
 

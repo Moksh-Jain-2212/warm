@@ -28,7 +28,7 @@ export async function loadDataset(spec) {
   const ids = mapping ? mapping.documents.map(item => item.id) : Array.from({ length: spec.rows }, (_, i) => `row-${String(i).padStart(8, '0')}`)
   const queryIds = mapping ? mapping.queries.map(item => item.id) : Array.from({ length: spec.queryCount }, (_, i) => `query-${i}`)
   assert.equal(ids.length, spec.rows); assert.equal(queryIds.length, spec.queryCount)
-  assert.equal(new Set(ids).size, ids.length)
+  assert.equal(new Set(ids).size, ids.length); assert.equal(new Set(queryIds).size, queryIds.length)
   const qrels = new Map()
   if (spec.qrels) {
     const lines = (await fs.readFile(spec.qrels, 'utf8')).trim().split(/\r?\n/).slice(1)
@@ -121,9 +121,20 @@ async function stage(job, name, callback) {
   return value
 }
 function safeError(error) { return { name: error.name, message: String(error.message).slice(0, 4096) } }
-async function loadTruth(file) {
+export async function loadTruth(file, dataset, queryIds) {
   const result = new Map()
-  for (const line of (await fs.readFile(file, 'utf8')).trim().split('\n').filter(Boolean)) { const item = JSON.parse(line); if (item.type === 'oracle') result.set(`${item.state}/${item.filter}/${item.query}`, item) }
+  for (const line of (await fs.readFile(file, 'utf8')).trim().split('\n').filter(Boolean)) {
+    const item = JSON.parse(line)
+    if (item.type !== 'oracle') continue
+    assert.equal(item.dataset, dataset.name, 'unexpected oracle dataset')
+    assert.ok(['baseline', 'churn'].includes(item.state) && FILTERS.some(filter => filter.name === item.filter), 'unexpected oracle state or filter')
+    assert.ok(Number.isInteger(item.query) && item.query >= 0 && item.query < dataset.queryCount, 'unexpected oracle query')
+    assert.equal(item.queryId, queryIds[item.query], 'oracle query identity mismatch')
+    const key = `${item.state}/${item.filter}/${item.query}`
+    assert.ok(!result.has(key), 'duplicate oracle query')
+    result.set(key, item)
+  }
+  assert.equal(result.size, 2 * FILTERS.length * dataset.queryCount, 'incomplete oracle query set')
   return result
 }
 export async function runWorker(job) {
@@ -187,7 +198,7 @@ export async function runWorker(job) {
     await append(job.output, { type: 'crash-recovery', oldState, newState, pass, state: newState ? 'new' : oldState ? 'old' : 'partial-or-invalid', boundary: job.boundary, evidenceScope: 'Process interruption at a supported acknowledgement boundary; after completed WARM flush the new state is required. No native in-flight append or hardware power-loss claim.' })
     return { complete: true, correctness: pass }
   }
-  const truth = await loadTruth(job.oracle)
+  const truth = await loadTruth(job.oracle, job.dataset, data.queryIds)
   const recordQuery = async (query, filter, stateName, phase, role = 'quality') => {
     let found, error, elapsedMs = null
     const vector = data.query(query), start = now()

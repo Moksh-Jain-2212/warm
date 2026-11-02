@@ -5,7 +5,7 @@ This harness exercises the real Vectra 0.15 `LocalIndex` hybrid API and WARM
 The [protocol](../../../docs/research/technical-audit-20261029/vectra-comparison-20261102/PLAN.md)
 and [input manifest](../../../docs/research/technical-audit-20261029/vectra-comparison-20261102/inputs.json)
 remain preparation artifacts. No SciFact query evaluation or benchmark timing has
-run. The vector-only migration, ANN, mutation and interruption harness is separate.
+run. The shared controller schedules this harness with the vector migration, ANN, mutation and interruption harness.
 
 ## Local development check
 
@@ -105,10 +105,9 @@ query (100) runs filtered, after 20 warmups. No adaptive query selection occurs.
 
 `runHybridJob()` in `hybrid-run.mjs` reuses the vector harness's
 `runMonitored({worker,job,jobFile,receipt,hostFile,deadline,quiet,...})` implementation.
-It requires continuous quiet monitoring for timing. The coordinator uses the shared
-`preflight`, `cloneStore`, `storageReceipt` and exclusive phase markers for the one
-frozen three-repetition schedule; it must not run an independent retry window for
-hybrid after a failed preflight. No source changes are needed to admit an approved
+It requires continuous quiet monitoring for timing. The shared vector controller uses the same `preflight`, `cloneStore`,
+`storageReceipt`, deadlines and exclusive phase markers for the frozen
+three-repetition schedule; it does not create an independent hybrid retry window. No source changes are needed to admit an approved
 run; authorization resides in the frozen receipt, not a changed boolean in code.
 
 ## Measurement and qualification boundaries
@@ -128,9 +127,10 @@ so tokenization is neither omitted from memory cost nor misclassified as externa
 host load. Node and Python peak values are retained separately; summing nonconcurrent
 peaks is not an aggregate-peak measurement.
 
-`compareHybridPair()` reports nearest-rank p50/p95/p99 for successful queries only,
-with error wall-times separate. Different declared query sets are rejected; any
-failure or different successful sets blocks qualification. Qrel nDCG@10, recall@10
+`compareHybridPair()` requires the complete expected query IDs and reports nearest-rank
+p50/p95/p99 for successful queries only, with error wall-times separate. Shared
+omissions, mismatched eligible judgments, different repetitions or query sets,
+and any failure block qualification. Qrel nDCG@10, recall@10
 and packed evidence recall must stay within 0.01 absolute of Vectra. Queries with no
 eligible positive judgment have null quality metrics, not invented zero or perfect
 scores. A latency claim requires the complete quality gate and the protocol's

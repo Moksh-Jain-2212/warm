@@ -8,9 +8,9 @@ import path from 'node:path'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { normalize, normalizeRows, scalarCosine, oracleTopK, liveState, auditExact, qrelMetrics, latency, FILTERS, metadata } from './oracle-vector.mjs'
-import { ARMS, timingSchedule, qualityGate, summarize } from './vector.mjs'
-import { parseProcesses, descendants, preflight, writeOnce, readJson, manifest, cloneStore, assertOwnedPath, runMonitored, sha256, exec } from './vector-receipts.mjs'
-import { provider, routeCheck, scoreOrderPass } from './vector-worker.mjs'
+import { ARMS, timingSchedule, qualityGate, preparationGate, dependencyInventory, runPhase, summarize } from './vector.mjs'
+import { parseProcesses, descendants, externalCpuFraction, preflight, writeOnce, readJson, manifest, cloneStore, assertOwnedPath, runMonitored, watchPhase, sha256, exec } from './vector-receipts.mjs'
+import { provider, routeCheck, scoreOrderPass, loadTruth } from './vector-worker.mjs'
 const require = createRequire(import.meta.url), HERE = path.dirname(fileURLToPath(import.meta.url))
 const sources = { vectraPath: process.env.VECTRA_TEST_PACKAGE, warmPath: process.env.WARM_TEST_PACKAGE, nativeAddon: process.env.WARM_TEST_ADDON }
 for (const [name, value] of Object.entries(sources)) assert.ok(value, `${name} test path is required; actual API checks must not silently skip`)
@@ -84,13 +84,39 @@ test('graph results must retain descending returned and canonical score order', 
   assert.equal(scoreOrderPass(outside, ordinal => scores[ordinal]), false)
 })
 
+test('frozen dependency inventory detects installed code changes and refuses symlinks', async t => {
+  const root = await temporary(t), pkg = path.join(root, 'node_modules', 'vectra')
+  await fs.mkdir(pkg, { recursive: true })
+  await fs.writeFile(path.join(root, 'package-lock.json'), JSON.stringify({ lockfileVersion: 3, packages: { 'node_modules/vectra': { version: '0.15.0', integrity: 'sha512-test' } } }))
+  await fs.writeFile(path.join(pkg, 'package.json'), JSON.stringify({ name: 'vectra', version: '0.15.0' }))
+  await fs.writeFile(path.join(pkg, 'index.js'), 'first')
+  const initial = await dependencyInventory(path.join(root, 'package-lock.json'))
+  await fs.writeFile(path.join(pkg, 'index.js'), 'other')
+  assert.notDeepEqual(await dependencyInventory(path.join(root, 'package-lock.json')), initial)
+  await fs.symlink('index.js', path.join(pkg, 'alias.js'))
+  await assert.rejects(dependencyInventory(path.join(root, 'package-lock.json')), /dependency symlink refused/)
+})
+
+test('oracle references require the complete unique frozen query identities', async t => {
+  const root = await temporary(t), file = path.join(root, 'oracle.ndjson'), dataset = { name: 'fixture', queryCount: 2 }, ids = ['q0', 'q1']
+  const rows = ['baseline', 'churn'].flatMap(state => FILTERS.flatMap(filter => ids.map((queryId, query) => ({ type: 'oracle', dataset: dataset.name, state, filter: filter.name, query, queryId }))))
+  const write = value => fs.writeFile(file, value.map(row => JSON.stringify(row)).join('\n') + '\n')
+  await write(rows); assert.equal((await loadTruth(file, dataset, ids)).size, rows.length)
+  await write([...rows.slice(0, -1), rows[0]]); await assert.rejects(loadTruth(file, dataset, ids), /duplicate oracle/)
+  await write(rows.slice(0, -1)); await assert.rejects(loadTruth(file, dataset, ids), /incomplete oracle/)
+  await write([...rows.slice(0, -1), { ...rows.at(-1), query: 2 }]); await assert.rejects(loadTruth(file, dataset, ids), /unexpected oracle query/)
+  await write([...rows.slice(0, -1), { ...rows.at(-1), queryId: 'q0' }]); await assert.rejects(loadTruth(file, dataset, ids), /oracle query identity/)
+})
+
 test('resource ownership includes descendants while siblings remain external; admission and copies fail closed', async t => {
   const root = await temporary(t), file = path.join(root, 'preflight.ndjson')
   const ps = parseProcesses('10 1 20.0 1024 node\n11 10 30.0 2048 python\n12 1 70.0 512 compiler')
   assert.equal(ps[1].rssBytes, 2048 * 1024); assert.deepEqual([...descendants(ps, [10])], [10, 11])
+  assert.equal(externalCpuFraction(ps, [11], 1).fraction, .9)
   let count = 0
   const failed = await preflight(file, async () => ({ externalCpuFraction: ++count === 3 ? .20001 : .1 }), async () => {})
   assert.equal(failed.pass, false); assert.equal(count, 5); assert.equal((await lines(file)).length, 5)
+  assert.equal((await preflight(path.join(root, 'invalid.ndjson'), async () => ({ externalCpuFraction: NaN }), async () => {})).pass, false)
   count = 0; const passed = await preflight(path.join(root, 'pass.ndjson'), async () => { count++; return { externalCpuFraction: .2 } }, async () => {})
   assert.equal(passed.pass, true); assert.equal(count, 10)
   await writeOnce(path.join(root, 'receipt.json'), { retained: true }); await assert.rejects(writeOnce(path.join(root, 'receipt.json'), {}), { code: 'EEXIST' })
@@ -99,6 +125,17 @@ test('resource ownership includes descendants while siblings remain external; ad
   await cloneStore(root, source, copy); assert.equal(await fs.readFile(path.join(copy, 'data'), 'utf8'), 'exact'); await assert.rejects(fs.stat(path.join(copy, '.hms.lock')), { code: 'ENOENT' })
   await assert.rejects(cloneStore(root, source, copy), { code: 'EEXIST' })
   await fs.symlink('data', path.join(copy, 'link')); await assert.rejects(manifest(copy), /symlink/)
+})
+
+test('phase watchdog rejects external load and sustained owned memory during controller work', async t => {
+  const root = await temporary(t), deadline = Date.now() + 5000
+  const load = watchPhase(path.join(root, 'load.ndjson'), deadline, true, async () => ({ externalCpuFraction: .20001, processes: [], ownedPids: [] }), async () => {})
+  await load.done; assert.equal(load.failure.kind, 'external-load'); assert.equal(load.signal.aborted, true); assert.throws(() => load.check(), /external-load/)
+  let samples = 0
+  const memory = watchPhase(path.join(root, 'memory.ndjson'), deadline, false, async () => { samples++; return { externalCpuFraction: 0, processes: [{ pid: 7, rssBytes: 8 * 1024 ** 3 + 1 }], ownedPids: [7] } }, async () => {})
+  await memory.done; assert.equal(samples, 2); assert.equal(memory.failure.kind, 'rss-limit')
+  const expired = watchPhase(path.join(root, 'expired.ndjson'), Date.now() - 1, true)
+  await expired.done; assert.equal(expired.failure.kind, 'phase-timeout')
 })
 
 test('actual pinned selector and external metadata materialization match the harness provider', async t => {
@@ -119,6 +156,30 @@ test('actual pinned selector and external metadata materialization match the har
   assert.equal(typeof importVectraIndex, 'function')
 })
 
+test('real Vectra external metadata imports every record and survives a separate-process reopen', { timeout: 120000 }, async t => {
+  const root = await temporary(t), sourceDir = path.join(root, 'source'), destination = path.join(root, 'imported')
+  const { LocalIndex } = require(path.join(sources.vectraPath, 'lib/index.js')), source = new LocalIndex(sourceDir)
+  await source.createIndex({ version: 1, metadata_config: { indexed: ['eligible10'] } })
+  await source.beginUpdate()
+  for (let i = 0; i < 12; i++) await source.insertItem({ id: `item-${String(i).padStart(2, '0')}`, vector: [1, i === 0 ? -0 : i / 20, .5], metadata: { eligible10: i < 10, extra: { ordinal: i } } })
+  await source.endUpdate()
+  const child = `const assert=require('node:assert/strict'),path=require('node:path');
+    (async()=>{ const [phase,vectraPath,warmPath,sourceDir,destination]=process.argv.slice(1);
+      const {LocalIndex}=require(path.join(vectraPath,'lib/index.js'));
+      const {VectraMigrationIndex,importVectraIndex}=require(path.join(warmPath,'vectra.js'));
+      const source=new LocalIndex(sourceDir); await source.getIndexStats();
+      const records=await source.listItems(); assert(records.some(item=>item.metadataFile));
+      const expected=[]; for(const item of records){ const metadata=item.metadataFile?source.codec.deserializeMetadata(await source.storage.readFile(path.join(source.folderPath,item.metadataFile))):item.metadata; expected.push({id:item.id,vector:Array.from(item.vector),metadata}); }
+      const index=phase==='import'?(await importVectraIndex(source,{path:destination,dimensions:1024,embeddingSpace:{model:'synthetic',revision:'import-v1',dimensions:3}})).index:await VectraMigrationIndex.open({path:destination});
+      const found=[]; let from,revision; do { const page=await index.listItems({from,limit:3,includeVectors:true,ifRevision:revision}); revision??=page.revision; assert.equal(page.revision,revision); found.push(...page.items); from=page.nextFrom??undefined; } while(from!==undefined);
+      found.sort((a,b)=>a.id.localeCompare(b.id)); expected.sort((a,b)=>a.id.localeCompare(b.id)); assert.equal(found.length,expected.length);
+      for(let i=0;i<found.length;i++){ assert.equal(found[i].id,expected[i].id); assert.deepEqual(found[i].metadata,expected[i].metadata); assert(found[i].vector.every((v,j)=>Object.is(v,expected[i].vector[j]))); }
+      const a=await source.queryItems([1,0,.5],'',10,{eligible10:true},false),b=await index.queryItems([1,0,.5],{k:10,filter:{eligible10:true},mode:'exact'}); assert.deepEqual(b.results.map(hit=>hit.item.id).sort(),a.map(hit=>hit.item.id).sort());
+      if(phase==='import'){ const item=found[0]; await index.beginUpdate(); await index.upsertItem({id:item.id,vector:[1,2,3],metadata:{}}); await index.cancelUpdate(); assert.deepEqual(await index.getItem(item.id),item); await assert.rejects(index.applyBatch([{op:'delete',id:item.id},{op:'insert',record:item},{op:'insert',record:item}])); assert.deepEqual(await index.getItem(item.id),item); await index.flush(); }
+    })().catch(error=>{console.error(error.stack);process.exitCode=1})`
+  for (const phase of ['import', 'reopen']) await exec(process.execPath, ['-e', child, phase, sources.vectraPath, sources.warmPath, sourceDir, destination], { timeout: 60000 })
+})
+
 test('monitor observes owned child RSS and stops a process at its fixed deadline', { timeout: 10000 }, async t => {
   const root = await temporary(t), worker = path.join(root, 'owned-worker.mjs')
   await fs.writeFile(worker, "import {spawn} from 'node:child_process'; const child=spawn(process.execPath,['-e','setInterval(()=>{},1000)'],{stdio:'ignore'}); process.send({type:'stage',name:'descendant',childPid:child.pid}); setTimeout(()=>{child.kill('SIGTERM');process.disconnect();},1400); child.on('exit',()=>{});\n")
@@ -130,6 +191,11 @@ test('monitor observes owned child RSS and stops a process at its fixed deadline
   await fs.writeFile(worker, "setInterval(()=>{},1000)\n")
   const stopped = await runMonitored({ worker, job: { output: path.join(root, 'unused2'), development: true }, jobFile: path.join(root, 'job2.json'), receipt: path.join(root, 'receipt2.json'), hostFile: path.join(root, 'host2.ndjson'), deadline: Date.now() + 100 })
   assert.equal(stopped.complete, false); assert.equal(stopped.resourceQualified, false); assert.equal(stopped.stop.kind, 'phase-timeout'); assert.equal(stopped.exit.signal, 'SIGKILL')
+  const controller = new AbortController()
+  const abortTimer = setTimeout(() => controller.abort({ kind: 'external-load' }), 100)
+  const aborted = await runMonitored({ worker, job: { output: path.join(root, 'unused3'), development: true }, jobFile: path.join(root, 'job3.json'), receipt: path.join(root, 'receipt3.json'), hostFile: path.join(root, 'host3.ndjson'), deadline: Date.now() + 5000, signal: controller.signal })
+  clearTimeout(abortTimer)
+  assert.equal(aborted.complete, false); assert.equal(aborted.stop.kind, 'phase-resource'); assert.equal(aborted.stop.reason.kind, 'external-load'); assert.equal(aborted.exit.signal, 'SIGKILL')
 })
 
 test('spontaneous worker exit cleans its residual process group and cannot qualify', { timeout: 10000 }, async t => {
@@ -194,6 +260,39 @@ test('actual engines pass tiny oracle, filter, churn, separate-process reopen an
   await assert.rejects(imported.applyBatch([{ op: 'delete', id: received.id }, { op: 'insert', record: received }, { op: 'insert', record: received }]))
   assert.deepEqual(await imported.getItem(received.id), retrieved)
   assert.equal(await sha256(nativeAddon), await sha256(sources.nativeAddon))
+})
+
+test('failed frozen-phase admission is recorded once without running jobs', async t => {
+  const root = await temporary(t), freeze = path.join(root, 'freeze.json')
+  await fs.writeFile(freeze, '{}\n')
+  const freezeHash = await sha256(freeze)
+  await writeOnce(path.join(root, 'freeze-receipt.json'), { freezeHash })
+  const grant = path.join(root, 'grant.json')
+  await writeOnce(grant, { freezeHash, phase: 'preparation', approved: true, coordinator: 'synthetic-test', approvedAtUtc: '2026-11-02T00:00:00Z' })
+  await assert.rejects(runPhase(root, 'preparation', grant))
+  assert.equal((await readJson(path.join(root, 'preparation-finished.json'))).complete, false)
+  await assert.rejects(fs.stat(path.join(root, 'results')), { code: 'ENOENT' })
+  await assert.rejects(runPhase(root, 'preparation', grant), { code: 'EEXIST' })
+})
+
+test('measurement admission rejects incomplete preparation and graph availability failures', async t => {
+  const root = await temporary(t), dataset = { name: 'tiny', rows: 24, queryCount: 2 }, entries = []
+  const add = async (arm, action, rows) => {
+    const output = path.join(root, `${entries.length}.ndjson`)
+    await fs.writeFile(output, rows.map(row => JSON.stringify(row)).join('\n') + '\n')
+    entries.push({ id: String(entries.length), job: { dataset, arm, action, output }, result: { complete: true } })
+  }
+  for (const arm of ARMS) {
+    const rows = arm.mode === 'graph' ? [{ type: 'graph-unavailable', pass: true }] : FILTERS.flatMap(filter => [0, 1].map(query => ({ type: 'query', query, filter: filter.name, hits: [{ ordinal: query }], eligibleCount: 1, oracleRecall: 1, qrel: null, correctness: true })))
+    await add(arm, arm.mode === 'graph' ? 'unavailable' : 'quality', rows)
+  }
+  assert.equal((await preparationGate({ datasets: [dataset] }, entries)).pass, true)
+  const rows = await lines(entries[1].job.output); rows[1] = rows[0]
+  await fs.writeFile(entries[1].job.output, rows.map(row => JSON.stringify(row)).join('\n') + '\n')
+  assert.equal((await preparationGate({ datasets: [dataset] }, entries)).pass, false)
+  await fs.writeFile(entries[1].job.output, rows.map((row, i) => JSON.stringify(i === 1 ? { ...row, query: 1 } : row)).join('\n') + '\n')
+  await fs.writeFile(entries[2].job.output, JSON.stringify({ type: 'graph-unavailable', pass: false }) + '\n')
+  assert.equal((await preparationGate({ datasets: [dataset] }, entries)).pass, false)
 })
 
 test('summary rejects poor timed graph quality and incomplete static or lifecycle identities', async t => {

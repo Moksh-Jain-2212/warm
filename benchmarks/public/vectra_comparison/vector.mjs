@@ -6,9 +6,10 @@ import path from 'node:path'
 import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { FILTERS, latency, recallAtK } from './oracle-vector.mjs'
-import { LIMITS, exec, sha256, hashValue, manifest, writeOnce, readJson, append, preflight, cloneStore, runMonitored } from './vector-receipts.mjs'
+import { hybridTimingSchedule, runHybridJob, compareHybridPair } from './hybrid-run.mjs'
+import { LIMITS, exec, sha256, hashValue, manifest, packageFiles, storageReceipt, writeOnce, readJson, append, preflight, cloneStore, runMonitored, watchPhase } from './vector-receipts.mjs'
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-const FILES = ['vector.mjs', 'vector-worker.mjs', 'vector-receipts.mjs', 'oracle-vector.mjs', 'test_vector.mjs', 'README-vector.md']
+const FILES = ['vector.mjs', 'vector-worker.mjs', 'vector-receipts.mjs', 'oracle-vector.mjs', 'test_vector.mjs', 'README-vector.md', 'hybrid-run.mjs', 'hybrid-worker.mjs', 'hybrid.mjs', 'hybrid-tokenizer.py', 'test_hybrid.mjs', 'README-hybrid.md']
 const THREAD_ENVIRONMENT = ['RAYON_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'VECLIB_MAXIMUM_THREADS', 'UV_THREADPOOL_SIZE', 'TOKENIZERS_PARALLELISM']
 const threadEnvironment = () => Object.fromEntries(THREAD_ENVIRONMENT.map(name => [name, process.env[name] ?? null]))
 export const ARMS = Object.freeze([{ name: 'vectra-exact', engine: 'vectra', mode: 'exact' }, { name: 'warm-exact', engine: 'warm', mode: 'exact' }, ...[128, 256, 512].map(ef => ({ name: `warm-graph-${ef}`, engine: 'warm', mode: 'graph', ef }))])
@@ -40,23 +41,51 @@ async function verifyInputs(inputs) {
 function datasets(inputs) {
   return [...inputs.glove.prefixes.map(prefix => ({ name: `glove-${prefix.rows}`, rows: prefix.rows, dimensions: 100, queryCount: 1000, corpus: path.join(inputs.glove.directory, 'train.f32'), queries: path.join(inputs.glove.directory, 'test.f32'), embeddingModel: 'glove-100-angular', embeddingRevision: inputs.glove.source_archive_sha256 })), { name: 'scifact', rows: 5183, dimensions: 1024, queryCount: 300, corpus: path.join(inputs.scifact.directory, 'generated/corpus.f32'), queries: path.join(inputs.scifact.directory, 'generated/queries.f32'), mapping: path.join(inputs.scifact.directory, 'input.json'), qrels: path.join(inputs.scifact.source_directory, 'qrels/test.tsv'), embeddingModel: inputs.scifact.embedding_model, embeddingRevision: inputs.scifact.effective_revision }]
 }
-async function dependencyInventory(lockfile) {
+export async function dependencyInventory(lockfile) {
   const lock = await readJson(lockfile)
   assert.ok(lock.packages && lock.lockfileVersion >= 2, 'provide the actual npm package-lock with packages/integrities')
   const result = []
   for (const [relative, item] of Object.entries(lock.packages)) {
     if (!relative.includes('node_modules/')) continue
     const filename = path.join(path.dirname(lockfile), relative, 'package.json')
-    try { const actual = await readJson(filename); assert.equal(actual.version, item.version, `installed dependency differs from lock: ${relative}`); result.push({ path: relative, name: actual.name, version: actual.version, integrity: item.integrity ?? null, packageJsonSha256: await sha256(filename) }) }
-    catch (error) { if (error.code !== 'ENOENT') throw error; result.push({ path: relative, version: item.version, installed: false, optional: !!item.optional, dev: !!item.dev }) }
+    let actual
+    try { actual = await readJson(filename) }
+    catch (error) { if (error.code !== 'ENOENT') throw error; result.push({ path: relative, version: item.version, installed: false, optional: !!item.optional, dev: !!item.dev }); continue }
+    assert.ok(!(await fs.lstat(path.dirname(filename))).isSymbolicLink(), `dependency symlink refused: ${relative}`)
+    assert.equal(actual.version, item.version, `installed dependency differs from lock: ${relative}`)
+    result.push({ path: relative, name: actual.name, version: actual.version, integrity: item.integrity ?? null, packageJsonSha256: await sha256(filename), files: await packageFiles(path.dirname(filename)) })
   }
   assert.ok(result.some(item => item.name === 'vectra' && item.version === '0.15.0'))
   return result
 }
+export async function pythonRuntime(uvPath, tokenizerPath) {
+  assert.ok(path.isAbsolute(uvPath) && path.isAbsolute(tokenizerPath), 'absolute uv and tokenizer paths required')
+  for (const name of ['PYTHONPATH', 'PYTHONHOME', 'VIRTUAL_ENV']) assert.ok(!process.env[name], `unset ${name} for the frozen tokenizer runtime`)
+  const code = `import json, os, platform, sys, hashlib, pathlib, resource, tokenizers
+from tokenizers import Tokenizer
+Tokenizer.from_file(sys.argv[1]).encode('synthetic freeze fixture')
+files = sorted({os.path.realpath(m.__file__) for m in list(sys.modules.values()) if getattr(m, '__file__', None) and os.path.isfile(m.__file__)})
+prefix = os.path.realpath(sys.prefix)
+virtual = {os.path.relpath(f, prefix): hashlib.sha256(open(f, 'rb').read()).hexdigest() for f in files if os.path.commonpath([prefix, f]) == prefix}
+files = [f for f in files if os.path.commonpath([prefix, f]) != prefix]
+print(json.dumps({'executable': os.path.realpath(sys.executable), 'python': platform.python_version(), 'tokenizers': tokenizers.__version__, 'tokenizersRoot': os.path.realpath(os.path.dirname(tokenizers.__file__)), 'files': files, 'virtualFiles': virtual}))`
+  const env = { ...process.env, HF_HUB_OFFLINE: '1', RAYON_NUM_THREADS: '1', PYTHONDONTWRITEBYTECODE: '1' }
+  const runtime = JSON.parse((await exec(uvPath, ['run', '--offline', '--no-project', '--with', 'tokenizers==0.23.3', 'python', '-c', code, tokenizerPath], { env, maxBuffer: 8 * 1024 ** 2 })).stdout)
+  assert.equal(runtime.tokenizers, '0.23.3')
+  const packageEntries = await packageFiles(runtime.tokenizersRoot)
+  const paths = new Set([await fs.realpath(uvPath), runtime.executable, ...runtime.files, ...packageEntries.map(item => path.join(runtime.tokenizersRoot, item.path))])
+  const artifacts = []
+  for (const file of [...paths].sort()) artifacts.push({ path: file, sha256: await sha256(file) })
+  return { executable: runtime.executable, python: runtime.python, tokenizers: runtime.tokenizers, tokenizersRoot: runtime.tokenizersRoot, virtualFiles: runtime.virtualFiles, artifacts }
+}
+
 export async function freeze(configuration, output) {
   assert.ok(!process.env.NODE_OPTIONS, 'unset NODE_OPTIONS for the pinned default worker runtime')
+  assert.ok(path.isAbsolute(configuration) && path.isAbsolute(output), 'absolute freeze paths required')
   const config = await readJson(configuration)
+  assert.ok(config.hybrid && typeof config.hybrid === 'object', 'combined hybrid configuration required')
   for (const key of ['plan', 'inputs', 'warmPath', 'nativeAddon', 'vectraPath', 'vectraLockfile', 'warmSourceCommit']) assert.equal(typeof config[key], 'string', `missing ${key}`)
+  for (const key of ['plan', 'inputs', 'warmPath', 'nativeAddon', 'vectraPath', 'vectraLockfile']) assert.ok(path.isAbsolute(config[key]), `absolute ${key} required`)
   const source = (await exec('git', ['-C', config.warmPath, 'rev-parse', 'HEAD'])).stdout.trim()
   assert.equal(source, config.warmSourceCommit)
   assert.equal((await exec('git', ['-C', config.warmPath, 'status', '--porcelain', '--untracked-files=no'])).stdout.trim(), '', 'freeze requires clean integrated source')
@@ -65,6 +94,14 @@ export async function freeze(configuration, output) {
   assert.equal(loaded.length, 1, 'native loader provenance must be unambiguous')
   assert.equal(await fs.realpath(loaded[0]), await fs.realpath(config.nativeAddon), 'configured addon is not the one selected by the public loader')
   const inputs = await readJson(config.inputs), verifiedInputs = await verifyInputs(inputs)
+  const { uvPath, tokenizerPath } = config.hybrid
+  assert.ok(typeof uvPath === 'string' && typeof tokenizerPath === 'string')
+  const tokenizerSha256 = await sha256(tokenizerPath)
+  assert.equal(tokenizerSha256, 'def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a', 'protocol tokenizer changed')
+  const python = await pythonRuntime(uvPath, tokenizerPath)
+  const scifactInput = await readJson(path.join(inputs.scifact.directory, 'input.json'))
+  const hybridQueryIds = scifactInput.queries.map(query => query.id)
+  assert.equal(hybridQueryIds.length, 300); assert.equal(new Set(hybridQueryIds).size, 300)
   const mappingManifest = path.resolve(path.dirname(config.inputs), inputs.scifact.mapping_manifest)
   assert.equal(await sha256(mappingManifest), inputs.scifact.mapping_manifest_sha256)
   const warmFiles = Object.fromEntries(await Promise.all(['vectra.js', 'vectra-selector.js', 'vectra.d.ts', 'index.js', 'index.d.ts', 'package.json', 'package-lock.json', 'Cargo.lock'].map(async file => [file, await sha256(path.join(config.warmPath, file))])))
@@ -74,15 +111,23 @@ export async function freeze(configuration, output) {
   assert.equal((await exec('git', ['-C', HERE, 'status', '--porcelain', '--', ...FILES])).stdout.trim(), '', 'commit the harness before freezing')
   frozen.threadEnvironment = threadEnvironment()
   frozen.storeCopy = 'Exclusive fresh directory; fs.cp COPYFILE_FICLONE requests copy-on-write, falls back to byte copy; lock files omitted. Per-file allocated blocks may be shared across clones and are not a summed physical footprint.'
+  const hybridFreeze = { authorized: true, allowedPhases: ['prepare', 'quality', 'timing'], inputManifestSha256: await sha256(config.inputs), workerSha256: await sha256(path.join(HERE, 'hybrid-worker.mjs')), helperSha256: await sha256(path.join(HERE, 'hybrid.mjs')), tokenizerBridgeSha256: await sha256(path.join(HERE, 'hybrid-tokenizer.py')), nodeVersion: process.version, modulePaths: { warm: config.warmPath, vectra: config.vectraPath }, nativeAddonPath: config.nativeAddon, nativeAddonSha256: frozen.nativeSha256, uvPath, tokenizerPath, tokenizerSha256, pythonRuntime: { executable: python.executable, python: python.python, tokenizersRoot: python.tokenizersRoot, virtualFiles: python.virtualFiles }, artifacts: python.artifacts }
+  frozen.hybrid = { uvPath, tokenizerPath, tokenizerSha256, queryIds: hybridQueryIds, timingSchedule: hybridTimingSchedule() }
   await fs.mkdir(output) // Deliberately no recursive/overwrite/resume semantics.
+  await writeOnce(path.join(output, 'hybrid-freeze.json'), hybridFreeze)
+  frozen.hybridFreezeHash = await sha256(path.join(output, 'hybrid-freeze.json'))
   await writeOnce(path.join(output, 'freeze.json'), frozen)
   await writeOnce(path.join(output, 'freeze-receipt.json'), { freezeHash: await sha256(path.join(output, 'freeze.json')), noMeasurementExecuted: true })
   return frozen
 }
 export async function verifyFreeze(root) {
+  for (const name of ['PYTHONPATH', 'PYTHONHOME', 'VIRTUAL_ENV']) assert.ok(!process.env[name], `unset ${name} for the frozen tokenizer runtime`)
   assert.ok(!process.env.NODE_OPTIONS, 'unset NODE_OPTIONS for the pinned default worker runtime')
   const file = path.join(root, 'freeze.json'), frozen = await readJson(file), receipt = await readJson(path.join(root, 'freeze-receipt.json'))
   assert.equal(await sha256(file), receipt.freezeHash)
+  assert.equal(await sha256(path.join(root, 'hybrid-freeze.json')), frozen.hybridFreezeHash)
+  assert.equal(await sha256(frozen.hybrid.tokenizerPath), frozen.hybrid.tokenizerSha256)
+  for (const artifact of (await readJson(path.join(root, 'hybrid-freeze.json'))).artifacts) assert.equal(await sha256(artifact.path), artifact.sha256)
   assert.deepEqual(await driverHashes(), frozen.driver, 'driver changed after freeze')
   assert.deepEqual(threadEnvironment(), frozen.threadEnvironment, 'thread configuration changed after freeze')
   assert.equal(process.execPath, frozen.runtime.executable); assert.equal(process.version, frozen.runtime.version); assert.equal(await sha256(process.execPath), frozen.runtime.sha256)
@@ -96,31 +141,53 @@ export async function verifyFreeze(root) {
   return { frozen, freezeHash: receipt.freezeHash }
 }
 async function admission(root, phase, grantPath) {
-  const { frozen, freezeHash } = await verifyFreeze(root), grant = await readJson(grantPath)
-  assert.equal(grant.freezeHash, freezeHash); assert.equal(grant.phase, phase); assert.equal(grant.approved, true)
+  const receipt = await readJson(path.join(root, 'freeze-receipt.json')), grant = await readJson(grantPath)
+  assert.equal(grant.freezeHash, receipt.freezeHash); assert.equal(grant.phase, phase); assert.equal(grant.approved, true)
   assert.ok(typeof grant.coordinator === 'string' && grant.coordinator && !Number.isNaN(Date.parse(grant.approvedAtUtc)))
   await writeOnce(path.join(root, `${phase}-started.json`), { grant, startedAtUtc: new Date().toISOString(), noRetry: true })
-  return { frozen, freezeHash }
+  return { grant, freezeHash: receipt.freezeHash }
 }
 export async function runPhase(root, phase, grantPath) {
   assert.ok(['preparation', 'measurement'].includes(phase))
-  const { frozen } = await admission(root, phase, grantPath)
   const deadline = Date.now() + (phase === 'preparation' ? LIMITS.preparationMs : LIMITS.measurementMs)
+  const { grant } = await admission(root, phase, grantPath)
   const hostFile = path.join(root, `${phase}-host.ndjson`)
-  const receipts = [], config = path.join(root, 'freeze.json'), worker = path.join(HERE, 'vector-worker.mjs')
-  let serial = 0
+  const receipts = [], hybridReceipts = [], config = path.join(root, 'freeze.json'), worker = path.join(HERE, 'vector-worker.mjs')
+  let serial = 0, frozen = null, watcher = watchPhase(hostFile, deadline, false)
   const run = async (job, killBoundary = null) => {
+    watcher?.check()
     const id = `${phase}-${String(serial++).padStart(4, '0')}-${job.dataset.name}-${job.engine ?? 'oracle'}-${job.action}`
     const output = path.join(root, 'results', `${id}.ndjson`), jobFile = path.join(root, 'jobs', `${id}.json`), receipt = path.join(root, 'receipts', `${id}.json`)
     await fs.mkdir(path.dirname(output), { recursive: true }); await fs.mkdir(path.dirname(receipt), { recursive: true })
-    const result = await runMonitored({ worker, job: { ...job, config, output }, jobFile, receipt, hostFile, deadline, quiet: phase === 'measurement', killBoundary })
+    const result = await runMonitored({ worker, job: { ...job, config, output }, jobFile, receipt, hostFile, deadline, quiet: phase === 'measurement', killBoundary, signal: watcher?.signal })
     receipts.push({ id, job: { ...job, config, output }, receipt, result })
+    watcher?.check()
     if (!result.resourceQualified) throw new Error(`phase incomplete: ${result.stop?.kind}`)
     return result
   }
+  const runHybrid = async (job) => {
+    watcher?.check()
+    const id = `${phase}-hybrid-${String(serial++).padStart(4, '0')}-${job.engine}-${job.phase}`
+    const output = path.join(root, 'results', `${id}.json`), jobFile = path.join(root, 'jobs', `${id}.json`), receipt = path.join(root, 'receipts', `${id}.json`)
+    await fs.mkdir(path.dirname(output), { recursive: true }); await fs.mkdir(path.dirname(receipt), { recursive: true })
+    const payload = { ...job, purpose: 'frozen-study', development: false, output, inputManifest: frozen.inputs, freezePath: path.join(root, 'hybrid-freeze.json'), freezeSha256: frozen.hybridFreezeHash, modulePath: job.engine === 'warm' ? frozen.warmPath : frozen.vectraPath, uvPath: frozen.hybrid.uvPath, tokenizerPath: frozen.hybrid.tokenizerPath, tokenizerSha256: frozen.hybrid.tokenizerSha256 }
+    if (job.phase === 'timing') Object.assign(payload, { admissionPath: path.join(root, 'hybrid-measurement-grant.json'), admissionSha256: await sha256(path.join(root, 'hybrid-measurement-grant.json')), preflightPath: path.join(root, 'hybrid-measurement-preflight.json'), preflightSha256: await sha256(path.join(root, 'hybrid-measurement-preflight.json')) })
+    const result = await runHybridJob({ job: payload, jobFile, receipt, hostFile, deadline, quiet: phase === 'measurement', signal: watcher?.signal })
+    const entry = { id, job: payload, receipt, result }
+    hybridReceipts.push(entry)
+    watcher?.check()
+    assert.ok(result.complete && result.resourceQualified, `hybrid job incomplete: ${id}`)
+    entry.storage = await storageReceipt(job.store)
+    watcher?.check()
+    return result
+  }
+  const hybridFixture = engine => path.join(root, 'hybrid-fixtures', engine)
+  const hybridCopy = async (engine, name) => { watcher?.check(); const destination = path.join(root, 'hybrid-stores', name); await fs.mkdir(path.dirname(destination), { recursive: true }); await cloneStore(root, hybridFixture(engine), destination); watcher?.check(); return destination }
   const fixture = (dataset, engine) => path.join(root, 'fixtures', dataset.name, engine)
-  const copy = async (dataset, engine, name) => { const destination = path.join(root, 'stores', name); await fs.mkdir(path.dirname(destination), { recursive: true }); await cloneStore(root, fixture(dataset, engine), destination); return destination }
+  const copy = async (dataset, engine, name) => { watcher?.check(); const destination = path.join(root, 'stores', name); await fs.mkdir(path.dirname(destination), { recursive: true }); await cloneStore(root, fixture(dataset, engine), destination); watcher?.check(); return destination }
   try {
+    frozen = (await verifyFreeze(root)).frozen
+    watcher.check()
     for (const input of frozen.verifiedInputs) assert.equal(await sha256(input.path), input.sha256, `changed input: ${input.path}`)
     if (phase === 'preparation') {
       for (const dataset of frozen.datasets) {
@@ -138,10 +205,23 @@ export async function runPhase(root, phase, grantPath) {
           await run({ action: arm.mode === 'graph' && dataset.rows < 4096 ? 'unavailable' : 'quality', dataset, engine: arm.engine, arm, store, oracle: oraclePath })
         }
       }
+      for (const engine of ['vectra', 'warm']) {
+        const store = hybridFixture(engine); await fs.mkdir(path.dirname(store), { recursive: true })
+        await runHybrid({ phase: 'prepare', engine, store })
+        await runHybrid({ phase: 'quality', engine, store: await hybridCopy(engine, `quality-${engine}`) })
+      }
     } else {
       const preparation = await readJson(path.join(root, 'preparation-finished.json')); assert.equal(preparation.complete, true, 'preparation incomplete')
+      const qualification = await preparationGate(frozen, preparation.receipts)
+      const hybridQualification = await hybridPreparationGate(frozen, preparation.hybridReceipts ?? [])
+      await writeOnce(path.join(root, 'measurement-preparation-gate.json'), { ...qualification, hybrid: hybridQualification })
+      assert.ok(qualification.pass && hybridQualification.pass, 'preparation correctness incomplete; no query timings collected')
       const quiet = await preflight(hostFile); await writeOnce(path.join(root, 'measurement-preflight.json'), quiet)
       if (!quiet.pass) throw new Error('preflight failed; no query timings collected')
+      watcher.check()
+      watcher.setQuiet(true)
+      await writeOnce(path.join(root, 'hybrid-measurement-grant.json'), { freezeHash: frozen.hybridFreezeHash, phase: 'measurement', approved: true, coordinator: grant.coordinator, approvedAtUtc: grant.approvedAtUtc })
+      await writeOnce(path.join(root, 'hybrid-measurement-preflight.json'), { ...quiet, freezeHash: frozen.hybridFreezeHash })
       for (const dataset of frozen.datasets) for (let repetition = 0; repetition < 3; repetition++) for (const engine of ['vectra', 'warm']) {
         const store = await copy(dataset, engine, `cold-${dataset.name}-${engine}-${repetition}`), oracle = (await readJson(path.join(root, 'oracles', `${dataset.name}.json`))).output
         await run({ action: 'cold', dataset, engine, arm: ARMS.find(arm => arm.engine === engine && arm.mode === 'exact'), repetition, store, oracle })
@@ -150,6 +230,10 @@ export async function runPhase(root, phase, grantPath) {
         const dataset = frozen.datasets.find(dataset => dataset.name === scheduled.dataset), arm = ARMS.find(arm => arm.name === scheduled.arm)
         const store = await copy(dataset, arm.engine, `timing-${dataset.name}-${arm.name}-${scheduled.filter}-${scheduled.repetition}`), oracle = (await readJson(path.join(root, 'oracles', `${dataset.name}.json`))).output
         await run({ action: 'timing', dataset, engine: arm.engine, arm, filter: scheduled.filter, repetition: scheduled.repetition, store, oracle })
+      }
+      for (const scheduled of frozen.hybrid.timingSchedule) {
+        const store = await hybridCopy(scheduled.engine, `timing-${scheduled.engine}-${scheduled.repetition}`)
+        await runHybrid({ phase: 'timing', engine: scheduled.engine, repetition: scheduled.repetition, store })
       }
       for (const dataset of frozen.datasets) {
         const oracle = (await readJson(path.join(root, 'oracles', `${dataset.name}.json`))).output
@@ -171,11 +255,15 @@ export async function runPhase(root, phase, grantPath) {
         else assert.ok(engine === 'vectra' && boundary === 'after-flush' && stopped.events.some(event => event.boundary === 'after-flush-unsupported'), 'unexpected crash boundary outcome')
       }
     }
-    const complete = receipts.every(item => item.result.complete || item.result.stop?.kind === 'planned-process-interruption')
-    await writeOnce(path.join(root, `${phase}-finished.json`), { complete, receipts, noRetry: true })
+    watcher?.check()
+    await watcher?.stop()
+    watcher?.check()
+    const complete = receipts.every(item => item.result.complete || item.result.stop?.kind === 'planned-process-interruption') && hybridReceipts.every(item => item.result.complete)
+    await writeOnce(path.join(root, `${phase}-finished.json`), { complete, receipts, hybridReceipts, noRetry: true })
     return { complete }
   } catch (error) {
-    await writeOnce(path.join(root, `${phase}-finished.json`), { complete: false, error: { name: error.name, message: error.message }, receipts, noRetry: true })
+    await watcher?.stop()
+    await writeOnce(path.join(root, `${phase}-finished.json`), { complete: false, error: { name: error.name, message: error.message }, receipts, hybridReceipts, noRetry: true })
     throw error
   }
 }
@@ -204,11 +292,92 @@ export function qualityGate(rows, exactRows, exact = false, expectedQueries = ex
   result.pass = rows.length > 0 && identitiesPass && !missingReference && !missingMetrics && rows.every(row => row.correctness) && (exact || ((!recall.length || (result.meanRecallWarmExact >= .99 && result.worstRecallWarmExact >= .90 && result.meanRecallOracle >= .99 && result.worstRecallOracle >= .90)) && (!ndcg.length || (result.meanNdcgDelta >= -.01 && result.meanQrelRecallDelta >= -.01))))
   return result
 }
+export async function preparationGate(frozen, entries) {
+  const queries = [], errors = [], unavailable = []
+  for (const entry of entries) {
+    if (!entry.result?.complete) errors.push({ job: entry.id, kind: 'incomplete-job' })
+    for (const row of await records(entry.job.output)) {
+      const item = { dataset: entry.job.dataset.name, arm: entry.job.arm?.name, action: entry.job.action, ...row }
+      if (row.type === 'query' && entry.job.action === 'quality') queries.push(item)
+      if (row.type === 'worker-error') errors.push({ job: entry.id, kind: 'worker-error' })
+      if (row.type === 'graph-unavailable') unavailable.push(item)
+    }
+  }
+  const gates = []
+  for (const dataset of frozen.datasets) {
+    for (const arm of ARMS.filter(arm => arm.mode === 'graph' && dataset.rows < 4096)) {
+      const rows = unavailable.filter(row => row.dataset === dataset.name && row.arm === arm.name)
+      if (rows.length !== 1 || !rows[0].pass) errors.push({ dataset: dataset.name, arm: arm.name, kind: 'unavailable-graph' })
+    }
+    const expected = Array.from({ length: dataset.queryCount }, (_, i) => i)
+    for (const filter of FILTERS) for (const arm of ARMS.filter(arm => arm.mode === 'exact' || dataset.rows >= 4096)) {
+      const rows = queries.filter(row => row.dataset === dataset.name && row.filter === filter.name && row.arm === arm.name)
+      const exact = queries.filter(row => row.dataset === dataset.name && row.filter === filter.name && row.arm === 'warm-exact')
+      gates.push({ dataset: dataset.name, filter: filter.name, arm: arm.name, ...qualityGate(rows, exact, true, expected) })
+    }
+  }
+  return { pass: !errors.length && gates.length > 0 && gates.every(gate => gate.pass), errors, gates, note: 'Admission checks completeness, routes, payloads and exact audits. ANN recall and relevance thresholds remain reported by the final quality gates.' }
+}
+
+export async function hybridPreparationGate(frozen, entries) {
+  const errors = [], engineErrors = []
+  for (const engine of ['vectra', 'warm']) for (const phase of ['prepare', 'quality']) {
+    const selected = entries.filter(entry => entry.job.engine === engine && entry.job.phase === phase)
+    if (selected.length !== 1) { errors.push({ engine, phase, kind: 'missing-or-duplicate-job' }); continue }
+    const entry = selected[0]
+    try {
+      assert.equal(entry.result.complete, true)
+      const result = await readJson(entry.job.output)
+      assert.equal(result.complete, true); assert.equal(result.engine, engine); assert.equal(result.phase, phase)
+      if (phase === 'quality') {
+        assert.equal(result.freezeSha256, frozen.hybridFreezeHash)
+        for (const filter of ['all', 'ten-percent', 'one-percent', 'empty']) {
+          const rows = result.observations.filter(row => !row.warmup && row.eligibility === filter)
+          assert.deepEqual(rows.map(row => row.queryId), frozen.hybrid.queryIds, 'incomplete hybrid quality identities')
+          engineErrors.push(...rows.filter(row => row.engineError).map(row => ({ engine, filter, queryId: row.queryId, error: row.engineError })))
+        }
+      }
+    } catch (error) { errors.push({ engine, phase, kind: 'incomplete-job', message: error.message }) }
+  }
+  return { pass: errors.length === 0, errors, engineErrors, note: 'Every expected quality query must be recorded; recorded engine errors remain failures in hybrid qualification.' }
+}
+
+export async function hybridSummary(frozen, entries) {
+  const eligibility = ['all', 'ten-percent', 'one-percent', 'empty'], jobs = [], errors = []
+  for (const entry of entries) {
+    try {
+      assert.equal(entry.result.complete, true)
+      assert.ok(entry.storage && Array.isArray(entry.storage.files) && Number.isFinite(entry.storage.logicalBytes) && Number.isFinite(entry.storage.allocatedBytes), 'missing hybrid storage accounting')
+      const result = await readJson(entry.job.output)
+      assert.equal(result.complete, true); assert.equal(result.engine, entry.job.engine); assert.equal(result.phase, entry.job.phase)
+      if (entry.job.phase === 'timing') assert.equal(result.repetition, entry.job.repetition)
+      if (entry.job.phase !== 'prepare') assert.equal(result.freezeSha256, frozen.hybridFreezeHash)
+      jobs.push(result)
+    } catch (error) { errors.push({ job: entry.id, message: error.message }) }
+  }
+  const find = (phase, engine, repetition) => jobs.filter(job => job.phase === phase && job.engine === engine && (phase !== 'timing' || job.repetition === repetition))
+  const paired = (phase, filter, repetition) => {
+    const vectra = find(phase, 'vectra', repetition), warm = find(phase, 'warm', repetition)
+    if (vectra.length !== 1 || warm.length !== 1) return { complete: false, error: 'missing or duplicate hybrid jobs', repetitionPass: false }
+    const expected = phase === 'timing' && filter !== 'all' ? frozen.hybrid.queryIds.filter((_, i) => i % 3 === 0) : frozen.hybrid.queryIds
+    try { return compareHybridPair(vectra[0], warm[0], filter, expected) }
+    catch (error) { return { complete: false, error: error.message, repetitionPass: false } }
+  }
+  const quality = eligibility.map(filter => ({ filter, ...paired('quality', filter) }))
+  const timing = eligibility.flatMap(filter => [0, 1, 2].map(repetition => ({ filter, repetition, ...paired('timing', filter, repetition) })))
+  const advantage = eligibility.map(filter => {
+    const reference = quality.find(row => row.filter === filter), repetitions = timing.filter(row => row.filter === filter)
+    return { filter, qualified: reference.complete && Object.values(reference.quality).every(metric => metric.pass) && repetitions.length === 3 && repetitions.every(row => row.repetitionPass) }
+  })
+  return { complete: !errors.length && ['vectra', 'warm'].every(engine => find('prepare', engine).length === 1) && quality.every(row => row.complete) && timing.every(row => row.complete), errors, quality, timing, advantage, storage: entries.map(entry => ({ id: entry.id, engine: entry.job.engine, phase: entry.job.phase, repetition: entry.job.repetition, storage: entry.storage ?? null })) }
+}
+
 export async function summarize(root) {
-  const frozen = await readJson(path.join(root, 'freeze.json')), phases = [], queries = [], other = []
+  const frozen = await readJson(path.join(root, 'freeze.json')), phases = [], queries = [], other = [], hybridEntries = []
   for (const phase of ['preparation', 'measurement']) {
     try {
       const receipt = await readJson(path.join(root, `${phase}-finished.json`)); phases.push({ phase, complete: receipt.complete, error: receipt.error })
+      hybridEntries.push(...(receipt.hybridReceipts ?? []))
       for (const entry of receipt.receipts) for (const row of await records(entry.job.output)) {
         const item = { dataset: entry.job.dataset.name, arm: entry.job.arm?.name, repetition: entry.job.repetition, action: entry.job.action, engine: entry.job.engine, ...row }
         if (row.type === 'query') queries.push(item); else if (['graph-unavailable', 'crash-recovery', 'worker-error', 'write', 'storage', 'stage'].includes(row.type)) other.push(item)
@@ -242,8 +411,9 @@ export async function summarize(root) {
     }
     timing.push({ dataset: dataset.name, filter: filter.name, arm: arm.name, repetition: 'pooled', ...latency(samples) })
   }
+  const hybrid = frozen.hybrid ? await hybridSummary(frozen, hybridEntries) : null
   const advantage = []
-  const globallyComplete = phases.length === 2 && phases.every(phase => phase.complete) && quality.every(row => row.pass) && lifecycleQuality.every(row => row.pass) && timing.filter(row => row.repetition !== 'pooled').every(row => row.correctness && row.quality.pass) && queries.every(row => row.correctness) && other.filter(row => ['graph-unavailable', 'crash-recovery'].includes(row.type)).every(row => row.pass) && !other.some(row => row.type === 'worker-error')
+  const globallyComplete = (!hybrid || hybrid.complete) && phases.length === 2 && phases.every(phase => phase.complete) && quality.every(row => row.pass) && lifecycleQuality.every(row => row.pass) && timing.filter(row => row.repetition !== 'pooled').every(row => row.correctness && row.quality.pass) && queries.every(row => row.correctness) && other.filter(row => ['graph-unavailable', 'crash-recovery'].includes(row.type)).every(row => row.pass) && !other.some(row => row.type === 'worker-error')
   for (const point of quality.filter(point => point.arm !== 'vectra-exact')) for (const baseline of ['vectra-exact', 'warm-exact'].filter(name => name !== point.arm)) {
     const comparisons = []
     for (let repetition = 0; repetition < 3; repetition++) {
@@ -254,7 +424,7 @@ export async function summarize(root) {
     }
     advantage.push({ dataset: point.dataset, filter: point.filter, arm: point.arm, baseline, comparisons, qualified: globallyComplete && point.pass && comparisons.every(item => item.pass), interpretation: 'All three matched repetitions required; no best-run selection.' })
   }
-  const result = { freezeHash: await sha256(path.join(root, 'freeze.json')), phases, globallyComplete, quality, lifecycleQuality, timing, advantage, queryRecords: queries.length, lifecycleAndResourceReceipts: other, unsupported: ['Native in-flight append interruption is not exposed through the Node harness; existing Rust mutation fault tests are separate evidence.', 'Vectra has no explicit fsync/flush barrier.', 'Page-cache state uncontrolled; process-cold is not disk-cold.'], performanceClaimPermitted: advantage.some(item => item.qualified) }
+  const result = { freezeHash: await sha256(path.join(root, 'freeze.json')), phases, globallyComplete, quality, lifecycleQuality, timing, advantage, hybrid, queryRecords: queries.length, lifecycleAndResourceReceipts: other, unsupported: ['Native in-flight append interruption is not exposed through the Node harness; existing Rust mutation fault tests are separate evidence.', 'Vectra has no explicit fsync/flush barrier.', 'Page-cache state uncontrolled; process-cold is not disk-cold.'], performanceClaimPermitted: advantage.some(item => item.qualified) || (globallyComplete && !!hybrid && hybrid.advantage.some(item => item.qualified)) }
   await writeOnce(path.join(root, 'vector-summary.json'), result)
   return result
 }

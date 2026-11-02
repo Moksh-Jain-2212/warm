@@ -1,0 +1,62 @@
+{
+  "scope": "Synthetic development only; no study freeze, study query scoring, timing, model inference or paid work.",
+  "vectorTests": {
+    "passed": 17,
+    "failed": 0,
+    "skipped": 0
+  },
+  "hybridTests": {
+    "passed": 16,
+    "failed": 0,
+    "skipped": 0
+  },
+  "addon": {
+    "path": "/Volumes/A/warm-vectra-comparison/warm-sdk.darwin-arm64.node",
+    "sha256": "a0f52138b80c1c2a75c152305d95385a34ea36894fc7c1cb9a3cc40d38688475",
+    "nativeSource": "60620821524b3d7b1ede2b3520d37084853a4f67",
+    "sourceNote": "Cargo manifests, build.rs and src match nativeSource; comparison-only files changed.",
+    "build": "NODE_PATH=/Volumes/A/warm-vectra-node-qualification/node_modules RUSTUP_TOOLCHAIN=1.99.0 CARGO_BUILD_JOBS=2 node scripts/build-node.cjs --platform --no-js --release --features node-api,security"
+  },
+  "sourceHashes": {
+    "vector.mjs": "5a7368e06ddf8826b8626d2a5e3a62723c5ac91116b86ba46dcced06254c48b3",
+    "vector-worker.mjs": "0052869bc678a23b02846f31288e0bac12daff613f64cf04958c405dc45e76ec",
+    "vector-receipts.mjs": "b759dd1c9a799a10a7457197c3252e67d794c326f3c55d973f4f73637201ed44",
+    "oracle-vector.mjs": "6f16531af06087e1a76e80f23c5c17fa415596de4bba457b7111851a154c0e71",
+    "test_vector.mjs": "c1540c708dea45039b6f99c995bb8349b7a5c88b54bde53abfaf3d6c313ee2d9",
+    "README-vector.md": "42b02b8836d3ff9d43b4542c83721fad94d480159a6414ac40dc89b2185c6516",
+    "hybrid-run.mjs": "727424bd53ebf8c4acd8c788c8a33db27ec96e8f62e960cc9a1d12d07c152822",
+    "hybrid-worker.mjs": "7b99df258d3dede9d32dd05a8c90dc039b63a1b31e2c2ddfec7383b260b57de5",
+    "hybrid.mjs": "1652bc4fcf71a08b7ac8fd75840ef61ab2034d918b286b3cf346dcf4b3b0dc44",
+    "hybrid-tokenizer.py": "71e7cb3dada3baafa131fb7b0f4e1368d16f4febf66831817c4f188d79110810",
+    "test_hybrid.mjs": "124250e434bed77f1d0cf59be6425ac4eb37d24d65cf79eeac44c9ca9f764fc3",
+    "README-hybrid.md": "c409eea7eff06edb031e96d2f072f08c2a8333c6e4178799ab9058f63b4ff4b9"
+  },
+  "logs": {
+    "vector": {
+      "path": "vector-final-controller.log.gz",
+      "rawSha256": "60518e5cf6a8ef95c0f950e7aa49e95cc0e70edce35132a2fa117c902ba3b640",
+      "compressedSha256": "0af903ab5e3bbeed40846df43f7bd9c0bff0f1c7b3823f73a29e810e38df7159"
+    },
+    "hybrid": {
+      "path": "hybrid-final-controller.log.gz",
+      "rawSha256": "bed6a3e49ed58b3fd950dc0d5e913f8e49aa6e152a2f6dcf887347672a89e433",
+      "compressedSha256": "61aaf9f4399a88e013745bacf651ee705c6c4464a3d966e23515015566bd8fd5"
+    },
+    "native_build": {
+      "path": "vectra-integrated-addon-build.log.gz",
+      "rawSha256": "ce687884284add4702447ac4e1aecb35cd4d3a068b913ba993a8242b54e28a0e",
+      "compressedSha256": "256c10db70ed7a2bccc5165d1b1df7440a713ef63b7eb57adcc37e512ee34320"
+    }
+  },
+  "dependencyInventoryDevelopment": {
+    "packages": 290,
+    "installed": 237,
+    "files": 15493
+  },
+  "pythonTokenizerDevelopment": {
+    "python": "3.14.7",
+    "tokenizers": "0.23.3",
+    "pinnedFiles": 85
+  },
+  "qualification": "Source/input freeze, execution feasibility, and PR code-owner review remain open."
+}

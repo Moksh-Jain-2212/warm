@@ -2235,3 +2235,35 @@ downloads, user-memory deletion, npm publication or ToIP PR work is authorized b
 this checkpoint. ToIP remains on hold. The proposed memory-pruning study remains
 future work requiring held-out quality and total-cost evidence against simpler
 selection methods.
+
+### Combined comparison preparation after the stopping point
+
+PR [#378](https://github.com/writerslogic/warm/pull/378) at `60620821` completed
+147 successful and 22 conditional-skipped hosted checks, including the required
+`check` aggregate, with no failed or pending checks. No unresolved current review
+threads were found. GitHub branch protection still requires a code-owner review;
+a normal merge was refused and normal auto-merge is enabled. No administrator
+bypass was used. The seven unrelated modified files in the main worktree must be
+preserved; they are outside the #378 diff.
+
+The saved hybrid and vector branches are merged into `research/vectra-comparison`
+with ancestry preserved. Timed ANN rows now undergo per-repetition recall and
+relevance gates; static, lifecycle, timed and oracle references require complete
+unique expected query identities; graph results also check returned and canonical
+score ordering. Synthetic regressions exercise those failures. The shared controller
+now schedules both harnesses with one set of phase budgets, binds hybrid runtime
+artifacts and query populations to the freeze, checks preparation before timing,
+and observes CPU and owned-process RSS across controller work as well as workers.
+Hybrid comparisons reject incomplete receipts, omissions, mismatched judgments,
+warmup failures and unmatched repetitions. Installed dependency code is hashed,
+not just package metadata. The real Vectra fixture verifies all imported records,
+external metadata, paged revisions and separate-process reopen.
+
+The fully integrated release addon was built with Rust 1.99 and two jobs; its
+loader and binary hash were checked. The [synthetic validation receipt](vectra-comparison-20261102/combined-development.json)
+records 17 vector and 16 hybrid passing tests, no skips, source hashes, local addon
+and logs. This is not a study result. The [accounting review](vectra-comparison-20261102/ACCOUNTING.md)
+records the required workload arithmetic and limits: combined freeze and execution
+remain pending final verification and feasibility review. No input scoring, study
+timing, model download, paid operation, pruning, publication or ToIP work ran.
+The failed prefix-quality and CPU-preflight results remain unchanged.

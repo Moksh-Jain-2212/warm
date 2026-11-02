@@ -99,11 +99,11 @@ export async function loadSciFact(manifestPath) {
   return validateData(data)
 }
 
-export async function createTokenCounter(uvPath, tokenizerPath, expectedHash) {
+export async function createTokenCounter(uvPath, tokenizerPath, expectedHash, expectedRuntime = null) {
   await checkedFile(tokenizerPath, expectedHash)
   const child = spawn(uvPath, ['run', '--offline', '--no-project', '--with', 'tokenizers==0.23.3',
     'python', new URL('./hybrid-tokenizer.py', import.meta.url).pathname, tokenizerPath, expectedHash],
-    { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, HF_HUB_OFFLINE: '1', RAYON_NUM_THREADS: '1' } })
+    { stdio: ['pipe', 'pipe', 'pipe'], env: { ...process.env, HF_HUB_OFFLINE: '1', RAYON_NUM_THREADS: '1', PYTHONDONTWRITEBYTECODE: '1' } })
   let readyResolve, readyReject, buffer = '', stderr = '', sequence = 0, closed = false, readyReceived = false
   const pending = new Map()
   const ready = new Promise((resolve, reject) => { readyResolve = resolve; readyReject = reject })
@@ -135,6 +135,7 @@ export async function createTokenCounter(uvPath, tokenizerPath, expectedHash) {
           readyReceived = true
           assert.equal(result.sha256, expectedHash)
           assert.equal(result.tokenizers, '0.23.3')
+          if (expectedRuntime) { assert.equal(result.executable, expectedRuntime.executable); assert.equal(result.tokenizersRoot, expectedRuntime.tokenizersRoot); assert.equal(result.python, expectedRuntime.python); assert.deepEqual(result.virtualFiles, expectedRuntime.virtualFiles) }
           countTokens.receipt = result
           readyResolve()
         } else {

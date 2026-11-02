@@ -28,8 +28,15 @@ def main():
     tokenizer = Tokenizer.from_file(str(path))
     tokenizer.no_padding()
     tokenizer.no_truncation()
+    prefix = os.path.realpath(sys.prefix)
+    files = {os.path.realpath(module.__file__) for module in list(sys.modules.values())
+             if getattr(module, "__file__", None) and os.path.isfile(module.__file__)}
+    virtual_files = {os.path.relpath(name, prefix): hashlib.sha256(Path(name).read_bytes()).hexdigest()
+                     for name in sorted(files) if os.path.commonpath([prefix, name]) == prefix}
     send({"ready": True, "pid": os.getpid(), "sha256": actual,
-          "python": platform.python_version(), "tokenizers": tokenizers.__version__})
+          "python": platform.python_version(), "tokenizers": tokenizers.__version__,
+          "executable": os.path.realpath(sys.executable), "virtualFiles": virtual_files,
+          "tokenizersRoot": os.path.realpath(os.path.dirname(tokenizers.__file__))})
     while True:
         line = sys.stdin.buffer.readline(2 * 1024 * 1024 + 1)
         if not line:

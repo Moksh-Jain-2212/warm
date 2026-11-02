@@ -7,7 +7,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawn } from 'node:child_process'
 import { runWorker } from './hybrid-worker.mjs'
-import { compareHybridPair, runHybridJob } from './hybrid-run.mjs'
+import { compareHybridPair, hybridTimingSchedule, runHybridJob } from './hybrid-run.mjs'
+import { hybridPreparationGate, hybridSummary, pythonRuntime } from './vector.mjs'
 import { createTokenCounter, eligibleDocuments, metadata, normalizeResults, openEngine,
   packContext, prepareEngine, qrelMetrics, queryEngine, sha256, textFile, validateData,
   validateResults } from './hybrid.mjs'
@@ -88,7 +89,20 @@ test('pinned Qwen tokenizer handles synthetic Unicode and long input without tru
     assert.deepEqual(counts, [9, 6, 513, 12])
     assert.equal(count.receipt.tokenizers, '0.23.3')
     assert(count.peakRssBytes > 0)
+    assert(count.receipt.executable && count.receipt.tokenizersRoot)
   } finally { await count.close() }
+  await assert.rejects(createTokenCounter(uvPath, '/Volumes/A/hms-models/Qwen3-Embedding-0.6B/tokenizer.json',
+    'def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a',
+    { executable: '/wrong-python', tokenizersRoot: '/wrong-package', python: 'wrong' }))
+})
+
+test('frozen Python runtime identity matches the actual offline tokenizer child', async () => {
+  const uv = process.env.UV_PATH ?? '/Users/davidcondrey/.local/bin/uv'
+  const tokenizer = '/Volumes/A/hms-models/Qwen3-Embedding-0.6B/tokenizer.json'
+  const runtime = await pythonRuntime(uv, tokenizer)
+  assert(runtime.artifacts.length > 0)
+  const count = await createTokenCounter(uv, tokenizer, 'def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a', runtime)
+  try { assert.equal(await count('synthetic fixture'), 3) } finally { await count.close() }
 })
 
 test('document cap boundaries and invalid ranking references fail explicitly', async () => {
@@ -167,22 +181,84 @@ test('measurement requires frozen source, coordinator admission and the monitore
     modulePath: warmModule, store: '/unused-hybrid-fixture' }), /frozen monitored study controller/)
 })
 
+test('hybrid schedule rotates both engines across three fixed repetitions', () => {
+  assert.deepEqual(hybridTimingSchedule(), [
+    { repetition: 0, engine: 'vectra' }, { repetition: 0, engine: 'warm' },
+    { repetition: 1, engine: 'warm' }, { repetition: 1, engine: 'vectra' },
+    { repetition: 2, engine: 'vectra' }, { repetition: 2, engine: 'warm' },
+  ])
+})
+
 test('fast engine errors cannot enter successful quantiles or qualify a speed comparison', () => {
   const row = (queryId, ms) => ({ queryId, eligibility: 'all', ranked: { ndcg: 1, recall: 1 }, packed: { recall: 1 },
     rankingMs: ms, packingMs: 1, rankingAndPackingMs: ms + 1 })
-  const base = { phase: 'timing', freezeSha256: 'same', timingsCollected: true }
+  const base = { phase: 'timing', freezeSha256: 'same', timingsCollected: true, complete: true, querySetComplete: true }
   const vectra = { ...base, engine: 'vectra', observations: [row('q1', 10), row('q2', 20)] }
   const warm = { ...base, engine: 'warm', observations: [row('q1', 5), { queryId: 'q2', eligibility: 'all',
     engineError: { message: 'fast failure' }, errorElapsedMs: .01 }] }
-  const result = compareHybridPair(vectra, warm, 'all')
+  const result = compareHybridPair(vectra, warm, 'all', ['q1', 'q2'])
   assert.equal(result.repetitionPass, false)
   assert.equal(result.sameSuccessfulSet, false)
   assert.equal(result.warmFailures, 1)
   assert.equal(result.latency.rankingMs.warm.p50, 5)
   assert.deepEqual(result.errorWallTimes.warm, [.01])
-  assert.throws(() => compareHybridPair(vectra, { ...warm, observations: warm.observations.slice(0, 1) }, 'all'), /different declared/)
+  assert.throws(() => compareHybridPair(vectra, { ...warm, observations: warm.observations.slice(0, 1) }, 'all', ['q1', 'q2']), /different declared/)
 })
 
+
+test('matched hybrid comparisons reject shared omissions and mismatched eligible judgments', () => {
+  const row = queryId => ({ queryId, eligibility: 'all', ranked: { ndcg: 1, recall: 1, eligiblePositiveCount: 1 }, packed: { recall: 1, eligiblePositiveCount: 1 }, rankingMs: 1, packingMs: 1, rankingAndPackingMs: 2 })
+  const base = { phase: 'timing', freezeSha256: 'same', timingsCollected: true, complete: true, querySetComplete: true, repetition: 0 }
+  const vectra = { ...base, engine: 'vectra', observations: [row('q1')] }, warm = { ...base, engine: 'warm', observations: [row('q1')] }
+  assert.equal(compareHybridPair(vectra, warm, 'all', ['q1', 'q2']).complete, false)
+  assert.equal(compareHybridPair(vectra, warm, 'all', ['q1']).complete, true)
+  assert.equal(compareHybridPair(vectra, { ...warm, complete: false }, 'all', ['q1']).complete, false)
+  const missing = { ...warm, observations: [{ ...row('q1'), ranked: { ndcg: null, recall: null, eligiblePositiveCount: 0 } }] }
+  assert.equal(compareHybridPair(vectra, missing, 'all', ['q1']).repetitionPass, false)
+  assert.throws(() => compareHybridPair(vectra, { ...warm, repetition: 1 }, 'all', ['q1']), /repetition/)
+  const failedWarmup = { ...warm, observations: [...warm.observations, { warmup: true, eligibility: 'all', queryId: 'q1', engineError: { message: 'failed' } }] }
+  assert.equal(compareHybridPair(vectra, failedWarmup, 'all', ['q1']).complete, false)
+})
+
+test('hybrid preparation admission requires every scheduled query while preserving engine errors', async () => temporary(async root => {
+  const ids = ['q0', 'q1'], filters = ['all', 'ten-percent', 'one-percent', 'empty'], entries = []
+  const frozen = { hybrid: { queryIds: ids }, hybridFreezeHash: 'frozen' }
+  for (const engine of ['vectra', 'warm']) for (const phase of ['prepare', 'quality']) {
+    const observations = filters.flatMap(eligibility => ids.map(queryId => ({ queryId, eligibility, ...(engine === 'vectra' && eligibility === 'empty' ? { engineError: { message: 'unsupported' } } : {}) })))
+    const output = join(root, `${engine}-${phase}.json`)
+    await writeFile(output, JSON.stringify({ complete: true, engine, phase, freezeSha256: 'frozen', observations }))
+    entries.push({ job: { engine, phase, output }, result: { complete: true } })
+  }
+  const result = await hybridPreparationGate(frozen, entries)
+  assert.equal(result.pass, true); assert.equal(result.engineErrors.length, 2)
+  assert.equal((await hybridPreparationGate(frozen, entries.slice(0, -1))).pass, false)
+  const file = entries[1].job.output, value = JSON.parse(await readFile(file, 'utf8'))
+  value.observations[1] = value.observations[0]; await writeFile(file, JSON.stringify(value))
+  assert.equal((await hybridPreparationGate(frozen, entries)).pass, false)
+}))
+
+test('combined summary requires all matched hybrid jobs and all three qualified repetitions', async () => temporary(async root => {
+  const ids = ['q0', 'q1', 'q2'], filters = ['all', 'ten-percent', 'one-percent', 'empty']
+  const frozen = { hybrid: { queryIds: ids }, hybridFreezeHash: 'frozen' }, entries = []
+  for (const engine of ['vectra', 'warm']) {
+    const output = join(root, `prepare-${engine}.json`)
+    await writeFile(output, JSON.stringify({ phase: 'prepare', engine, complete: true }))
+    entries.push({ id: `prepare-${engine}`, job: { output, phase: 'prepare', engine }, result: { complete: true }, storage: { files: [], logicalBytes: 0, allocatedBytes: 0 } })
+  }
+  for (const phase of ['quality', 'timing']) for (const repetition of phase === 'quality' ? [undefined] : [0, 1, 2]) for (const engine of ['vectra', 'warm']) {
+    const ms = engine === 'vectra' ? 10 : 5
+    const observations = filters.flatMap(eligibility => (phase === 'timing' && eligibility !== 'all' ? [ids[0]] : ids).map(queryId => ({ queryId, eligibility, ranked: { ndcg: 1, recall: 1, eligiblePositiveCount: 1 }, packed: { ndcg: 1, recall: 1, eligiblePositiveCount: 1 }, rankingMs: ms, packingMs: ms, rankingAndPackingMs: ms * 2 })))
+    const output = join(root, `${entries.length}.json`)
+    await writeFile(output, JSON.stringify({ phase, repetition, engine, observations, complete: true, querySetComplete: true, freezeSha256: 'frozen', timingsCollected: phase === 'timing' }))
+    entries.push({ id: String(entries.length), job: { output, phase, repetition, engine }, result: { complete: true }, storage: { files: [], logicalBytes: 0, allocatedBytes: 0 } })
+  }
+  const good = await hybridSummary(frozen, entries)
+  assert.equal(good.complete, true); assert(good.advantage.every(point => point.qualified))
+  const missing = await hybridSummary(frozen, entries.slice(0, -1))
+  assert.equal(missing.complete, false); assert(missing.advantage.every(point => !point.qualified))
+  const duplicated = await hybridSummary(frozen, [...entries, entries[2]])
+  assert.equal(duplicated.complete, false)
+}))
 
 test('shared monitor runs a quality worker with IPC, descendant accounting and no development timings', async () => temporary(async root => {
   const fixturePath = join(root, 'fixture.json'), bytes = JSON.stringify(data)
