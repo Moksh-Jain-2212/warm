@@ -1,0 +1,229 @@
+{
+  "version": 1,
+  "recordedAt": "2026-11-02T07:24:06.415Z",
+  "scope": "Integrated macOS arm64 Node functionality, types and offline bundled/platform packages",
+  "source": {
+    "qualifiedCommit": "53a4e3a6e35029a464b7c9cff7bc23149ec690c8",
+    "nativeCommit": "3431f997e21a47a2e3a137075e08b696168baadb",
+    "tree": "6e0c0cd799c1ae2f0f969a9a25944e901171897e",
+    "branch": "test/vectra-node-qualification",
+    "nativeSourceMatchesIntegratedInput": true,
+    "packageChange": "Include native vector-record types in canonical test:types script"
+  },
+  "tools": {
+    "node": "v26.8.1",
+    "npm": "11.19.0",
+    "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)",
+    "target": "aarch64-apple-darwin"
+  },
+  "build": {
+    "jobs": 2,
+    "offline": true,
+    "targetDir": "/Volumes/A/warm-node-temporal-workflow/target/build",
+    "profile": "dev opt-level=3 debug=0",
+    "defaultFeatures": [
+      "node-api",
+      "security"
+    ],
+    "optionalFeatures": [
+      "node-api",
+      "security",
+      "local-embed"
+    ],
+    "downloadFeature": false,
+    "cargoDefaultFeaturesEnabled": true
+  },
+  "commands": {
+    "install": "npm ci --offline --ignore-scripts --no-audit --no-fund",
+    "defaultBuild": "CARGO_TARGET_DIR=/Volumes/A/warm-node-temporal-workflow/target/build CARGO_BUILD_JOBS=2 CARGO_NET_OFFLINE=true RUSTUP_TOOLCHAIN=1.99.0 CARGO_PROFILE_DEV_OPT_LEVEL=3 CARGO_PROFILE_DEV_DEBUG=0 npm run build:debug -- -- --locked",
+    "defaultTests": "npm test",
+    "types": "npm run test:types",
+    "bundledPackage": "npm_config_offline=true npm run test:package",
+    "optionalBuild": "CARGO_TARGET_DIR=/Volumes/A/warm-node-temporal-workflow/target/build CARGO_BUILD_JOBS=2 CARGO_NET_OFFLINE=true RUSTUP_TOOLCHAIN=1.99.0 CARGO_PROFILE_DEV_OPT_LEVEL=3 CARGO_PROFILE_DEV_DEBUG=0 node scripts/build-node.cjs --features node-api,security,local-embed --no-js --output-dir target/node-embed -- --locked",
+    "optionalTests": "WARM_EMBED_ADDON=$PWD/target/node-embed/warm-sdk.node node --test tests/node/embedding-limits.test.cjs",
+    "cargoInventory": "cargo +1.99.0 package --list --locked --offline --allow-dirty",
+    "platformLayout": "node scripts/ci/npm-platform-packages.cjs target/vectra-node-qualification/platform/bindings target/vectra-node-qualification/platform/packages --allow-partial",
+    "platformInstall": "npm install --offline --ignore-scripts --no-audit --no-fund ../tarballs/warm-sdk-0.6.5.tgz ../tarballs/warm-sdk-darwin-arm64-0.6.5.tgz"
+  },
+  "checks": {
+    "npmCi": "passed",
+    "nativeBuild": "passed",
+    "defaultNode": {
+      "tests": 28,
+      "passed": 25,
+      "failed": 0,
+      "skipped": 3
+    },
+    "defaultSkips": "Exactly the three tests in embedding-limits.test.cjs, because default node-api/security excludes LocalEmbedder; these passed separately with the fixture-only addon.",
+    "optionalFixtureNode": {
+      "tests": 3,
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0
+    },
+    "types": "passed all four TypeScript files",
+    "generatedFiles": "index.js and index.d.ts unchanged by the project generator",
+    "bundledPackage": "passed CJS/ESM identity, real document/vector queries, original f64/signed-zero retrieval and indexed/full metadata separation",
+    "platformPackage": "passed offline JavaScript-only root + sole darwin-arm64 package; semantic/full-vector/temporal/Vectra queries, atomic batch, chain purge and empty eligibility",
+    "cargoFixtureInventory": "legacy-fixtures.json is included by cargo package --list; actual Rust package build/verification remains root-owned",
+    "performanceMeasurements": false,
+    "paidCalls": false,
+    "downloadedModels": false,
+    "published": false
+  },
+  "artifacts": [
+    {
+      "path": "/Volumes/A/warm-vectra-node-qualification/warm-sdk.node",
+      "bytes": 13060400,
+      "sha256": "e3bea8c431406cbc8c1359f353f225c2d3382e40033101c02a61059eb6b99c77"
+    },
+    {
+      "path": "/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification/platform/bindings/warm-sdk.darwin-arm64.node",
+      "bytes": 13060400,
+      "sha256": "e3bea8c431406cbc8c1359f353f225c2d3382e40033101c02a61059eb6b99c77"
+    },
+    {
+      "path": "/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification/platform/consumer/node_modules/warm-sdk-darwin-arm64/warm-sdk.darwin-arm64.node",
+      "bytes": 13060400,
+      "sha256": "e3bea8c431406cbc8c1359f353f225c2d3382e40033101c02a61059eb6b99c77"
+    },
+    {
+      "path": "/Volumes/A/warm-vectra-node-qualification/target/node-embed/warm-sdk.node",
+      "bytes": 18803840,
+      "sha256": "29e8aeb40566a73eb602a2d9e0754c6f70f2328215858edf984be07ec200fe56"
+    },
+    {
+      "path": "/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification/warm-sdk-0.6.5.tgz",
+      "bytes": 3501064,
+      "sha256": "4571699bbea6349e6379900a37a7fc4a57ea07022506f6a90ed9db1faeecf9ab"
+    },
+    {
+      "path": "/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification/platform/tarballs/warm-sdk-0.6.5.tgz",
+      "bytes": 71708,
+      "sha256": "8ba0f54b148aa8bce8254bc133430239d737c8e76cfd891c07c9bdbf71741402"
+    },
+    {
+      "path": "/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification/platform/tarballs/warm-sdk-darwin-arm64-0.6.5.tgz",
+      "bytes": 3432187,
+      "sha256": "3874dd607e5d6d8887ad3683b21a3db2495e62a1a71cf91300b85e9bd80352ea"
+    },
+    {
+      "path": "/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification/platform/consumer/check.cjs",
+      "bytes": 3776,
+      "sha256": "a41c192eabdd4a19597ef86cf51c900deba0a75ff910d8e8d22ad9eb61853c21"
+    },
+    {
+      "path": "/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification/platform/consumer/package-lock.json",
+      "bytes": 1525,
+      "sha256": "eb16a88827f03630a411719d7b974ed2068e4342ea97cefc35356b1f4878ac37"
+    }
+  ],
+  "bundledPackageIntegrity": "sha512-Zj/QSMqaNxpFytwL3S2sBGO4ENfvibsYZR69v7E6GqZvYNXhPJWtmXTYhdX98gi4kbXfElkjnCRgvsv/MZGl9w==",
+  "sourceSha256": {
+    "Cargo.toml": "042fba4ba6615c7b808b7500df1312af71410044b050345c9814674861c7ade4",
+    "Cargo.lock": "2fc4a034e5af215be9c559b8b34d47acb5df94e83acbb39e3e7260121f05add1",
+    "package.json": "5b841aa138d5672e50a324e4236262094d85f7fe58f64590cd8bdbda027aa87e",
+    "package-lock.json": "c857a65dd8dc9e872db864f66f4355b1b09ac393a5663ff00d26d6f0323740fa",
+    "index.js": "1c28979a2fca2accc26893712035ba50c10ac07455bae8d49f5c24f30163673d",
+    "index.d.ts": "2e50119c9b7aa12cbafc3cb605673f32eba8227980590ca630bb905682901b04",
+    "index.mjs": "540d434fa1995ae080d787ffc372998982d06d3bee633455b619da8f15328077",
+    "vectra.js": "8534e7d49f84cffc38c034c244913605d369500b7c4e8e2ac8620eafd8f6e0d1",
+    "vectra.d.ts": "a7e4efc874d4359c2cad427d59f4923feed8493348662ac772726517923152db",
+    "scripts/build-node.cjs": "6a124b8f78abc1ba4cd2a6077b36b68900e4c79bc0b3b5797b42186dd9edef5a",
+    "scripts/test-package.cjs": "ba3fc51abb8cb05f9f765c0df6f01530102529f56cfc78ff2e2b4f510308b841",
+    "docs/research/technical-audit-20261029/bincode-removal-20261102/legacy-fixtures.json": "be3022b67307e00a0462642981512aa94e57a16880e0667fc71edb8eea716a6f",
+    "tests/fixtures/tiny-embed-int8.hmsemb": "99004ed810f1d63780b02973e87d3021e51dd49133bb992748c202bc31ac8893"
+  },
+  "logs": {
+    "npm-ci.log": {
+      "bytes": 25,
+      "sha256": "a974c6474854187b26cc9fed14936cfb8cbb4022fc602713078307a03e0f5272",
+      "gzipSha256": "dbf9f2fef6fadf28ca5272c0f9bb232ad12044946ac507cb761e18aefb913db0"
+    },
+    "native-build.log": {
+      "bytes": 448,
+      "sha256": "46254686290f73cd5bdb6728c3d633341c007edec61dfc52633d4999572a3cd3",
+      "gzipSha256": "d7050cb68c5e7c3ef10c052c0f5d1de3176960b1eece3831d522481e54635cdc"
+    },
+    "node-tests.log": {
+      "bytes": 2905,
+      "sha256": "bb72e45b992b6bf12721466da23b96da377dfab6093ddc3d4dc220a1524fda1e",
+      "gzipSha256": "fcc5488a49cd284b93348847bcf636039a9cb82a0ed71ae28b580a48ad3b52d4"
+    },
+    "types.log": {
+      "bytes": 261,
+      "sha256": "39cf493819ef971b472c17f9ba22d33798c470b31770d683b4d7d7079dd3da50",
+      "gzipSha256": "1f179da32b49dec6f2fb6fb6cfb913f83507b92876fd444e4ffe90a9e206af6c"
+    },
+    "package-tests.log": {
+      "bytes": 287,
+      "sha256": "66bf2a177179660f311a0582f1103716367fbf6264d160262bf27fc3f57deb42",
+      "gzipSha256": "b63e2cbfd7687bc48ee20f320db11a058972e5fa2014e0075f46de1eadc10784"
+    },
+    "bundled-pack.json": {
+      "bytes": 2295,
+      "sha256": "7a513e00fd6a7c89a51b85608c3b006a68f3f2e1959367184bc4081517ccec03",
+      "gzipSha256": "eb5c5f3ceaa81a8861690f7b73159ccfcbe71bfcc988193b9060e08506806251"
+    },
+    "optional-build.log": {
+      "bytes": 281,
+      "sha256": "a9e4fbabb41cb6e1e0c0f32268df22ab70ccd40ac6e37a53de9d8e4c42f717f4",
+      "gzipSha256": "12571cabd244f529f6c2702b324779b2bdb69e66a001920cd8909dc45a75f4c5"
+    },
+    "optional-tests.log": {
+      "bytes": 386,
+      "sha256": "afb2e92102ef65a99ac29750c4e70cbfea5bb9232de05578ced1868c3a620039",
+      "gzipSha256": "d0a1b8ab5e4019f0c52d5bcf0e302a7c6ac7d4b4bf5859653fd90f1e1b40ce12"
+    },
+    "generated-files.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzipSha256": "f1b651238a58fe290baec6c5e32f3bdb1943dd2bd582f02569231f7a757c7837"
+    },
+    "native-source-equivalence.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzipSha256": "f1b651238a58fe290baec6c5e32f3bdb1943dd2bd582f02569231f7a757c7837"
+    },
+    "cargo-package-list.log": {
+      "bytes": 42456,
+      "sha256": "3844d55dd8e5c38294daaeba3b99cd4e7193cb1cfe1cbb25589b3efdddaf7c99",
+      "gzipSha256": "4f4944f1ee4452024cab113f16f1e88f2c57b2a053e5bf76bebd9f052fe74848"
+    },
+    "cargo-fixture-check.log": {
+      "bytes": 86,
+      "sha256": "fc9c639d9e01bfe3c849c700885caca34f3efae24acc868caa45354401b6ae21",
+      "gzipSha256": "b69997cd6a672796ddd7e58d46b9440342e4da7fb160214a5c382db3c5cf091a"
+    },
+    "platform-layout.json": {
+      "bytes": 179,
+      "sha256": "f4b6aea8eefec229979a8ad416761c9c2b53cbd7fbe023d8709f0451d7d5d9f2",
+      "gzipSha256": "fc0f803117d77293b31d3068b0efa9cc834de31d7dc6fd257990efec4ed15689"
+    },
+    "platform-root-pack.json": {
+      "bytes": 2195,
+      "sha256": "2fbcb399fe63ca10404a54e30f7b77e411989b32d16bd4035a2d15b181992292",
+      "gzipSha256": "9c8508338d40a91258468c6d4ecd1d483820afe85d7fadb016c9251f1d55aa9c"
+    },
+    "platform-native-pack.json": {
+      "bytes": 823,
+      "sha256": "a70dd43705f30db1d7bfc2be96accd295492af87bec45271f2dcc01f7e533f83",
+      "gzipSha256": "9b6309599a962759ad6420c6932979fe12c4b9831747fa2020048163661a379a"
+    },
+    "platform-install.log": {
+      "bytes": 27,
+      "sha256": "b0de832dd56e813f4aaabce5f2e99b35942fde55bfff437486e2ce469950d6eb",
+      "gzipSha256": "bacd99a0b1017fcf9603bf37415102cd0c8799baac4ab9940f2e339135003749"
+    },
+    "platform-consumer.log": {
+      "bytes": 254,
+      "sha256": "e1eb4e848c41f200cdf83b2a04e634af6f494e1fac8653d97c6a2f86ba427202",
+      "gzipSha256": "a4176baed84e2ad0c9f8b7777b4fb4c8f5e4ae6464c3207e4eef3227fe8528b1"
+    }
+  },
+  "limitations": [
+    "Local native runtime coverage is macOS arm64 only; the other seven target binaries are not qualified here.",
+    "The default addon intentionally omits optional LocalEmbedder; its three fixture tests require and passed with the separate optional addon.",
+    "No full model inference, model download, Rust package verification build, publishing, or benchmark measurement was performed by this qualification."
+  ]
+}
