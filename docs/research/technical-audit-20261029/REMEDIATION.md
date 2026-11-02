@@ -1849,7 +1849,29 @@ unchanged latency/writer thresholds and a 600-second measurement budget. The opt
 manual job preserves existing push/PR checks and exports bounded evidence through
 logs without artifact or cache uploads. See
 [Linux preregistration](vector-contention-20261101/ci-linux-1024/README.md);
-run `41383296700` is pending. This will establish only the stated Linux workload result.
+run `41383296700` completed all ten processes and 92,880 oracle checks in 594.311
+seconds. Host checks and the writer gate passed, but stale-idle 128D p99 increased
+15.825%, exceeding the 15% limit. Every other idle gate passed. The complete exact
+export, failed summary and independent verification remain in the linked evidence.
+
+To address the remaining stale-capture work, integrated source
+`b4fc1ba634e1cca0ae8024f259fa6bcb8ef73954` now tracks changed document IDs with a
+bounded, generation-covered ledger independent of the dense index. Existing sorted
+snapshot rows provide binary range lookup; stale exact capture no longer rediscovers
+changes by walking live documents or probing every base owner. Overflow, generation
+gaps and store-identity changes use complete fallback. Persistent tracking is limited
+to 128 entries/64 KiB identifier bytes plus fixed metadata, retaining no deleted payload
+owners. Graph-mode delta discovery still scans the collection; that next-phase scaling
+work is not claimed complete.
+
+The revised source passes 1,059 local tests (12 existing diagnostic ignores), strict
+scoped Clippy, repository formatting and the optional workflow's lint/security checks.
+See [tracked-source validation](recovery-query-completion-20261101/tracked-validation.json).
+The [tracked Linux plan](vector-contention-20261101/tracked-linux-1024/README.md)
+preserves every workload and quality threshold. Before measurement its completion
+allowance increases to 900 seconds because the prior complete run nearly exhausted
+600 seconds; this does not relax latency, writer or correctness criteria. Hosted
+qualification, final CI and merge remain pending.
 
 ## Next authorized phase: changing agent memory and Vectra migration
 
