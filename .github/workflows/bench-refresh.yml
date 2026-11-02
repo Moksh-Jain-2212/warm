@@ -51,7 +51,7 @@ jobs:
     permissions:
       contents: read
     env:
-      EVIDENCE: docs/research/technical-audit-20261029/vector-contention-20261101/ci-linux-1024
+      EVIDENCE: docs/research/technical-audit-20261029/vector-contention-20261101/tracked-linux-1024
       CARGO_BUILD_JOBS: "2"
       RAYON_NUM_THREADS: "1"
     steps:
@@ -89,7 +89,7 @@ jobs:
         run: uv run --no-project python "$EVIDENCE/probe.py" build current
       - name: Verify pinned build and source evidence
         run: uv run --no-project python "$EVIDENCE/probe.py" verify
-      - name: Run the fixed 600-second qualification
+      - name: Run the fixed 900-second qualification
         run: >-
           uv run --no-project python "$EVIDENCE/probe.py" run
           --quiet-grant 'Dedicated standard public ubuntu-24.04 job; prerequisite fetch/build steps finished; no concurrent WARM work'
