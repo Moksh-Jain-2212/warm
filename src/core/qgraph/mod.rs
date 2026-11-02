@@ -115,12 +115,12 @@ impl Metric {
 pub struct BuildParams {
     /// Distance the graph is built for.
     pub metric: Metric,
-    /// Candidate list size of the construction-time greedy search (the first of the two
-    /// insertion passes uses at most 200).
+    /// Candidate list size of the construction-time greedy search (1..=1,048,576; the first
+    /// of the two insertion passes uses at most 200).
     pub build_ef: usize,
-    /// Out-degree of the bottom layer (even).
+    /// Out-degree of the bottom layer (positive, even, and at most 65,536).
     pub degree: usize,
-    /// Pruning parameter of the second pass (the first pass uses 1.0).
+    /// Finite pruning parameter of at least 1.0 for the second pass (the first uses 1.0).
     pub alpha: f32,
     /// Length of the 1-bit edge codes; rounded up to a power of two of at least 64 and at
     /// least the dimension. 0 picks the smallest such length.
@@ -1450,18 +1450,27 @@ impl Graph {
     /// zero rows stay zero. Uses the rayon pool; the result depends only on the data and
     /// `params` (`code_bits` is not used).
     pub fn build(data: &[f32], dim: usize, params: &BuildParams) -> Result<Self, WarmError> {
-        Self::build_owned(data.to_vec(), dim, params)
+        validate_build(data, dim, params)?;
+        Self::build_validated(data.to_vec(), dim, params)
     }
 
     /// [`Graph::build`] over an owned matrix, prepared in place: the caller's copy is the
     /// one the graph keeps, so the vectors are resident once during construction instead of
     /// twice (the build's own copy next to the caller's).
     pub fn build_owned(
-        mut data: Vec<f32>,
+        data: Vec<f32>,
         dim: usize,
         params: &BuildParams,
     ) -> Result<Self, WarmError> {
         validate_build(&data, dim, params)?;
+        Self::build_validated(data, dim, params)
+    }
+
+    fn build_validated(
+        mut data: Vec<f32>,
+        dim: usize,
+        params: &BuildParams,
+    ) -> Result<Self, WarmError> {
         let norms = prepare_rows(&mut data, dim, params.metric);
         let structure = build_structure(&data, &norms, dim, params)?;
         Ok(Self {
@@ -1504,14 +1513,17 @@ fn validate_build(data: &[f32], dim: usize, params: &BuildParams) -> Result<(), 
             at % dim
         )));
     }
-    if params.build_ef == 0 {
-        return Err(invalid("build_ef must be positive".into()));
+    if !(1..=1_048_576).contains(&params.build_ef) {
+        return Err(invalid("build_ef must be in 1..=1048576".into()));
     }
     let r = params.degree;
-    if r == 0 || !r.is_multiple_of(2) {
+    if r == 0 || r > 65_536 || !r.is_multiple_of(2) {
         return Err(invalid(format!(
-            "degree must be positive and even, not {r}"
+            "degree must be positive, even, and at most 65536, not {r}"
         )));
+    }
+    if !params.alpha.is_finite() || params.alpha < 1.0 {
+        return Err(invalid("alpha must be finite and at least 1".into()));
     }
     Ok(())
 }
@@ -1887,6 +1899,74 @@ fn push_top(top: &mut Vec<(f32, u32)>, k: usize, dist: f32, id: u32) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn graph_build_parameters_match_durable_bounds() {
+        let row = [1.0_f32, 0.0];
+        for (degree, valid) in [
+            (0, false),
+            (1, false),
+            (2, true),
+            (65_535, false),
+            (65_536, true),
+            (65_537, false),
+            (65_538, false),
+            (usize::MAX - 1, false),
+        ] {
+            let params = BuildParams {
+                degree,
+                ..BuildParams::default()
+            };
+            assert_eq!(
+                validate_build(&row, 2, &params).is_ok(),
+                valid,
+                "degree {degree}"
+            );
+        }
+        for (build_ef, valid) in [
+            (0, false),
+            (1, true),
+            (1_048_575, true),
+            (1_048_576, true),
+            (1_048_577, false),
+            (usize::MAX, false),
+        ] {
+            let params = BuildParams {
+                build_ef,
+                ..BuildParams::default()
+            };
+            assert_eq!(
+                validate_build(&row, 2, &params).is_ok(),
+                valid,
+                "build_ef {build_ef}"
+            );
+        }
+        for (alpha, valid) in [
+            (f32::NEG_INFINITY, false),
+            (f32::NAN, false),
+            (0.0, false),
+            (f32::from_bits(1.0f32.to_bits() - 1), false),
+            (1.0, true),
+            (1.2, true),
+            (f32::INFINITY, false),
+        ] {
+            let params = BuildParams {
+                alpha,
+                ..BuildParams::default()
+            };
+            assert_eq!(
+                Graph::build(&row, 2, &params).is_ok(),
+                valid,
+                "alpha {alpha}"
+            );
+        }
+        let oversized = BuildParams {
+            degree: usize::MAX - 1,
+            ..BuildParams::default()
+        };
+        assert!(Graph::build(&row, 2, &oversized).is_err());
+        assert!(Graph::build_owned(row.to_vec(), 2, &oversized).is_err());
+    }
 
     #[cfg(feature = "experimental-build-search")]
     #[test]

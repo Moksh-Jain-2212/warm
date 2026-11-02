@@ -1,0 +1,9 @@
+building
+degree=128 build_ef=500 alpha=1
+built in 22.864245584s
+ef=128 shortlist=18 recall=0.98870 worst=7 missed_queries=98 q241=Some((241, 7)) elapsed=231.474166ms
+ef=256 shortlist=18 recall=0.99790 worst=8 missed_queries=18 q241=Some((241, 8)) elapsed=404.230625ms
+ef=512 shortlist=18 recall=0.99970 worst=9 missed_queries=3 q241=None elapsed=794.044417ms
+ef=1024 shortlist=18 recall=1.00000 worst=10 missed_queries=0 q241=None elapsed=1.386297875s
+ef=2048 shortlist=18 recall=1.00000 worst=10 missed_queries=0 q241=None elapsed=2.498631208s
+ef=4096 shortlist=18 recall=1.00000 worst=10 missed_queries=0 q241=None elapsed=4.642963417s

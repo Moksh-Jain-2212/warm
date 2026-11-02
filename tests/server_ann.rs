@@ -18,6 +18,59 @@ const QUERIES: usize = 40;
 const K: usize = 10;
 const TENANT: &str = "ann";
 
+#[test]
+fn memory_replacement_invalidates_stale_graph_across_restart() {
+    let root = tempfile::tempdir().unwrap();
+    let data = root.path().join("data");
+    let config = root.path().join("memory.json");
+    std::fs::write(&config, r#"{"onIdConflict":"replace"}"#).unwrap();
+    let options = [
+        "--no-auth",
+        "--graph-min-rows",
+        "128",
+        "--memory-config",
+        config.to_str().unwrap(),
+    ];
+    let mut server = Server::start_in(&data, &options, &[]);
+    let mut old = vec![0.0; DIM];
+    old[0] = 1.0;
+    let mut new = vec![0.0; DIM];
+    new[1] = 1.0;
+    let documents: Vec<_> = (0..128)
+        .map(|i| document(&format!("d{i}"), i, &old))
+        .collect();
+    let response = server
+        .req("POST", "/api/v1/documents/batch")
+        .json(&json!(documents))
+        .send();
+    assert_eq!(response.status, 200, "{}", response.text());
+    let response = server
+        .req("POST", "/api/v1/index/maintain")
+        .json(&json!({}))
+        .send();
+    assert_eq!(response.status, 200, "{}", response.text());
+    assert_eq!(response.json()["vectorIndex"]["graph"], true);
+    let response = server
+        .req("POST", "/api/v1/memory/remember")
+        .json(&json!({"id":"d0", "text":"new memory", "embedding":new}))
+        .send();
+    assert_eq!(response.status, 200, "{}", response.text());
+    let check = |server: &Server| {
+        let response = server
+            .req("POST", "/api/v1/query")
+            .json(&json!({"query_vector":new, "top_k":1}))
+            .send();
+        assert_eq!(response.status, 200, "{}", response.text());
+        assert_eq!(response.json()["matches"][0]["id"], "d0");
+        assert!((response.json()["matches"][0]["score"].as_f64().unwrap() - 1.0).abs() < 1e-5);
+    };
+    check(&server);
+    assert!(server.stop());
+    drop(server);
+    let server = Server::start_in(&data, &options, &[]);
+    check(&server);
+}
+
 /// Deterministic generator (64-bit LCG, Box-Muller normals).
 struct Rng(u64);
 

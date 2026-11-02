@@ -88,6 +88,14 @@ impl Memory {
     /// content already match is reported with `created: false` and stored once. Without an
     /// explicit id the id is a hash of the content, so a retried call is still idempotent.
     pub fn remember_many(&self, inputs: Vec<RememberInput>) -> Result<Vec<Remembered>> {
+        self.remember_many_with_limit(inputs, None)
+    }
+
+    pub(super) fn remember_many_with_limit(
+        &self,
+        inputs: Vec<RememberInput>,
+        limit: Option<u64>,
+    ) -> Result<Vec<Remembered>> {
         check!(
             !inputs.is_empty() && inputs.len() <= MAX_BATCH,
             "remember requires 1..={MAX_BATCH} facts"
@@ -97,7 +105,7 @@ impl Memory {
             let Some(before) = self.planning_revision()? else {
                 continue;
             };
-            match self.remember_at_revision(inputs.clone(), now, before) {
+            match self.remember_at_revision_with_limit(inputs.clone(), now, before, limit) {
                 Ok(Some(outcomes)) => return Ok(outcomes),
                 Ok(None) => {}
                 Err(error) => return Err(error),
@@ -114,6 +122,16 @@ impl Memory {
         inputs: Vec<RememberInput>,
         now: Millis,
         before: u64,
+    ) -> Result<Option<Vec<Remembered>>> {
+        self.remember_at_revision_with_limit(inputs, now, before, None)
+    }
+
+    fn remember_at_revision_with_limit(
+        &self,
+        inputs: Vec<RememberInput>,
+        now: Millis,
+        before: u64,
+        limit: Option<u64>,
     ) -> Result<Option<Vec<Remembered>>> {
         check!(
             !inputs.is_empty() && inputs.len() <= MAX_BATCH,
@@ -142,6 +160,19 @@ impl Memory {
             Err(_) if self.core.revision() != before => return Ok(None),
             Err(error) => return Err(error),
         };
+        if let Some(limit) = limit {
+            let new = planned
+                .iter()
+                .filter(|fact| !fact.idempotent && !fact.replaces)
+                .count() as u64;
+            let count = self.core.document_count() as u64;
+            if !self.core.memory_revision_matches(before) {
+                return Ok(None);
+            }
+            if new > 0 && count.saturating_add(new) > limit {
+                return Err(super::DocumentQuotaExceeded { limit }.into());
+            }
+        }
         let documents: Vec<DocumentInput> = planned
             .iter_mut()
             .filter_map(|fact| fact.document.take())

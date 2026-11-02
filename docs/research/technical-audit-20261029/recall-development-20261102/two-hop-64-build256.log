@@ -1,0 +1,6 @@
+building
+degree=64 build_ef=256 alpha=1
+built in 9.431931166s
+ef=128 shortlist=18 recall=1.00000 worst=10 missed_queries=0 q241=None elapsed=3.21014875s
+ef=256 shortlist=18 recall=1.00000 worst=10 missed_queries=0 q241=None elapsed=5.324939584s
+ef=512 shortlist=18 recall=1.00000 worst=10 missed_queries=0 q241=None elapsed=9.3225655s

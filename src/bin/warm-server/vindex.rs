@@ -14,10 +14,9 @@
 //!   and checked at open; a snapshot that does not read back is ignored, the log alone answers
 //!   (exactly, in memory) and the next maintenance writes a fresh one. The log is rotated
 //!   when a snapshot is published, keeping only the frames the snapshot does not cover.
-//! - `dirty`: present from the first mutation after open until a clean close. Found at open
-//!   it means the previous process stopped mid-way: every indexed document is then checked
-//!   against the engine, and one the engine lacks, or holds at another version, leaves the
-//!   index.
+//! - `dirty`: present from the first mutation after open until a clean close. On open every
+//!   indexed document is checked against the engine, and one the engine lacks, or holds at
+//!   another version, leaves the index.
 //!
 //! Rows the snapshot covers are scored through the mapped rows file; rows appended since are
 //! scored exactly in memory. Hits are validated against the engine by the caller, so a
@@ -363,13 +362,14 @@ pub struct VectorIndex {
     build: Mutex<()>,
     manifest: Mutex<Option<Manifest>>,
     dirty: AtomicBool,
+    invalid: AtomicBool,
     token: AtomicU64,
 }
 
 impl VectorIndex {
     /// Opens (or creates) the index under `dir`, cutting a torn log tail, ignoring a
-    /// snapshot that does not read back and, after an unclean stop, dropping every indexed
-    /// document `core` does not hold at the indexed version.
+    /// snapshot that does not read back and dropping every indexed document `core` does not
+    /// hold at the indexed version.
     pub fn open(dir: &Path, dim: usize, core: &WarmCore) -> Result<Self> {
         ensure!(dim > 0, "vector index needs at least one dimension");
         std::fs::create_dir_all(dir)?;
@@ -426,17 +426,15 @@ impl VectorIndex {
             build: Mutex::new(()),
             manifest: Mutex::new(manifest),
             dirty: AtomicBool::new(false),
+            invalid: AtomicBool::new(false),
             token: AtomicU64::new(rand::random()),
         };
-        if dir.join("dirty").exists() {
-            index.reconcile(core)?;
-        }
+        index.reconcile(core)?;
+        index.clear_dirty()?;
         Ok(index)
     }
 
-    /// After an unclean stop: drop every indexed document the engine does not hold at the
-    /// version the index recorded (the request may have stopped between the index append
-    /// and the engine commit), then clear the marker.
+    /// Drop indexed documents the engine no longer holds at the recorded version.
     fn reconcile(&self, core: &WarmCore) -> Result<()> {
         let stale: Vec<Arc<str>> = {
             let state = self.state.read();
@@ -457,7 +455,7 @@ impl VectorIndex {
             self.remove(&ids)?;
         }
         crate::log_event!(Info, "vector_index_reconciled", "path" => self.dir.display().to_string(), "dropped" => ids.len());
-        self.clear_dirty()
+        Ok(())
     }
 
     fn mark_dirty(&self) -> Result<()> {
@@ -492,7 +490,51 @@ impl VectorIndex {
         let log = self.log.lock();
         fsync_plain(&log.file)?;
         drop(log);
-        self.clear_dirty()
+        if self.invalid.load(Ordering::Acquire) {
+            Ok(())
+        } else {
+            self.clear_dirty()
+        }
+    }
+
+    pub fn invalidate(&self) {
+        self.invalid.store(true, Ordering::Release);
+    }
+
+    pub fn begin_memory_mutation(&self) -> Result<bool> {
+        let was_valid = !self.invalid.swap(true, Ordering::AcqRel);
+        self.mark_dirty()?;
+        Ok(was_valid)
+    }
+
+    pub fn reconcile_memory_mutation(&self, core: &WarmCore) -> Result<()> {
+        self.reconcile(core)?;
+        self.invalid.store(false, Ordering::Release);
+        Ok(())
+    }
+
+    pub fn reconcile_remembered(&self, core: &WarmCore, ids: &[&str]) -> Result<()> {
+        let stale = {
+            let state = self.state.read();
+            let mut stale = Vec::new();
+            for &id in ids {
+                if let Some(&slot) = state.by_id.get(id) {
+                    if !core.get_document_info(id)?.is_some_and(|record| {
+                        record.version == version_stamp(state.tokens[slot as usize])
+                    }) {
+                        stale.push(id);
+                    }
+                }
+            }
+            stale
+        };
+        self.remove(&stale)?;
+        self.invalid.store(false, Ordering::Release);
+        Ok(())
+    }
+
+    pub fn finish_unchanged_memory_mutation(&self) {
+        self.invalid.store(false, Ordering::Release);
     }
 
     pub fn next_token(&self) -> u64 {
@@ -518,7 +560,8 @@ impl VectorIndex {
     /// unfiltered graph query can be answered from it.
     pub fn covers(&self, core: &WarmCore) -> bool {
         let state = self.state.read();
-        state.base.as_ref().is_some_and(|b| b.graph.is_some())
+        !self.invalid.load(Ordering::Acquire)
+            && state.base.as_ref().is_some_and(|b| b.graph.is_some())
             && state.live == core.document_embedding_count()
     }
 

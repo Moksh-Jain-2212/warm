@@ -1,0 +1,15 @@
+building
+degree=256 build_ef=500 alpha=1
+built in 19.619008209s
+ef=128 reservoir=0 recall=0.99560 worst=8 missed_queries=41 q241=Some((241, 9)) elapsed=312.708ms
+ef=128 reservoir=256 recall=0.99560 worst=8 missed_queries=41 q241=Some((241, 9)) elapsed=504.540209ms
+ef=128 reservoir=1024 recall=0.99560 worst=8 missed_queries=41 q241=Some((241, 9)) elapsed=1.244024791s
+ef=128 reservoir=4096 recall=0.99560 worst=8 missed_queries=41 q241=Some((241, 9)) elapsed=3.601949875s
+ef=256 reservoir=0 recall=0.99960 worst=9 missed_queries=4 q241=None elapsed=977.084291ms
+ef=256 reservoir=512 recall=0.99960 worst=9 missed_queries=4 q241=None elapsed=1.430838583s
+ef=256 reservoir=2048 recall=0.99960 worst=9 missed_queries=4 q241=None elapsed=3.067484459s
+ef=256 reservoir=8192 recall=0.99960 worst=9 missed_queries=4 q241=None elapsed=13.370794792s
+ef=512 reservoir=0 recall=0.99990 worst=9 missed_queries=1 q241=None elapsed=1.853271208s
+ef=512 reservoir=1024 recall=0.99990 worst=9 missed_queries=1 q241=None elapsed=2.2765555s
+ef=512 reservoir=4096 recall=0.99990 worst=9 missed_queries=1 q241=None elapsed=6.0761645s
+ef=512 reservoir=16384 recall=0.99990 worst=9 missed_queries=1 q241=None elapsed=22.040245625s

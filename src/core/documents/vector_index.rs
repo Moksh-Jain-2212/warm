@@ -464,7 +464,7 @@ impl GraphIndex {
         };
         self.graph
             .searcher()
-            .search(candidate_query, k, params, &mut ids)
+            .search_two_hop(candidate_query, k, params, &mut ids)
             .map_err(|e| anyhow::anyhow!("graph search: {e}"))?;
         let mut hits: Vec<(u32, f32)> = ids
             .into_iter()
@@ -633,7 +633,7 @@ pub(crate) fn capture_vector_rows(
 }
 
 /// Builds the exact scan and, with at least `graph_min_rows` rows, the vertex graph. The
-/// graph build is deterministic (`BuildParams::default()`, fixed seed) and uses the rayon
+/// graph build is deterministic (fixed seed) and uses the rayon
 /// pool; its contiguous input matrix (`rows * dim * 4` bytes) lives only for the build.
 pub(crate) fn build_vector_snapshot(
     capture: VectorCapture,
@@ -701,7 +701,12 @@ fn build_vector_snapshot_inner(
         if zero_prefix {
             None
         } else {
-            let built = Graph::build_owned(matrix, candidate_dimensions, &BuildParams::default())
+            let params = BuildParams {
+                degree: 64,
+                build_ef: 256,
+                ..BuildParams::default()
+            };
+            let built = Graph::build_owned(matrix, candidate_dimensions, &params)
                 .map_err(|e| anyhow::anyhow!("graph build: {e}"))?;
             let encoded = VGraph::from_graph(&built, true)
                 .map_err(|e| anyhow::anyhow!("graph encode: {e}"))?;

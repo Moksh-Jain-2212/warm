@@ -2168,3 +2168,20 @@ Hosted checks and main merge remain pending for this integration. The
 harness development are preparation only: no study search, timing, inference or
 pruning run has begun. No performance advantage, held-out task advantage or npm
 publication is claimed; the ToIP PR remains on hold.
+
+### Local audit follow-up (2026-11-02)
+
+Store locks now reject symbolic links, non-regular files and multiple hard links
+before writing the owner PID. Windows builds were cross-checked; Windows runtime
+behavior has not been tested here. Explicit native-vector eligibility now uses
+direct lookups for small ID sets; the graph search path is unchanged.
+
+The [synthetic eligibility measurements](vector-eligibility-20261102/measurements.json)
+record five paired local runs and their limitations. They overlap the separately
+started Vectra study's preparation, which could have affected its resource and
+deadline accounting. They do not measure ANN recall or production performance.
+
+The Vectra preparation has since started and was stopped at the user's request.
+Its completed 100,000-row unfiltered graph results fell below the frozen oracle
+gates at ef=128 and ef=256. They do not establish a timing comparison, and the
+eligibility optimization above does not address those recall results.

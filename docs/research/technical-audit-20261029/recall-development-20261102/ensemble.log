@@ -1,0 +1,20 @@
+graph 0 built 5.053379709s
+graph 1 built 6.41630475s
+graph 2 built 6.873491166s
+graph 3 built 5.822549792s
+graph 4 built 5.454943042s
+graph 5 built 5.244392708s
+graph 6 built 5.637061541s
+graph 7 built 6.663676458s
+graphs=1 ef=128 recall=0.92350 worst=1 missed_queries=363 elapsed=96.25625ms
+graphs=1 ef=256 recall=0.96340 worst=5 missed_queries=232 elapsed=171.073542ms
+graphs=1 ef=512 recall=0.98590 worst=6 missed_queries=115 elapsed=346.874375ms
+graphs=2 ef=128 recall=0.94400 worst=3 missed_queries=311 elapsed=188.063ms
+graphs=2 ef=256 recall=0.97610 worst=6 missed_queries=174 elapsed=347.216541ms
+graphs=2 ef=512 recall=0.99140 worst=7 missed_queries=77 elapsed=670.239125ms
+graphs=4 ef=128 recall=0.96040 worst=5 missed_queries=254 elapsed=355.276ms
+graphs=4 ef=256 recall=0.98590 worst=7 missed_queries=115 elapsed=658.318041ms
+graphs=4 ef=512 recall=0.99640 worst=8 missed_queries=35 elapsed=1.259981833s
+graphs=8 ef=128 recall=0.97420 worst=7 missed_queries=202 elapsed=687.693917ms
+graphs=8 ef=256 recall=0.99180 worst=8 missed_queries=75 elapsed=1.341240958s
+graphs=8 ef=512 recall=0.99840 worst=8 missed_queries=15 elapsed=2.495362375s

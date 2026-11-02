@@ -91,6 +91,13 @@ pub enum MemoryError {
     Concurrent(String),
 }
 
+/// A memory write would exceed the configured document quota.
+#[derive(Debug, thiserror::Error)]
+#[error("document quota of {limit} would be exceeded")]
+pub struct DocumentQuotaExceeded {
+    pub limit: u64,
+}
+
 /// What `remember` does when an id exists with different content.
 #[cfg_attr(feature = "server", derive(schemars::JsonSchema))]
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]

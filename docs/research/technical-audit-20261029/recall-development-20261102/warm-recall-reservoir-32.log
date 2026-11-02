@@ -1,0 +1,15 @@
+building
+degree=32 build_ef=500 alpha=1
+built in 9.235886125s
+ef=128 reservoir=0 recall=0.92120 worst=3 missed_queries=361 q241=Some((241, 3)) elapsed=76.470333ms
+ef=128 reservoir=256 recall=0.92120 worst=3 missed_queries=361 q241=Some((241, 3)) elapsed=103.051375ms
+ef=128 reservoir=1024 recall=0.92120 worst=3 missed_queries=361 q241=Some((241, 3)) elapsed=227.86525ms
+ef=128 reservoir=4096 recall=0.92120 worst=3 missed_queries=361 q241=Some((241, 3)) elapsed=442.033208ms
+ef=256 reservoir=0 recall=0.96470 worst=4 missed_queries=221 q241=Some((241, 4)) elapsed=126.026875ms
+ef=256 reservoir=512 recall=0.96470 worst=4 missed_queries=221 q241=Some((241, 4)) elapsed=197.316083ms
+ef=256 reservoir=2048 recall=0.96470 worst=4 missed_queries=221 q241=Some((241, 4)) elapsed=500.935ms
+ef=256 reservoir=8192 recall=0.96470 worst=4 missed_queries=221 q241=Some((241, 4)) elapsed=1.007542042s
+ef=512 reservoir=0 recall=0.98490 worst=6 missed_queries=117 q241=Some((241, 7)) elapsed=242.672917ms
+ef=512 reservoir=1024 recall=0.98490 worst=6 missed_queries=117 q241=Some((241, 7)) elapsed=407.787292ms
+ef=512 reservoir=4096 recall=0.98490 worst=6 missed_queries=117 q241=Some((241, 7)) elapsed=1.233763041s
+ef=512 reservoir=16384 recall=0.98490 worst=6 missed_queries=117 q241=Some((241, 7)) elapsed=2.459637041s

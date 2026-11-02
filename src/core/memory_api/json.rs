@@ -104,7 +104,17 @@ impl Memory {
     ///
     /// Errors that the caller can fix (bad fields, unknown ids, id conflicts) are
     /// [`MemoryError`]s; anything else is an internal failure.
-    pub fn call(&self, op: &str, mut request: Value) -> Result<Value> {
+    pub fn call(&self, op: &str, request: Value) -> Result<Value> {
+        self.call_with_limit(op, request, None)
+    }
+
+    /// Dispatch a request with a document limit applied to `remember`.
+    #[cfg(feature = "server")]
+    pub fn call_with_document_limit(&self, op: &str, request: Value, limit: u64) -> Result<Value> {
+        self.call_with_limit(op, request, Some(limit))
+    }
+
+    fn call_with_limit(&self, op: &str, mut request: Value, limit: Option<u64>) -> Result<Value> {
         integral_floats(&mut request);
         match op {
             "capabilities" => {
@@ -127,7 +137,7 @@ impl Memory {
                     }
                     None => vec![parse(Value::Object(map))?],
                 };
-                Ok(json!({ "remembered": self.remember_many(inputs)? }))
+                Ok(json!({ "remembered": self.remember_many_with_limit(inputs, limit)? }))
             }
             "recall" => {
                 let mut map = object(request)?;

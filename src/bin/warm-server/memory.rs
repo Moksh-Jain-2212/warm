@@ -10,11 +10,11 @@ use std::sync::Arc;
 use axum::extract::{Request, State};
 use axum::http::StatusCode;
 use serde_json::{json, Value};
-use writerslogic_warm::core::memory_api::MemoryError;
+use writerslogic_warm::core::memory_api::{DocumentQuotaExceeded, MemoryError};
 
 use crate::auth::Scope;
 use crate::config::{MAX_ID_BYTES, MAX_TEXT_BYTES};
-use crate::documents::{check_metadata_size, dense, enforce_quota};
+use crate::documents::{check_metadata_size, dense};
 use crate::error::{ApiError, ApiResult};
 use crate::request::{json_write, parse};
 use crate::tenants::AppState;
@@ -79,8 +79,8 @@ fn validate_memory_request(op: &str, request: &Value, state: &AppState) -> Resul
                     return Err(ApiError::bad("query requires at most 8192 bytes"));
                 }
             }
-            if let Some(k) = request.get("k").and_then(Value::as_i64) {
-                if k < 1 || k > i64::from(cfg.max_top_k) {
+            if let Some(k) = request.get("k").and_then(Value::as_f64) {
+                if k < 1.0 || k > f64::from(cfg.max_top_k) {
                     return Err(ApiError::bad(format!("k must be 1..={}", cfg.max_top_k)));
                 }
             }
@@ -107,37 +107,93 @@ fn memory_error(error: anyhow::Error) -> ApiError {
     }
 }
 
-/// Facts a `remember` request would add, for the tenant quota. A fact with an id that already
-/// exists replaces it and does not grow the store.
-fn new_facts(request: &Value, exists: impl Fn(&str) -> bool) -> u64 {
-    let one = |fact: &Value| !fact.get("id").and_then(Value::as_str).is_some_and(&exists);
-    match request.get("facts").and_then(Value::as_array) {
-        Some(facts) => facts.iter().filter(|f| one(f)).count() as u64,
-        None => u64::from(one(request)),
-    }
-}
-
 async fn run(op: &'static str, scope: Scope, state: Arc<AppState>, req: Request) -> ApiResult {
     json_write(state, req, scope, move |state, tenant, bytes| {
-        let request: Value = if bytes.is_empty() {
+        let mut request: Value = if bytes.is_empty() {
             json!({})
         } else {
             parse(&bytes)?
         };
         validate_memory_request(op, &request, state)?;
         let core = state.core(tenant)?;
-        let _mutation = (scope == Scope::Write).then(|| core.quota_lease());
-        if op == "remember" {
-            enforce_quota(state, &core, || {
-                new_facts(&request, |id| core.has_document(id))
-            })?;
+        if matches!(op, "recall" | "explain")
+            && request.get("k").is_none_or(Value::is_null)
+            && core.memory().config().default_k > state.cfg.max_top_k
+        {
+            if let Some(map) = request.as_object_mut() {
+                map.insert("k".into(), state.cfg.max_top_k.into());
+            }
         }
+        let lease = (scope == Scope::Write).then(|| core.quota_lease());
+        let _vector_mutation = lease.as_ref().map(|lease| core.vector_mutation(lease));
+        let was_valid = if scope == Scope::Write {
+            core.vectors()
+                .map(|vectors| vectors.begin_memory_mutation())
+                .transpose()
+                .map_err(ApiError::internal)?
+        } else {
+            None
+        };
         let before = core.revision();
-        let response = core.memory().call(op, request);
+        let response = if op == "remember" && state.cfg.max_documents_per_tenant != 0 {
+            core.memory()
+                .call_with_document_limit(op, request, state.cfg.max_documents_per_tenant)
+        } else {
+            core.memory().call(op, request)
+        };
+        let uncertain = response.as_ref().err().is_some_and(|error| {
+            error.is::<writerslogic_warm::CommittedMutationError>()
+                || error.is::<writerslogic_warm::IndeterminateMutationError>()
+        });
         if scope == Scope::Write && (response.is_ok() || core.revision() != before) {
             core.bump();
         }
-        let response = response.map_err(memory_error)?;
+        if was_valid == Some(true) && !uncertain {
+            let vectors = core.vectors().expect("vector index remains open");
+            if core.revision() == before {
+                vectors.finish_unchanged_memory_mutation();
+            } else {
+                let ids = if op == "remember" {
+                    response.as_ref().ok().and_then(|response| {
+                        response
+                            .get("remembered")?
+                            .as_array()?
+                            .iter()
+                            .map(|fact| fact.get("id")?.as_str())
+                            .collect::<Option<Vec<_>>>()
+                    })
+                } else {
+                    None
+                };
+                let reconciled = match ids {
+                    Some(ids) => vectors.reconcile_remembered(&core, &ids),
+                    None => vectors.reconcile_memory_mutation(&core),
+                };
+                if let Err(error) = reconciled {
+                    return Err(if response.is_ok() {
+                        ApiError::committed(error)
+                    } else {
+                        ApiError::internal(error)
+                    });
+                }
+            }
+        }
+        let response = response.map_err(|error| {
+            if let Some(quota) = error.downcast_ref::<DocumentQuotaExceeded>() {
+                state
+                    .metrics
+                    .quota_rejections
+                    .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                ApiError::new(
+                    StatusCode::TOO_MANY_REQUESTS,
+                    "quota_exceeded",
+                    format!("tenant document quota of {} would be exceeded", quota.limit),
+                )
+                .retry_after(60)
+            } else {
+                memory_error(error)
+            }
+        })?;
         Ok((StatusCode::OK, response))
     })
     .await

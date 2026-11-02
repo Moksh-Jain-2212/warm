@@ -1,0 +1,9 @@
+building
+degree=1024 build_ef=500 alpha=1
+built in 24.14284875s
+ef=128 shortlist=18 recall=0.99950 worst=9 missed_queries=5 q241=Some((241, 9)) elapsed=1.391174292s
+ef=256 shortlist=18 recall=1.00000 worst=10 missed_queries=0 q241=None elapsed=2.342676208s
+ef=512 shortlist=18 recall=1.00000 worst=10 missed_queries=0 q241=None elapsed=3.485644625s
+ef=1024 shortlist=18 recall=1.00000 worst=10 missed_queries=0 q241=None elapsed=4.608585833s
+ef=2048 shortlist=18 recall=1.00000 worst=10 missed_queries=0 q241=None elapsed=6.026663792s
+ef=4096 shortlist=18 recall=1.00000 worst=10 missed_queries=0 q241=None elapsed=13.439880042s

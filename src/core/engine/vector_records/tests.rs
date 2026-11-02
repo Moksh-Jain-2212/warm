@@ -282,6 +282,46 @@ fn paging_and_complete_eligibility_share_one_revision() -> Result<()> {
 }
 
 #[test]
+fn explicit_eligibility_handles_empty_missing_and_mixed_document_ids() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let core = open(root.path())?;
+    for id in ["a", "b", "c"] {
+        upsert(&core, record(id))?;
+    }
+    core.memorize_document(serde_json::from_value(json!({
+        "id": "ordinary", "text": "ordinary document", "embeddings": [[0.0, 1.0, 0.0]]
+    }))?)?;
+    for (ids, expected) in [
+        (vec![], vec![]),
+        (vec!["b"], vec!["b"]),
+        (vec!["b", "missing", "ordinary"], vec!["b"]),
+        (vec!["ordinary", "missing", "c", "a"], vec!["a", "c"]),
+        (
+            vec!["ordinary", "missing", "c", "a", "b"],
+            vec!["a", "b", "c"],
+        ),
+    ] {
+        let result = core.query_vector_records(
+            &[0.0, 1.0, 0.0],
+            10,
+            &VectorRecordQueryOptions {
+                document_ids: Some(ids.into_iter().map(str::to_owned).collect()),
+                ..Default::default()
+            },
+        )?;
+        assert_eq!(
+            result
+                .results
+                .iter()
+                .map(|hit| hit.item.id.as_str())
+                .collect::<Vec<_>>(),
+            expected
+        );
+    }
+    Ok(())
+}
+
+#[test]
 fn ordinary_documents_keep_marker_metadata_and_cannot_be_mutated_as_vectors() -> Result<()> {
     let root = tempfile::tempdir()?;
     let source = root.path().join("source");

@@ -12,6 +12,62 @@ use serde_json::{json, Value};
 use server_support::*;
 
 #[test]
+fn generated_memory_ids_obey_quota_without_breaking_retries() {
+    let server = Server::open(&["--max-documents-per-tenant", "2"]);
+    let send = |body: Value| {
+        server
+            .req("POST", "/api/v1/memory/remember")
+            .json(&body)
+            .send()
+    };
+    let first = send(json!({"text": "first fact"}));
+    assert_eq!(first.status, 200, "{}", first.text());
+    let retry = send(json!({"text": "first fact"}));
+    assert_eq!(retry.status, 200, "{}", retry.text());
+    assert_eq!(retry.json()["remembered"][0]["created"], false);
+    let batch = json!({"facts": [{"text": "first fact"}, {"text": "second fact"}]});
+    assert_eq!(send(batch.clone()).status, 200);
+    let retry = send(batch);
+    assert_eq!(retry.status, 200, "{}", retry.text());
+    assert_eq!(retry.json()["remembered"][1]["created"], false);
+    let over = send(json!({"text": "third fact"}));
+    assert_eq!(over.status, 429);
+    assert_eq!(over.json()["code"], "quota_exceeded");
+    assert_eq!(
+        server.req("GET", "/api/v1/stats").send().json()["documents"],
+        2
+    );
+}
+
+#[test]
+fn memory_result_limit_applies_to_integral_float_values() {
+    let server = Server::open(&["--max-top-k", "2"]);
+    for (k, status) in [(1.0, 200), (2.0, 200), (3.0, 422)] {
+        let response = server
+            .req("POST", "/api/v1/memory/recall")
+            .json(&json!({"query": "test", "k": k}))
+            .send();
+        assert_eq!(response.status, status, "k={k}: {}", response.text());
+    }
+    for id in ["a", "b", "c"] {
+        assert_eq!(
+            server
+                .req("POST", "/api/v1/memory/remember")
+                .json(&json!({"id":id, "text":"test result"}))
+                .send()
+                .status,
+            200
+        );
+    }
+    let response = server
+        .req("POST", "/api/v1/memory/recall")
+        .json(&json!({"query":"test"}))
+        .send();
+    assert_eq!(response.status, 200, "{}", response.text());
+    assert_eq!(response.json()["results"].as_array().unwrap().len(), 2);
+}
+
+#[test]
 fn durable_retry_replays_after_an_abrupt_server_restart() {
     let scratch = tempfile::tempdir().unwrap();
     let data = scratch.path().join("data");

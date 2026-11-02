@@ -7,16 +7,30 @@ use std::io::Write;
 use std::path::{Path, PathBuf};
 
 pub(crate) fn open_regular(path: &Path, write: bool) -> std::io::Result<std::fs::File> {
-    open_regular_mode(path, !write, write)
+    open_regular_mode(path, !write, write, false)
 }
 
 pub(crate) fn open_regular_read_write(path: &Path) -> std::io::Result<std::fs::File> {
-    open_regular_mode(path, true, true)
+    open_regular_mode(path, true, true, false)
 }
 
-fn open_regular_mode(path: &Path, read: bool, write: bool) -> std::io::Result<std::fs::File> {
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) fn open_regular_read_write_create(path: &Path) -> std::io::Result<std::fs::File> {
+    open_regular_mode(path, true, true, true)
+}
+
+fn open_regular_mode(
+    path: &Path,
+    read: bool,
+    write: bool,
+    create: bool,
+) -> std::io::Result<std::fs::File> {
     let mut options = std::fs::OpenOptions::new();
-    options.read(read).write(write);
+    options
+        .read(read)
+        .write(write)
+        .create(create)
+        .truncate(false);
     #[cfg(unix)]
     {
         use std::os::unix::fs::OpenOptionsExt;

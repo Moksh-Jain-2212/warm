@@ -248,10 +248,19 @@ impl WarmCore {
                 let _read = self.mutation_gate.read();
                 let revision = self.check_vector_record_revision(options.if_revision.as_deref())?;
                 let store = self.documents.read();
-                let ids = if requested.is_none() && store.only_vector_records() {
-                    None
-                } else {
-                    Some(
+                let ids = match &requested {
+                    None if store.only_vector_records() => None,
+                    Some(ids) if ids.len() < documents::count(&store) => Some(
+                        ids.iter()
+                            .filter(|id| {
+                                store
+                                    .get(id)
+                                    .is_some_and(|document| records::is_record(document))
+                            })
+                            .map(|id| (*id).to_owned())
+                            .collect::<Vec<_>>(),
+                    ),
+                    _ => Some(
                         store
                             .shared_values()
                             .filter_map(|document| {
@@ -262,7 +271,7 @@ impl WarmCore {
                                 .then(|| document.id.clone())
                             })
                             .collect::<Vec<_>>(),
-                    )
+                    ),
                 };
                 (revision, ids)
             };

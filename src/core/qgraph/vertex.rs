@@ -2343,6 +2343,29 @@ impl VSearcher<'_> {
     ) -> Result<usize, WarmError> {
         self.scratch.search(self.index, query, k, params, out)
     }
+
+    pub(crate) fn search_two_hop(
+        &mut self,
+        query: &[f32],
+        k: usize,
+        params: VSearchParams,
+        out: &mut Vec<u32>,
+    ) -> Result<usize, WarmError> {
+        SearchScratch::validate_query(self.index, query)?;
+        self.scratch.search_inner::<
+            false,
+            { cfg!(feature = "experimental-batch-pool") },
+            { cfg!(feature = "experimental-query-x4") },
+            true,
+        >(
+            self.index,
+            query,
+            k,
+            params,
+            out,
+            &mut QueryProfile::default(),
+        )
+    }
 }
 
 impl SearchScratch {
@@ -2497,6 +2520,7 @@ impl SearchScratch {
             false,
             { cfg!(feature = "experimental-batch-pool") },
             { cfg!(feature = "experimental-query-x4") },
+            false,
         >(
             g,
             query,
@@ -2507,7 +2531,12 @@ impl SearchScratch {
         )
     }
 
-    fn search_inner<const PROFILE: bool, const BATCH_POOL: bool, const QUERY_X4: bool>(
+    fn search_inner<
+        const PROFILE: bool,
+        const BATCH_POOL: bool,
+        const QUERY_X4: bool,
+        const TWO_HOP: bool,
+    >(
         &mut self,
         g: &VGraph,
         query: &[f32],
@@ -2516,6 +2545,11 @@ impl SearchScratch {
         out: &mut Vec<u32>,
         profile: &mut QueryProfile,
     ) -> Result<usize, WarmError> {
+        if TWO_HOP && (g.has_blocks() || params.neighbour_cap != 0) {
+            return Err(invalid(
+                "two-hop search requires uncapped row-code traversal".into(),
+            ));
+        }
         if params.reservoir > 0 && (g.has_blocks() || (g.has_screen() && params.screen)) {
             return Err(invalid(
                 "independent retention requires unscreened row-code search".into(),
@@ -2848,24 +2882,7 @@ impl SearchScratch {
             }
             self.fresh.clear();
             let (visited, fresh) = (&mut self.visited, &mut self.fresh);
-            #[cfg(feature = "experimental-neighbor-admission")]
-            let neighbors_read = if screen {
-                g.admit_neighbours::<PROFILE, true>(
-                    key_id(c) as usize,
-                    params.neighbour_cap,
-                    visited,
-                    fresh,
-                )
-            } else {
-                g.admit_neighbours::<PROFILE, false>(
-                    key_id(c) as usize,
-                    params.neighbour_cap,
-                    visited,
-                    fresh,
-                )
-            };
-            #[cfg(not(feature = "experimental-neighbor-admission"))]
-            let neighbors_read = {
+            let neighbors_read = if TWO_HOP {
                 let mut neighbors_read = 0;
                 let admit = |u: u32, visited: &mut Marks, fresh: &mut Vec<u32>| {
                     if visited.insert(u) {
@@ -2878,23 +2895,70 @@ impl SearchScratch {
                         fresh.push(u);
                     }
                 };
-                if params.neighbour_cap == 0 {
-                    g.for_each_neighbour(key_id(c) as usize, |u| {
+                g.for_each_neighbour(key_id(c) as usize, |u| {
+                    if PROFILE {
+                        neighbors_read += 1;
+                    }
+                    admit(u, visited, fresh);
+                    g.for_each_neighbour(u as usize, |v| {
                         if PROFILE {
                             neighbors_read += 1;
                         }
-                        admit(u, visited, fresh);
+                        admit(v, visited, fresh);
                     });
-                } else {
-                    let mut seen = 0usize;
-                    g.for_each_neighbour(key_id(c) as usize, |u| {
-                        seen += 1;
-                        if seen <= params.neighbour_cap {
-                            admit(u, visited, fresh);
-                        }
-                    });
-                }
+                });
                 neighbors_read
+            } else {
+                #[cfg(feature = "experimental-neighbor-admission")]
+                {
+                    if screen {
+                        g.admit_neighbours::<PROFILE, true>(
+                            key_id(c) as usize,
+                            params.neighbour_cap,
+                            visited,
+                            fresh,
+                        )
+                    } else {
+                        g.admit_neighbours::<PROFILE, false>(
+                            key_id(c) as usize,
+                            params.neighbour_cap,
+                            visited,
+                            fresh,
+                        )
+                    }
+                }
+                #[cfg(not(feature = "experimental-neighbor-admission"))]
+                {
+                    let mut neighbors_read = 0;
+                    let admit = |u: u32, visited: &mut Marks, fresh: &mut Vec<u32>| {
+                        if visited.insert(u) {
+                            if screen {
+                                g.prefetch_screen(u);
+                            } else {
+                                prefetch_bytes(g.code(u));
+                                g.prefetch_scale(u);
+                            }
+                            fresh.push(u);
+                        }
+                    };
+                    if params.neighbour_cap == 0 {
+                        g.for_each_neighbour(key_id(c) as usize, |u| {
+                            if PROFILE {
+                                neighbors_read += 1;
+                            }
+                            admit(u, visited, fresh);
+                        });
+                    } else {
+                        let mut seen = 0usize;
+                        g.for_each_neighbour(key_id(c) as usize, |u| {
+                            seen += 1;
+                            if seen <= params.neighbour_cap {
+                                admit(u, visited, fresh);
+                            }
+                        });
+                    }
+                    neighbors_read
+                }
             };
             if screen {
                 // A neighbour whose optimistic 1-bit estimate cannot enter the full pool is
@@ -3027,6 +3091,7 @@ impl VSearcher<'_> {
                 true,
                 { cfg!(feature = "experimental-batch-pool") },
                 { cfg!(feature = "experimental-query-x4") },
+                false,
             >(
                 g,
                 query,
@@ -3770,6 +3835,41 @@ mod serving_tests {
     }
 
     #[test]
+    fn two_hop_search_finds_neighbor_behind_a_rejected_vertex() {
+        let mut graph = lifted(&[0.0, 0.0, 0.8, 0.0, 0.2, 0.0, 1.0, 0.0], 2);
+        graph.entry = 0;
+        graph.layers.clear();
+        graph.upper_ids.clear();
+        graph.adj.set(0, &[1, 2]);
+        graph.adj.set(1, &[]);
+        graph.adj.set(2, &[3]);
+        graph.adj.set(3, &[]);
+        let index = VGraph::from_lifted_ip_graph(&graph, 8, 8, false, false, 4).unwrap();
+        let mut searcher = index.searcher_with(SearchKnobs::OFF);
+        let mut out = Vec::new();
+        for ef in [1, 2, 3] {
+            let params = VSearchParams {
+                ef,
+                rerank: ef,
+                ..Default::default()
+            };
+            searcher.search(&[1.0, 0.0], 1, params, &mut out).unwrap();
+            assert_eq!(out, if ef == 1 { vec![1] } else { vec![3] });
+            searcher
+                .search_two_hop(&[1.0, 0.0], 1, params, &mut out)
+                .unwrap();
+            assert_eq!(out, [3]);
+        }
+        let capped = VSearchParams {
+            neighbour_cap: 1,
+            ..Default::default()
+        };
+        assert!(searcher
+            .search_two_hop(&[1.0, 0.0], 1, capped, &mut out)
+            .is_err());
+    }
+
+    #[test]
     fn reservoir_recovers_a_beam_rejection_without_changing_expansions() {
         let mut graph = lifted(&[0.0, 0.0, 0.8, 0.0, 1.0, 381.0], 2);
         graph.entry = 0;
@@ -4421,6 +4521,7 @@ mod tests {
                                             true,
                                             { cfg!(feature = "experimental-batch-pool") },
                                             false,
+                                            false,
                                         >(&index, query, k, params, &mut expected, &mut a)
                                         .unwrap();
                                     let eb = fused
@@ -4429,6 +4530,7 @@ mod tests {
                                             true,
                                             { cfg!(feature = "experimental-batch-pool") },
                                             true,
+                                            false,
                                         >(&reopened, query, k, params, &mut actual, &mut b)
                                         .unwrap();
                                     assert_eq!(expected, actual);
@@ -4967,7 +5069,7 @@ mod tests {
                                             (QueryProfile::default(), QueryProfile::default());
                                         let ea = plain
                                             .scratch
-                                            .search_inner::<true, false, { cfg!(feature = "experimental-query-x4") }>(
+                                            .search_inner::<true, false, { cfg!(feature = "experimental-query-x4") }, false>(
                                                 &index,
                                                 query,
                                                 k,
@@ -4978,7 +5080,7 @@ mod tests {
                                             .unwrap();
                                         let eb = batched
                                             .scratch
-                                            .search_inner::<true, true, { cfg!(feature = "experimental-query-x4") }>(
+                                            .search_inner::<true, true, { cfg!(feature = "experimental-query-x4") }, false>(
                                                 &reopened,
                                                 query,
                                                 k,

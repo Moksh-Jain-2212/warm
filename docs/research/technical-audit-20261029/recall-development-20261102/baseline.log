@@ -1,0 +1,14 @@
+   Compiling warm-rust v0.6.5 (/private/tmp/warm-line-audit)
+    Finished `release` profile [optimized] target(s) in 1m 00s
+     Running `/private/tmp/warm-line-target/release/examples/recall_diagnostic`
+building
+built in 3.620149875s
+ef=128 shortlist=18 recall=0.92350 worst=1 missed_queries=363 q241=Some((241, 1)) elapsed=68.015959ms
+ef=128 shortlist=128 recall=0.92350 worst=1 missed_queries=363 q241=Some((241, 1)) elapsed=95.168625ms
+ef=256 shortlist=18 recall=0.96340 worst=5 missed_queries=232 q241=Some((241, 5)) elapsed=124.472166ms
+ef=256 shortlist=256 recall=0.96340 worst=5 missed_queries=232 q241=Some((241, 5)) elapsed=222.918ms
+ef=512 shortlist=18 recall=0.98590 worst=6 missed_queries=115 q241=Some((241, 7)) elapsed=237.996458ms
+ef=512 shortlist=512 recall=0.98590 worst=6 missed_queries=115 q241=Some((241, 7)) elapsed=525.7575ms
+ef=1024 shortlist=1024 recall=0.99510 worst=8 missed_queries=43 q241=Some((241, 9)) elapsed=1.122418291s
+ef=2048 shortlist=2048 recall=0.99930 worst=9 missed_queries=7 q241=None elapsed=2.427212875s
+ef=4096 shortlist=4096 recall=1.00000 worst=10 missed_queries=0 q241=None elapsed=5.368367625s

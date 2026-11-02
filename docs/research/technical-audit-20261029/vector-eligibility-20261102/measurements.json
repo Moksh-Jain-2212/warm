@@ -1,0 +1,346 @@
+{
+  "scope": "Local synthetic eligibility microbenchmark; no claims about ANN recall, Vectra, production latency, or the concurrently running study.",
+  "base_commit": "1ff8ecebea26ef47334c657f3e337e00ff22d3ec",
+  "baseline_vector_records_sha256": "db008f478eb44d7e1d182ace00a1f00076a5ed64a65a8b1fd72adaac11816dcd",
+  "candidate_vector_records_sha256": "2d635ac935e52d0eda807819ee6c960ea20ab733c5be81c632a3d5b39027de24",
+  "benchmark_sha256": "e8029848e36a0fc0d5340b07df3663849f46194b822e3c79a671fb93ab18e4b4",
+  "cargo_lock_sha256": "2fc4a034e5af215be9c559b8b34d47acb5df94e83acbb39e3e7260121f05add1",
+  "binary_sha256": {
+    "before": "b535c769b5f5d2171b6ccaf65854649599209b396e49031cbae6b040561e5f06",
+    "after": "9afa9feb33c52330df50734e198e84d47ad5a9b9876c4824d1c6bdff615b946f"
+  },
+  "environment": {
+    "os": "macOS 27.0 arm64",
+    "cpu": "Apple M4",
+    "memory_bytes": 34359738368,
+    "rustc": "1.96.0 (ac68faa20 2026-05-25)"
+  },
+  "workload": {
+    "records": 16384,
+    "dimensions": 8,
+    "k": 1,
+    "ids": [
+      0,
+      1,
+      64,
+      16384
+    ],
+    "input": "identical synthetic vectors",
+    "samples_per_run": 20,
+    "warmup_seconds": 1,
+    "measurement_seconds": 3
+  },
+  "method": "Five paired rounds, alternating before/after order. Each triple is Criterion lower bound, point estimate and upper bound in microseconds. The summary median is across five point estimates, not a per-query latency percentile.",
+  "commands": [
+    "cargo bench --offline --locked --bench vector_record_query --no-run",
+    "<saved-before-or-after-binary> --bench --noplot --discard-baseline"
+  ],
+  "limitations": [
+    "One host and one synthetic workload; no population or production guarantee.",
+    "The runs were not isolated: the frozen Vectra comparison preparation job was active concurrently. The benchmark and preceding builds may have affected its elapsed-time and resource observations.",
+    "The 100,000-row ANN oracle failure belongs to a separate study; these measurements neither evaluate nor correct it."
+  ],
+  "rounds": [
+    {
+      "round": 1,
+      "order": [
+        "before",
+        "after"
+      ],
+      "before": {
+        "0": [
+          59.952,
+          60.553,
+          61.089
+        ],
+        "1": [
+          90.057,
+          91.929,
+          93.756
+        ],
+        "64": [
+          588.92,
+          596.97,
+          603.5
+        ],
+        "16384": [
+          8031.599999999999,
+          8104.699999999999,
+          8187.200000000001
+        ]
+      },
+      "after": {
+        "0": [
+          1.8327,
+          1.8544,
+          1.8838
+        ],
+        "1": [
+          2.5116,
+          2.5543,
+          2.6013
+        ],
+        "64": [
+          15.6,
+          16.016,
+          16.716
+        ],
+        "16384": [
+          8002.700000000001,
+          8046.799999999999,
+          8100.400000000001
+        ]
+      }
+    },
+    {
+      "round": 2,
+      "order": [
+        "after",
+        "before"
+      ],
+      "before": {
+        "0": [
+          61.985,
+          64.258,
+          66.749
+        ],
+        "1": [
+          88.934,
+          91.011,
+          92.488
+        ],
+        "64": [
+          602.28,
+          612.86,
+          624.86
+        ],
+        "16384": [
+          9757.199999999999,
+          10089.0,
+          10421.0
+        ]
+      },
+      "after": {
+        "0": [
+          1.8075,
+          1.8229,
+          1.8438
+        ],
+        "1": [
+          2.4595,
+          2.4695,
+          2.4805
+        ],
+        "64": [
+          16.04,
+          16.374,
+          16.701
+        ],
+        "16384": [
+          9255.599999999999,
+          9833.7,
+          10485.0
+        ]
+      }
+    },
+    {
+      "round": 3,
+      "order": [
+        "before",
+        "after"
+      ],
+      "before": {
+        "0": [
+          63.68,
+          65.673,
+          68.245
+        ],
+        "1": [
+          95.411,
+          96.758,
+          98.096
+        ],
+        "64": [
+          615.99,
+          621.68,
+          628.81
+        ],
+        "16384": [
+          8321.199999999999,
+          8691.1,
+          9001.8
+        ]
+      },
+      "after": {
+        "0": [
+          1.8688,
+          1.9131,
+          1.9734
+        ],
+        "1": [
+          2.6088,
+          2.6247,
+          2.65
+        ],
+        "64": [
+          16.07,
+          16.244,
+          16.432
+        ],
+        "16384": [
+          8390.9,
+          8609.0,
+          8821.9
+        ]
+      }
+    },
+    {
+      "round": 4,
+      "order": [
+        "after",
+        "before"
+      ],
+      "before": {
+        "0": [
+          61.312,
+          63.635,
+          66.046
+        ],
+        "1": [
+          93.043,
+          94.493,
+          96.371
+        ],
+        "64": [
+          561.89,
+          570.43,
+          583.92
+        ],
+        "16384": [
+          7731.0,
+          7786.5,
+          7856.200000000001
+        ]
+      },
+      "after": {
+        "0": [
+          1.91,
+          1.922,
+          1.9373
+        ],
+        "1": [
+          2.6568,
+          2.6695,
+          2.6833
+        ],
+        "64": [
+          16.79,
+          17.009,
+          17.206
+        ],
+        "16384": [
+          8170.7,
+          8243.4,
+          8307.7
+        ]
+      }
+    },
+    {
+      "round": 5,
+      "order": [
+        "before",
+        "after"
+      ],
+      "before": {
+        "0": [
+          66.039,
+          67.717,
+          69.922
+        ],
+        "1": [
+          102.15,
+          104.09,
+          105.83
+        ],
+        "64": [
+          614.47,
+          625.08,
+          643.34
+        ],
+        "16384": [
+          8245.900000000001,
+          8412.4,
+          8577.400000000001
+        ]
+      },
+      "after": {
+        "0": [
+          1.828,
+          1.8492,
+          1.8885
+        ],
+        "1": [
+          2.5248,
+          2.535,
+          2.5465
+        ],
+        "64": [
+          16.558,
+          17.292,
+          18.127
+        ],
+        "16384": [
+          8045.9,
+          8250.8,
+          8609.6
+        ]
+      }
+    }
+  ],
+  "summary": {
+    "0": {
+      "median_before_estimate_us": 64.258,
+      "median_after_estimate_us": 1.8544,
+      "paired_changes_percent": [
+        -96.938,
+        -97.163,
+        -97.087,
+        -96.98,
+        -97.269
+      ]
+    },
+    "1": {
+      "median_before_estimate_us": 94.493,
+      "median_after_estimate_us": 2.5543,
+      "paired_changes_percent": [
+        -97.221,
+        -97.287,
+        -97.287,
+        -97.175,
+        -97.565
+      ]
+    },
+    "64": {
+      "median_before_estimate_us": 612.86,
+      "median_after_estimate_us": 16.374,
+      "paired_changes_percent": [
+        -97.317,
+        -97.328,
+        -97.387,
+        -97.018,
+        -97.234
+      ]
+    },
+    "16384": {
+      "median_before_estimate_us": 8412.4,
+      "median_after_estimate_us": 8250.8,
+      "paired_changes_percent": [
+        -0.714,
+        -2.53,
+        -0.945,
+        5.868,
+        -1.921
+      ]
+    }
+  }
+}

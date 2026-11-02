@@ -242,7 +242,7 @@ fn store_docs(state: &AppState, tenant: &str, docs: Vec<ValidDoc>) -> Result<usi
     }
     let final_docs: Vec<ValidDoc> = final_docs.into_iter().flatten().collect();
     let core = state.core(tenant)?;
-    let _mutation = core.quota_lease();
+    let mutation = core.quota_lease();
     for doc in &final_docs {
         if let Some(existing) = core
             .get_document_info(&doc.input.id)
@@ -259,10 +259,12 @@ fn store_docs(state: &AppState, tenant: &str, docs: Vec<ValidDoc>) -> Result<usi
     enforce_quota(state, &core, || {
         inputs.iter().filter(|d| !core.has_document(&d.id)).count() as u64
     })?;
+    let _vector_mutation = core.vector_mutation(&mutation);
     // Every document with a vector enters the persisted vector index first, stamped with the
     // version the index records, so a stop between the two commits is detected at the next
     // open; a definitely failed engine commit takes the rows out again.
     let mut staged: Vec<(String, u64, Vec<f32>)> = Vec::new();
+    let mut reconcile = false;
     if let Some(vectors) = core.vectors() {
         for input in &mut inputs {
             let Some(values) = input
@@ -277,8 +279,16 @@ fn store_docs(state: &AppState, tenant: &str, docs: Vec<ValidDoc>) -> Result<usi
             input.version = Some(vindex::version_stamp(token));
             staged.push((input.id.clone(), token, row));
         }
+        if staged.len() != inputs.len() {
+            reconcile = vectors
+                .begin_memory_mutation()
+                .map_err(ApiError::internal)?;
+        }
         if !staged.is_empty() {
-            vectors.stage(&staged).map_err(ApiError::internal)?;
+            if let Err(error) = vectors.stage(&staged) {
+                vectors.invalidate();
+                return Err(ApiError::internal(error));
+            }
         }
     }
     // Validated at startup (`Config::validate`); parsed per batch so the engine's error text
@@ -307,18 +317,36 @@ fn store_docs(state: &AppState, tenant: &str, docs: Vec<ValidDoc>) -> Result<usi
         if error.is::<writerslogic_warm::CommittedMutationError>()
             || error.is::<writerslogic_warm::IndeterminateMutationError>()
         {
+            if let Some(vectors) = core.vectors().filter(|_| !staged.is_empty()) {
+                vectors.invalidate();
+            }
             core.bump();
             return Err(ApiError::from_core(error));
         }
         if let Some(vectors) = core.vectors().filter(|_| !staged.is_empty()) {
             let ids: Vec<&str> = staged.iter().map(|(id, _, _)| id.as_str()).collect();
             if let Err(undo) = vectors.remove(&ids) {
+                vectors.invalidate();
                 crate::log_event!(Error, "vector_index_undo_failed", "tenant" => tenant, "detail" => format!("{undo:#}"));
+            }
+        }
+        if reconcile {
+            if let Some(vectors) = core.vectors() {
+                if let Err(recovery) = vectors.reconcile_memory_mutation(&core) {
+                    crate::log_event!(Error, "vector_index_reconcile_failed", "tenant" => tenant, "detail" => format!("{recovery:#}"));
+                }
             }
         }
         return Err(ApiError::from_core(error));
     }
     core.bump();
+    if reconcile {
+        if let Some(vectors) = core.vectors() {
+            vectors
+                .reconcile_memory_mutation(&core)
+                .map_err(ApiError::committed)?;
+        }
+    }
     state
         .metrics
         .ingest_documents
@@ -612,7 +640,7 @@ pub async fn delete_doc(
             return Err(ApiError::bad("invalid id"));
         }
         let core = state.core(&tenant)?;
-        let _mutation = core.quota_lease();
+        let mutation = core.quota_lease();
         if let Some(record) = core.get_document_info(&id).map_err(ApiError::from_core)? {
             match (
                 record
@@ -630,14 +658,31 @@ pub async fn delete_doc(
                 }
             }
         }
-        let erasure = state.idem.erase(&tenant, None)?;
+        let _vector_mutation = core.vector_mutation(&mutation);
+        let was_valid = core
+            .vectors()
+            .map(|vectors| vectors.begin_memory_mutation())
+            .transpose()
+            .map_err(ApiError::internal)?;
+        let erasure = match state.idem.erase(&tenant, None) {
+            Ok(erasure) => erasure,
+            Err(error) => {
+                if was_valid == Some(true) {
+                    core.vectors()
+                        .expect("vector index remains open")
+                        .finish_unchanged_memory_mutation();
+                }
+                return Err(error);
+            }
+        };
         let before = core.revision();
         let result = (|| {
             if core.delete_document(&id).map_err(ApiError::from_core)? {
                 if let Some(vectors) = core.vectors() {
-                    vectors
-                        .remove(&[id.as_str()])
-                        .map_err(ApiError::committed)?;
+                    if let Err(error) = vectors.remove(&[id.as_str()]) {
+                        vectors.invalidate();
+                        return Err(ApiError::committed(error));
+                    }
                 }
                 if purge {
                     core.compact_scrubbing().map_err(ApiError::committed)?;
@@ -649,6 +694,18 @@ pub async fn delete_doc(
         })();
         if result.is_ok() || core.revision() != before {
             core.bump();
+        }
+        if was_valid == Some(true)
+            && (result.is_ok()
+                || (core.revision() == before
+                    && result
+                        .as_ref()
+                        .err()
+                        .is_some_and(|error| error.code == "not_found")))
+        {
+            core.vectors()
+                .expect("vector index remains open")
+                .finish_unchanged_memory_mutation();
         }
         if let Some(erasure) = erasure {
             erasure.finish()?;
@@ -908,8 +965,13 @@ fn vector_search(
     route: &VectorQueryOptions,
 ) -> Result<Vec<Match>, ApiError> {
     if filter.is_none() && document_ids.is_none() {
+        let epoch = core.vector_epoch();
+        let mut retry_exact = epoch & 1 != 0;
         if route.mode != VectorIndexMode::Exact {
-            if let Some(vectors) = core.vectors().filter(|vectors| vectors.covers(core)) {
+            if let Some(vectors) = core
+                .vectors()
+                .filter(|vectors| !retry_exact && vectors.covers(core))
+            {
                 let query =
                     vindex::normalize(&query_vector).map_err(|e| ApiError::bad(e.to_string()))?;
                 let hits = vectors
@@ -926,11 +988,20 @@ fn vector_search(
                         });
                     }
                 }
-                return Ok(matches);
+                #[cfg(test)]
+                conditional_tests::after_graph_search();
+                if core.vector_epoch() == epoch {
+                    return Ok(matches);
+                }
+                retry_exact = true;
             }
         }
+        let mut fallback = route.clone();
+        if retry_exact {
+            fallback.mode = VectorIndexMode::Exact;
+        }
         return core
-            .search_vectors(&query_vector, top_k as usize, route)
+            .search_vectors(&query_vector, top_k as usize, &fallback)
             .map(to_matches)
             .map_err(|e| {
                 if e.downcast_ref::<GraphUnavailable>().is_some() {
@@ -1210,6 +1281,168 @@ mod conditional_tests {
 
     thread_local! {
         pub(super) static UNCERTAIN_AFTER_COMMIT: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+        static AFTER_GRAPH_SEARCH: std::cell::RefCell<Option<Box<dyn FnOnce()>>> = const { std::cell::RefCell::new(None) };
+    }
+
+    pub(super) fn after_graph_search() {
+        let callback = AFTER_GRAPH_SEARCH.with(|hook| hook.borrow_mut().take());
+        if let Some(callback) = callback {
+            callback();
+        }
+    }
+
+    #[test]
+    fn graph_query_ignores_staged_replacement_until_commit() {
+        let directory = tempfile::tempdir().unwrap();
+        let state = crate::tests::state_with(directory.path(), 2, &[]);
+        let docs = (0..128)
+            .map(|i| {
+                validate_doc(
+                    serde_json::from_value(
+                        json!({"id": format!("d{i}"), "text": "word", "vector": [1.0, 0.0]}),
+                    )
+                    .unwrap(),
+                    &state.cfg,
+                    false,
+                )
+                .unwrap()
+            })
+            .collect();
+        store_docs(&state, "default", docs).unwrap();
+        let core = state.core("default").unwrap();
+        core.maintain_vector_indexes(128, true).unwrap();
+        let vectors = core.vectors().unwrap();
+        assert!(vectors.covers(&core));
+        let lease = core.quota_lease();
+        let mutation = core.vector_mutation(&lease);
+        vectors
+            .stage(&[("d0".into(), vectors.next_token(), vec![0.0, 1.0])])
+            .unwrap();
+        let route = VectorQueryOptions {
+            mode: VectorIndexMode::Graph,
+            ..Default::default()
+        };
+        let hits = vector_search(&core, vec![0.0, 1.0], 128, None, None, &route).unwrap();
+        assert_eq!(hits.len(), 128);
+        assert!(hits.iter().all(|hit| hit.score.abs() < 1e-6));
+        vectors.remove(&["d0"]).unwrap();
+        drop(mutation);
+    }
+
+    #[test]
+    fn graph_query_retries_when_replacement_commits_during_search() {
+        let directory = tempfile::tempdir().unwrap();
+        let state = crate::tests::state_with(directory.path(), 2, &[]);
+        let docs = (0..128)
+            .map(|i| {
+                validate_doc(
+                    serde_json::from_value(
+                        json!({"id": format!("d{i}"), "text": "word", "vector": [1.0, 0.0]}),
+                    )
+                    .unwrap(),
+                    &state.cfg,
+                    false,
+                )
+                .unwrap()
+            })
+            .collect();
+        store_docs(&state, "default", docs).unwrap();
+        let core = state.core("default").unwrap();
+        core.maintain_vector_indexes(128, true).unwrap();
+        let writer = state.clone();
+        AFTER_GRAPH_SEARCH.with(|hook| {
+            *hook.borrow_mut() = Some(Box::new(move || {
+                let doc = validate_doc(
+                    serde_json::from_value(json!({"id":"d0", "text":"new", "vector":[0.0, 1.0]}))
+                        .unwrap(),
+                    &writer.cfg,
+                    false,
+                )
+                .unwrap();
+                store_docs(&writer, "default", vec![doc]).unwrap();
+            }))
+        });
+        let route = VectorQueryOptions {
+            mode: VectorIndexMode::Graph,
+            ..Default::default()
+        };
+        let hits = vector_search(&core, vec![0.0, 1.0], 1, None, None, &route).unwrap();
+        assert_eq!(hits[0].id, "d0");
+        assert!((hits[0].score - 1.0).abs() < 1e-6);
+    }
+
+    #[test]
+    fn interrupted_memory_mutation_keeps_dirty_marker_through_close_and_reopen() {
+        let directory = tempfile::tempdir().unwrap();
+        let config = directory.path().join("memory.json");
+        std::fs::write(&config, r#"{"onIdConflict":"replace"}"#).unwrap();
+        let options = ["--memory-config", config.to_str().unwrap()];
+        let state = crate::tests::state_with(directory.path(), 2, &options);
+        let doc = validate_doc(
+            serde_json::from_value(json!({"id":"d", "text":"old", "vector":[1.0, 0.0]})).unwrap(),
+            &state.cfg,
+            false,
+        )
+        .unwrap();
+        store_docs(&state, "default", vec![doc]).unwrap();
+        let core = state.core("default").unwrap();
+        let vectors = core.vectors().unwrap();
+        assert!(vectors.begin_memory_mutation().unwrap());
+        core.memory()
+            .call(
+                "remember",
+                json!({"id":"d", "text":"new", "embedding":[0.0, 1.0]}),
+            )
+            .unwrap();
+        vectors.close().unwrap();
+        assert!(directory
+            .path()
+            .join("tenants")
+            .join(crate::tenants::tenant_hex("default"))
+            .join("vindex/dirty")
+            .exists());
+        drop(core);
+        drop(state);
+        let reopened = crate::tests::state_with(directory.path(), 2, &options);
+        let core = reopened.core("default").unwrap();
+        assert_eq!(core.vectors().unwrap().live(), 0);
+        assert_eq!(
+            core.get_document("d").unwrap().unwrap().text.as_deref(),
+            Some("new")
+        );
+    }
+
+    #[test]
+    fn reopen_repairs_stale_clean_index_from_older_server() {
+        let directory = tempfile::tempdir().unwrap();
+        let config = directory.path().join("memory.json");
+        std::fs::write(&config, r#"{"onIdConflict":"replace"}"#).unwrap();
+        let options = ["--memory-config", config.to_str().unwrap()];
+        let state = crate::tests::state_with(directory.path(), 2, &options);
+        let doc = validate_doc(
+            serde_json::from_value(json!({"id":"d", "text":"old", "vector":[1.0, 0.0]})).unwrap(),
+            &state.cfg,
+            false,
+        )
+        .unwrap();
+        store_docs(&state, "default", vec![doc]).unwrap();
+        let core = state.core("default").unwrap();
+        core.memory()
+            .call(
+                "remember",
+                json!({"id":"d", "text":"new", "embedding":[0.0, 1.0]}),
+            )
+            .unwrap();
+        core.vectors().unwrap().close().unwrap();
+        drop(core);
+        drop(state);
+        let reopened = crate::tests::state_with(directory.path(), 2, &options);
+        let core = reopened.core("default").unwrap();
+        assert_eq!(core.vectors().unwrap().live(), 0);
+        assert_eq!(
+            core.get_document("d").unwrap().unwrap().text.as_deref(),
+            Some("new")
+        );
     }
 
     #[test]

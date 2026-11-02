@@ -93,6 +93,7 @@ pub struct Tenant {
     quiesced: AtomicBool,
     quota_active: Mutex<bool>,
     quota_ready: Condvar,
+    vector_epoch: AtomicU64,
     pub compaction: Mutex<CompactionStatus>,
 }
 
@@ -103,6 +104,14 @@ impl Drop for QuotaLease<'_> {
     fn drop(&mut self) {
         *self.0.quota_active.lock() = false;
         self.0.quota_ready.notify_one();
+    }
+}
+
+pub struct VectorMutation<'a>(&'a AtomicU64);
+
+impl Drop for VectorMutation<'_> {
+    fn drop(&mut self) {
+        self.0.fetch_add(1, Ordering::SeqCst);
     }
 }
 
@@ -182,6 +191,17 @@ impl CoreGuard {
         }
         *active = true;
         QuotaLease(&self.tenant)
+    }
+
+    pub fn vector_mutation<'a>(&'a self, lease: &'a QuotaLease<'_>) -> VectorMutation<'a> {
+        assert!(std::ptr::eq(self.tenant.as_ref(), lease.0));
+        let previous = self.tenant.vector_epoch.fetch_add(1, Ordering::SeqCst);
+        assert_eq!(previous & 1, 0, "vector mutations must be serialized");
+        VectorMutation(&self.tenant.vector_epoch)
+    }
+
+    pub fn vector_epoch(&self) -> u64 {
+        self.tenant.vector_epoch.load(Ordering::SeqCst)
     }
 
     fn open(&self) -> &Open {
@@ -491,6 +511,7 @@ impl AppState {
             quiesced: AtomicBool::new(false),
             quota_active: Mutex::new(false),
             quota_ready: Condvar::new(),
+            vector_epoch: AtomicU64::new(0),
             // Nothing changed since the open, so there is nothing to compact yet.
             compaction: Mutex::new(CompactionStatus {
                 generation_at_last_run: Some(generation),
@@ -847,6 +868,10 @@ impl AppState {
     }
 
     pub fn delete_snapshot(&self, name: &str, id: &str) -> Result<(), ApiError> {
+        if !valid_snapshot_id(id) {
+            return Err(ApiError::bad("invalid snapshot id"));
+        }
+        let _quiesced = self.quiesce(name)?;
         let path = self.snapshot_path(name, id)?;
         std::fs::remove_dir_all(path).map_err(ApiError::internal)
     }
@@ -1023,6 +1048,24 @@ pub fn dir_size(path: &Path) -> u64 {
 mod tests {
     use super::*;
     use std::sync::mpsc;
+
+    #[test]
+    fn snapshot_deletion_cannot_remove_a_pending_restore_backup() {
+        let directory = tempfile::tempdir().unwrap();
+        let state = crate::tests::state_with(directory.path(), 2, &[]);
+        let snapshot = state.snapshot_root("default").join("pre-restore-pending");
+        std::fs::create_dir_all(&snapshot).unwrap();
+        let quiesced = state.quiesce("default").unwrap();
+        assert!(state
+            .delete_snapshot("default", "pre-restore-pending")
+            .is_err());
+        assert!(snapshot.is_dir());
+        drop(quiesced);
+        state
+            .delete_snapshot("default", "pre-restore-pending")
+            .unwrap();
+        assert!(!snapshot.exists());
+    }
 
     /// Idle tenants are flushed and closed, free their slot toward `--max-tenants`, and reopen
     /// with their data intact.

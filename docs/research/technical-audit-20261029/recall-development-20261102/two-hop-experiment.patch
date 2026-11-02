@@ -1,0 +1,14 @@
+diff --git a/src/core/qgraph/vertex.rs b/src/core/qgraph/vertex.rs
+index 04bf71c8..6d415ae3 100644
+--- a/src/core/qgraph/vertex.rs
++++ b/src/core/qgraph/vertex.rs
+@@ -2884,6 +2884,9 @@ impl SearchScratch {
+                             neighbors_read += 1;
+                         }
+                         admit(u, visited, fresh);
++                        if std::env::var_os("RECALL_TWO_HOP").is_some() {
++                            g.for_each_neighbour(u as usize, |v| admit(v, visited, fresh));
++                        }
+                     });
+                 } else {
+                     let mut seen = 0usize;

@@ -110,6 +110,9 @@ candle-core = { version = "0.11.1", features = ["metal"], optional = true }
 candle-nn = { version = "0.11.1", features = ["metal"], optional = true }
 candle-transformers = { version = "0.11.1", features = ["metal"], optional = true }
 
+[target.'cfg(windows)'.dependencies]
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Storage_FileSystem"] }
+
 # CUDA for the Modal image only, enabled from outside the crate with RUSTFLAGS="--cfg warm_cuda",
 # so `--all-features` never needs nvcc.
 [target.'cfg(warm_cuda)'.dependencies]
@@ -137,6 +140,10 @@ harness = false
 
 [[bench]]
 name = "audit_delivery"
+harness = false
+
+[[bench]]
+name = "vector_record_query"
 harness = false
 
 [[example]]
