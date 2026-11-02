@@ -1,0 +1,67 @@
+{
+  "base": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+  "source_sha256": {
+    "src/core/documents/text.rs": "f1571d2d4dc39d64e3feb90061759596c9b7f647dd14ff391e41bc04f5eccaf8",
+    "src/core/documents/text/recovery_tests.rs": "18f7b0675ce8c51c39b23bcfac1dbe7b4f13be021103d6efcd9bae8111deccae",
+    "src/core/documents/index.rs": "3a88adcaf76b8da3a0205924717b6374313c591e409d82632ca084bd9bd39959",
+    "src/core/engine/mutation.rs": "3998121bf529e38a964d858f0ea66630f0666a78baf2507d11b77181cf37a59f",
+    "src/core/engine/mutation_gate.rs": "9a8d2da6bfb69b217ce5be50167dfe92f2e80922a1c362b243b9fa34de893d98",
+    "src/core/engine/image.rs": "2c5ca28ca55844a83ae145d332a190c77ba264c87983689c0bc5b1345a1d2d19",
+    "src/core/engine/mod.rs": "528a490df6391c505345c6a190284662386d77c0c1b9c450b0a717831813a74d",
+    "src/core/engine/query.rs": "b2cda98f639018e03b78ecd8f2ca08a5a7aee29cb11f40f9993e5b5dcee7bbbc"
+  },
+  "environment": {
+    "rust": "1.99.0",
+    "CARGO_TARGET_DIR": "/Volumes/A/holographic-memory/target/readiness-build",
+    "CARGO_BUILD_JOBS": 2
+  },
+  "checks": {
+    "mutation-tests": {
+      "command": "cargo +1.99.0 test --locked --features security,experimental,server,mcp --lib core::engine::mutation::tests",
+      "exit_code": 0,
+      "log": "mutation-tests.log.gz",
+      "sha256": "f57be541de9b181f7b33ad0099f32f257ba91cca94cc4ec5d0d097c48996306f",
+      "results": [
+        "test result: ok. 19 passed; 0 failed; 0 ignored; 0 measured; 809 filtered out; finished in 8.02s"
+      ]
+    },
+    "core-tests": {
+      "command": "cargo +1.99.0 test --locked --features security,experimental,server,mcp --lib core::",
+      "exit_code": 0,
+      "log": "core-tests.log.gz",
+      "sha256": "eb18e9fc3f0b6b5fcc8881efd5b9a646ad801ce4356ba70d1ac29a0259b6745a",
+      "results": [
+        "test result: ok. 752 passed; 0 failed; 12 ignored; 0 measured; 64 filtered out; finished in 178.82s"
+      ]
+    },
+    "document-tests": {
+      "command": "cargo +1.99.0 test --locked --features security,experimental,server,mcp --test document_checkpoint --test document_chunks --test documents",
+      "exit_code": 0,
+      "log": "document-tests.log.gz",
+      "sha256": "c8d140f15c3f7e126b07a78fa60d9dff8817e73c40e3c00b10f84d79783e1036",
+      "results": [
+        "test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.18s",
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.89s",
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.63s"
+      ]
+    },
+    "text-tests": {
+      "command": "cargo +1.99.0 test --locked --features security,experimental,server,mcp --lib core::documents::text::recovery_tests",
+      "exit_code": 0,
+      "log": "text-tests.log.gz",
+      "sha256": "95c992e569cb35e91a002e2c5e18688f80db15d67e824a1d8d65f1d4d8148272",
+      "results": [
+        "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 822 filtered out; finished in 0.89s"
+      ]
+    },
+    "clippy": {
+      "command": "cargo +1.99.0 clippy --locked --features security,experimental,server,mcp --lib --tests -- -D warnings",
+      "exit_code": 0,
+      "log": "clippy.log.gz",
+      "sha256": "7c8d696187a2590f693079f1f513faeb05459aabfb6af520a5be0c7dd1dc1d66",
+      "results": []
+    }
+  },
+  "format": "touched Rust files pass rustfmt +1.99.0 --check --edition 2021 --config skip_children=true; git diff --check passes",
+  "attribution": "Mutation/core tests precede the equivalent scrub zero buffer move from stack to a readonly constant. Document tests, six text boundary/recovery tests and strict Clippy cover the final source hashes. Final integrated CI remains required."
+}

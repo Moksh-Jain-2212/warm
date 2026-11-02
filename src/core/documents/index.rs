@@ -70,6 +70,12 @@ impl DocumentStore {
         Ok(())
     }
 
+    pub(crate) fn restore_text_writes(&mut self, path: &std::path::Path) -> anyhow::Result<()> {
+        let segment = self.text.as_ref().context("fixture needs a text segment")?;
+        self.text = Some(Arc::new(segment.writable_copy(path)?));
+        Ok(())
+    }
+
     pub(crate) fn memory_census(&self) -> super::census::MemoryCensus {
         use std::mem::{size_of, size_of_val};
         let mut census = super::census::MemoryCensus::default();
@@ -771,16 +777,7 @@ impl DocumentStore {
         let Some(segment) = self.text.as_deref() else {
             return Ok(document);
         };
-        if document.chunks.iter().all(|c| c.text.is_none()) {
-            return Ok(document);
-        }
-        let mut owned = StoredDocument::clone(&document);
-        for chunk in &mut owned.chunks {
-            if let Some(text) = chunk.text.take() {
-                chunk.text_at = Some(segment.append(&text)?);
-            }
-        }
-        Ok(Arc::new(owned))
+        segment.append_document(document)
     }
 
     /// Installs `document` (text already stripped) over the stored document with its id: in
@@ -1027,16 +1024,18 @@ impl DocumentStore {
         let Some(segment) = self.text.as_deref() else {
             return Ok(());
         };
+        let mut failure = None;
         for span in old.chunks.iter().filter_map(|c| c.text_at) {
             if new.chunks.iter().all(|c| c.text_at != Some(span)) {
-                segment.scrub(span.0, span.1)?;
+                if let Err(error) = segment.queue_scrub(span.0, span.1) {
+                    failure.get_or_insert(error);
+                }
             }
         }
-        Ok(())
+        failure.map_or(Ok(()), Err)
     }
 
-    /// Removes a document and zeroes its chunk text in the segment (see
-    /// [`TextSegment::scrub`]); the caller syncs the segment once per transaction.
+    /// Removes a document and schedules its text for scrubbing; the caller drains cleanup.
     #[cfg(test)]
     pub(crate) fn remove_scrubbed(
         &mut self,
@@ -1046,17 +1045,20 @@ impl DocumentStore {
         self.scrub_removed(removed)
     }
 
-    /// Zeroes the segment text of `removed`, returning it.
+    /// Hides the segment text of `removed` and schedules physical cleanup.
     pub(crate) fn scrub_removed(
         &self,
         removed: Option<Arc<StoredDocument>>,
     ) -> anyhow::Result<Option<Arc<StoredDocument>>> {
+        let mut failure = None;
         if let (Some(document), Some(segment)) = (&removed, self.text.as_deref()) {
             for (at, len, _) in document.chunks.iter().filter_map(|c| c.text_at) {
-                segment.scrub(at, len)?;
+                if let Err(error) = segment.queue_scrub(at, len) {
+                    failure.get_or_insert(error);
+                }
             }
         }
-        Ok(removed)
+        failure.map_or(Ok(removed), Err)
     }
 
     /// An empty store whose generation starts at [`opaque_counter_start`], so the generation a

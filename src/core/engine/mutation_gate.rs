@@ -118,6 +118,62 @@ mod tests {
     use std::time::Duration;
 
     #[test]
+    fn checkpoint_hydration_cannot_change_the_text_segment_during_a_writer_lease(
+    ) -> anyhow::Result<()> {
+        use crate::core::documents::{EncodeMode, IngestOptions};
+        use crate::{core::WarmConfig, WarmCore};
+        let directory = tempfile::tempdir()?;
+        let path = directory.path().display().to_string();
+        let mut config = WarmConfig::default();
+        config.document_checkpoint.enabled = true;
+        config.document_checkpoint.min_journal_bytes = 0;
+        {
+            let core = WarmCore::new(64, Some(path.clone()), Some(config.clone()))?;
+            core.memorize_document_with(
+                serde_json::from_value(serde_json::json!({
+                    "id": "old", "text": "retained checkpoint passage"
+                }))?,
+                &IngestOptions {
+                    encode: EncodeMode::Lexical,
+                    ..Default::default()
+                },
+            )?;
+            core.compact()?;
+        }
+        let core = Arc::new(WarmCore::new(64, Some(path), Some(config))?);
+        assert!(core.serves_from_checkpoint());
+        assert!(core.documents.read().text_segment().is_none());
+        let lease = core.mutation_gate.maintenance();
+        let worker_core = Arc::clone(&core);
+        let (finished_tx, finished_rx) = mpsc::channel();
+        let worker = std::thread::spawn(move || {
+            let result = worker_core.hydrate_documents();
+            finished_tx.send(()).unwrap();
+            result
+        });
+        let deadline = std::time::Instant::now() + Duration::from_secs(5);
+        let queued = loop {
+            let queued = {
+                let state = core.mutation_gate.writers.state.lock();
+                state.next - state.serving >= 2
+            };
+            if queued || finished_rx.try_recv().is_ok() || std::time::Instant::now() >= deadline {
+                break queued;
+            }
+            std::thread::yield_now();
+        };
+        let segment_absent = core.documents.read().text_segment().is_none();
+        let readable = core.get_document("old")?.unwrap().text;
+        drop(lease);
+        worker.join().unwrap()?;
+        assert!(queued, "hydration did not share the writer lease");
+        assert!(segment_absent);
+        assert_eq!(readable.as_deref(), Some("retained checkpoint passage"));
+        assert!(core.documents.read().text_segment().is_some());
+        Ok(())
+    }
+
+    #[test]
     fn maintenance_allows_reads_but_excludes_mutations_and_other_maintenance() {
         let gate = Arc::new(MutationGate::default());
         let maintenance = gate.maintenance();

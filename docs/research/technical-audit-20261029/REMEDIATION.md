@@ -1755,3 +1755,80 @@ Go race tests (14 tests plus one example). See
 [Go packaging validation](go-header-parity-20261101/validation.json).
 This followup changes packaging and parity checks; the benchmarked engine source
 remains unchanged. The new PR head must pass the hosted release/platform matrix.
+
+PR #374 merged as `ba980ffc16e01981bf1d025debfb83d6e7334aac` after 68 checks
+succeeded and four conditional jobs skipped. Every workflow completed successfully
+or skipped, with no unresolved review threads or open code-scanning alerts. The
+signed merge tree matches the tested head; root main was clean and fast-forwarded.
+Only the existing owner-review allowance was used. Evidence:
+[readiness final gate](readiness-completion-20261101/final-gate.json.gz).
+
+## Recovery and query efficiency followup (2026-11-01; implementation in progress)
+
+The user authorized parallel completion of the remaining code opportunities:
+restart-safe HTTP retries, recovery from retained-text publication/cleanup failures,
+stale exact-vector lock contention, and lexical/hybrid scratch-memory cost. The
+baseline is PR #374 main above; workflow policy and release conditions are outside
+this scope. No paid services or models are used.
+
+Ownership is disjoint: durable HTTP receipts in `/Volumes/A/warm-durable-http-retries`,
+vector capture/scoring in `/Volumes/A/warm-vector-contention`, query membership
+storage in `/Volumes/A/warm-query-memory`, and core publication/cleanup plus final
+integration in `/Volumes/A/holographic-memory` on `fix/recovery-query-improvements`.
+Builds use explicit private Cargo targets. Timed comparisons require a coordinated
+quiet window and immutable baseline/candidate evidence; correctness and memory
+limits take precedence over measured speed.
+
+The HTTP design durably reserves a key before business execution and persists a
+known response before acknowledgment. Restart retains ambiguous outcomes as
+reconciliation markers, never automatically reexecuting them. Restores and
+forgetting must invalidate response retention without releasing protected keys or
+allowing late completions to restore erased responses. The durability/privacy
+boundary and bounded storage/actor behavior are part of acceptance.
+
+The core compares replaying partial business batches with pre-staging retained
+text before journal append. The latter avoids replaying non-idempotent auxiliary
+mutations and preserves the existing journal format. Physical cleanup will remain
+retryable separately from logical publication. The diagnosis, invariants and
+deferred checks are recorded in
+[publication recovery plan](publication-recovery-20261101/plan.json).
+
+Retained-text preparation now precedes journal append under the writer lease;
+failed preparation or append rolls back the staged tail. Publication hides deleted
+spans immediately, while physical scrubbing runs outside publication locks and
+failed cleanup is retried by flush or before another write. Hydration shares the
+writer lease so preparation cannot target an obsolete segment. The baseline
+regression failed as expected. Local validation passes 752 core tests (12 existing
+diagnostic ignores), 25 document integration tests, six final text recovery/boundary
+tests, and strict scoped Clippy; see
+[publication validation](publication-recovery-20261101/validation.json).
+Integrated CI and merge remain pending.
+
+## Next authorized phase: changing agent memory and Vectra migration
+
+The user queued this phase after the four recovery/query followups are completed.
+The ToIP PR remains on hold; no ToIP branch has been pushed or PR opened. Its local
+21-test compatibility gate does not establish a WARM performance advantage.
+
+Lead with temporal correctness, retrieval quality and recoverable storage. Complete
+a simple Node workflow for changed preferences, current/historical recall, explanations,
+and forgetting the entire version chain across restart. Build a Vectra migration
+adapter with equivalent eligibility filters before top-k selection, then compare tiny,
+1K, 10K and 100K collections using identical cached embeddings and context budgets.
+Separate exact search from ANN at measured recall; measure hybrid relevance, selective
+filters, update/delete churn, cold start, RSS, p95/p99 latency and interrupted-write
+recovery, explicitly separating write acknowledgment from durable commit. Record cases
+where Vectra wins. Investigate explicit changed-row tracking for stale document
+snapshots; standalone ANN timings cannot qualify a continually updated memory store.
+
+Verify the user's proposed competitor observations against Vectra commit
+`dec2dadc3bb158b06ac72fa9097bee729429a271`, especially `docs/best-practices.md`,
+`docs/core-concepts.md`, `src/LocalIndex.ts` and `src/storage/LocalFileStorage.ts`,
+before treating them as current measured claims. WARM already maintains lexical
+postings/fusion and temporal memory semantics; neither hybrid search alone nor
+holographic research establishes comparative document-search superiority. Evaluate
+WASM distribution gaps if browser users are included in the target.
+
+No paid development API/cloud calls, tuning or model downloads are authorized.
+The core Node npm rename to `warm-sdk` is prepared separately as local signed commit
+`bfcbb708f683823a851f05c783529dd86795cdc3`; it has not been pushed or published.

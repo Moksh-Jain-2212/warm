@@ -10,21 +10,54 @@
 
 use std::fs::{File, OpenOptions};
 use std::path::Path;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::Arc;
 
 use crate::core::durable_file::{positioned_read, positioned_write};
 use anyhow::{ensure, Context, Result};
 
-/// Appends are serialized by the store's write lock; readers (captured queries that outlive
-/// the lock) only touch bytes below the length they observed, so the segment needs no lock.
-/// A scrub overwrites a record in place, so a live search reads text under the mutation gate
-/// (see `documents::read_ranked`).
+/// Live appends and tail rollback share the engine's writer lease. Publication hides deleted
+/// spans before physical cleanup, so captured searches cannot expose an obsolete passage.
 pub(crate) struct TextSegment {
     file: File,
     len: AtomicU64,
-    scrubbed: crate::core::sync::RwLock<crate::core::hash::FastSet<(u64, u32)>>,
+    truncate_pending: AtomicBool,
+    scrubbed: crate::core::sync::RwLock<Scrubs>,
     #[cfg(feature = "security")]
     cipher: Option<std::sync::Arc<crate::core::security::EncryptionManager>>,
+}
+
+#[derive(Clone, Default)]
+struct Scrubs {
+    hidden: crate::core::hash::FastSet<(u64, u32)>,
+    pending: crate::core::hash::FastSet<(u64, u32)>,
+}
+
+pub(crate) struct StagedText<'a> {
+    segment: &'a TextSegment,
+    start: u64,
+    armed: bool,
+}
+
+impl StagedText<'_> {
+    pub(crate) fn committed(&mut self) {
+        self.armed = false;
+    }
+
+    pub(crate) fn rollback(&mut self) -> Result<()> {
+        self.segment.discard_tail(self.start);
+        self.segment.repair_tail()?;
+        self.armed = false;
+        Ok(())
+    }
+}
+
+impl Drop for StagedText<'_> {
+    fn drop(&mut self) {
+        if self.armed {
+            self.segment.discard_tail(self.start);
+        }
+    }
 }
 
 /// Segment header: magic, format version, flags. Version 2 adds the header and, with
@@ -37,6 +70,7 @@ const VERSION: u8 = 2;
 #[cfg(feature = "security")]
 const FLAG_ENCRYPTED: u8 = 1;
 const HEADER_LEN: u64 = 8;
+const SCRUB_ZEROS: &[u8; 64 * 1024] = &[0; 64 * 1024];
 
 impl TextSegment {
     /// Creates or truncates the segment at `path`.
@@ -65,6 +99,7 @@ impl TextSegment {
         Ok(Self {
             file,
             len: AtomicU64::new(HEADER_LEN),
+            truncate_pending: AtomicBool::new(false),
             scrubbed: Default::default(),
             #[cfg(feature = "security")]
             cipher,
@@ -82,6 +117,10 @@ impl TextSegment {
 
     /// Appends `text` and returns its location.
     pub(crate) fn append(&self, text: &str) -> Result<(u64, u32, u32)> {
+        ensure!(
+            !self.truncate_pending.load(Ordering::Acquire),
+            "text segment has an uncommitted tail awaiting cleanup"
+        );
         let at = self.len.load(Ordering::Acquire);
         #[cfg(feature = "security")]
         let sealed;
@@ -97,15 +136,74 @@ impl TextSegment {
             text.as_bytes()
         };
         let len = u32::try_from(bytes.len()).context("chunk text over 4 GiB")?;
-        positioned_write(&self.file, bytes, at).context("appending chunk text")?;
-        self.len.store(at + u64::from(len), Ordering::Release);
+        let end = at
+            .checked_add(u64::from(len))
+            .context("text segment length overflow")?;
+        if let Err(error) = positioned_write(&self.file, bytes, at) {
+            self.truncate_pending.store(true, Ordering::Release);
+            return Err(error).context("appending chunk text");
+        }
+        self.len.store(end, Ordering::Release);
         Ok((at, len, crc32fast::hash(text.as_bytes())))
+    }
+
+    pub(crate) fn append_document(
+        &self,
+        document: Arc<super::StoredDocument>,
+    ) -> Result<Arc<super::StoredDocument>> {
+        if document.chunks.iter().all(|chunk| chunk.text.is_none()) {
+            return Ok(document);
+        }
+        let mut owned = super::StoredDocument::clone(&document);
+        for chunk in &mut owned.chunks {
+            if let Some(text) = chunk.text.take() {
+                chunk.text_at = Some(self.append(&text)?);
+            }
+        }
+        Ok(Arc::new(owned))
+    }
+
+    /// The caller owns the engine's writer lease until staging is committed or rolled back.
+    pub(crate) fn stage(&self) -> Result<StagedText<'_>> {
+        self.prepare_write()?;
+        Ok(StagedText {
+            segment: self,
+            start: self.len(),
+            armed: true,
+        })
+    }
+
+    pub(crate) fn prepare_write(&self) -> Result<()> {
+        self.repair_tail()?;
+        self.drain_scrubs()
+    }
+
+    fn discard_tail(&self, start: u64) {
+        if self.len.swap(start, Ordering::AcqRel) != start {
+            self.truncate_pending.store(true, Ordering::Release);
+        }
+    }
+
+    fn repair_tail(&self) -> Result<()> {
+        if self.truncate_pending.load(Ordering::Acquire) {
+            self.file
+                .set_len(self.len())
+                .context("discarding uncommitted text")?;
+            self.truncate_pending.store(false, Ordering::Release);
+        }
+        Ok(())
     }
 
     /// Overwrites the record at a location returned by [`TextSegment::append`] with zeros, so a
     /// deleted chunk's text is gone from the file. Readers that captured the chunk before its
     /// deletion read the zeroed record as empty text. Durable only after [`TextSegment::sync`].
+    #[cfg(test)]
     pub(crate) fn scrub(&self, at: u64, len: u32) -> Result<()> {
+        self.queue_scrub(at, len)?;
+        self.drain_scrubs()
+    }
+
+    pub(crate) fn queue_scrub(&self, at: u64, len: u32) -> Result<()> {
         ensure!(
             at >= HEADER_LEN
                 && at
@@ -113,19 +211,46 @@ impl TextSegment {
                     .is_some_and(|end| end <= self.len.load(Ordering::Acquire)),
             "chunk text location outside the text segment"
         );
-        positioned_write(&self.file, &vec![0u8; len as usize], at)
-            .context("scrubbing chunk text")?;
-        self.scrubbed.write().insert((at, len));
+        let mut scrubbed = self.scrubbed.write();
+        scrubbed.hidden.insert((at, len));
+        scrubbed.pending.insert((at, len));
         Ok(())
+    }
+
+    pub(crate) fn drain_scrubs(&self) -> Result<()> {
+        let pending: Vec<_> = self.scrubbed.read().pending.iter().copied().collect();
+        let mut failure = None;
+        for (at, len) in pending {
+            let result = (|| {
+                let mut written = 0u64;
+                while written < u64::from(len) {
+                    let count = (u64::from(len) - written).min(SCRUB_ZEROS.len() as u64) as usize;
+                    positioned_write(&self.file, &SCRUB_ZEROS[..count], at + written)
+                        .context("scrubbing chunk text")?;
+                    written += count as u64;
+                }
+                Ok::<_, anyhow::Error>(())
+            })();
+            match result {
+                Ok(()) => {
+                    self.scrubbed.write().pending.remove(&(at, len));
+                }
+                Err(error) => {
+                    failure.get_or_insert(error);
+                }
+            }
+        }
+        failure.map_or(Ok(()), Err)
     }
 
     /// Whether this segment scrubbed the record. The segment is recreated on every open.
     pub(crate) fn is_scrubbed(&self, at: u64, len: u32) -> bool {
-        self.scrubbed.read().contains(&(at, len))
+        self.scrubbed.read().hidden.contains(&(at, len))
     }
 
     /// Flushes scrubbed records to stable storage.
     pub(crate) fn sync(&self) -> Result<()> {
+        self.drain_scrubs()?;
         self.file.sync_data().context("syncing text segment")
     }
 
@@ -156,22 +281,35 @@ impl TextSegment {
         String::from_utf8(bytes).context("chunk text is not UTF-8")
     }
 
-    #[cfg(test)]
     pub(crate) fn len(&self) -> u64 {
         self.len.load(Ordering::Acquire)
     }
 
     #[cfg(test)]
     pub(super) fn read_only_copy(&self, path: &Path) -> Result<Self> {
+        self.access_copy(path, false)
+    }
+
+    #[cfg(test)]
+    pub(super) fn writable_copy(&self, path: &Path) -> Result<Self> {
+        self.access_copy(path, true)
+    }
+
+    #[cfg(test)]
+    fn access_copy(&self, path: &Path, writable: bool) -> Result<Self> {
         Ok(Self {
-            file: File::open(path)?,
+            file: OpenOptions::new().read(true).write(writable).open(path)?,
             len: AtomicU64::new(self.len.load(Ordering::Acquire)),
+            truncate_pending: AtomicBool::new(self.truncate_pending.load(Ordering::Acquire)),
             scrubbed: crate::core::sync::RwLock::new(self.scrubbed.read().clone()),
             #[cfg(feature = "security")]
             cipher: self.cipher.clone(),
         })
     }
 }
+
+#[cfg(test)]
+mod recovery_tests;
 
 #[cfg(test)]
 mod tests {

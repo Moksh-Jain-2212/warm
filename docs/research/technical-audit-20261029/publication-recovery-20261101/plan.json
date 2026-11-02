@@ -1,0 +1,34 @@
+{
+  "base": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+  "scope": "Avoid incomplete retained-text publication after durable commit; retry failed cleanup without reopening.",
+  "alternatives": [
+    "Replay the failed business batch in place: rejected because mixed audit/meaning mutations are not uniformly idempotent and some have already applied.",
+    "Prepare retained text before append under the existing writer lease; journal only after staging succeeds, publish owners atomically, retry logical-deletion cleanup separately."
+  ],
+  "selected": 1,
+  "invariants": [
+    "No format/schema or journal payload change.",
+    "Known cache-preparation failure leaves journal checkpoint, revision and live records unchanged.",
+    "Rollback uncommitted cache bytes after staging/append failure; propagate cleanup failure and retry before new writes.",
+    "Checkpoint hydration shares the writer lease so text-segment identity cannot change during preparation.",
+    "Mark retained spans logically scrubbed during publication; complete or retry physical cleanup outside publication locks.",
+    "Failed cleanup retains pending spans and reports committed outcome; flush retries cleanup without repeating business mutations.",
+    "No old text becomes API-visible after deletion; do not claim hardware secure erasure."
+  ],
+  "validation": [
+    "Baseline precommit regression must fail before production change.",
+    "Plaintext/encrypted precommit failures, journal-append rollback, retry and reopen parity.",
+    "Transient/persistent scrub failures, late captured reads, deletion and replacement ownership.",
+    "Hydration/publication concurrency and existing checkpoint/compaction/read contracts.",
+    "Focused tests, strict touched-scope Clippy, final integrated CI."
+  ],
+  "baseline_test_patch_sha256": "01369e6629f204e0f47f3618eb7b501c6e73d03e9d3c05f9734c83d4ed9dd8f4",
+  "baseline_test_source_sha256": "8f70f164f1f3dfa9f1df2386b171e6e9cbc952eb9b6271714d38eb527971929f",
+  "status": "implemented; local correctness and strict Clippy gates pass; integrated CI and merge pending",
+  "baseline_result": {
+    "exit_code": 101,
+    "passed": 0,
+    "failed": 1,
+    "log": "baseline.log.gz"
+  }
+}

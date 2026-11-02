@@ -84,8 +84,9 @@ cargo run --release --features cli --bin warm-admin -- migrate ./store-v2 ./stor
 
 Every engine holds an exclusive `.hms.lock` for its lifetime. Use one instance per store and
 share it across tasks; a second process or instance cannot open it. Persistent mutations validate
-and serialize their operations, reserve an exclusive writer lease, then synchronously append
-one CRC-framed transaction. The writer queue holds its state mutex only for reservation and
+and serialize their operations, reserve an exclusive writer lease, stage retained text, then
+synchronously append one CRC-framed transaction. A failed text preparation or rejected append
+discards the staged cache tail without publishing the business mutations. The writer queue holds its state mutex only for reservation and
 release; queries can capture the prior live revision during the append. Reader exclusion covers
 publication of the whole live batch and its revision, before acknowledgment. Compaction
 checkpoints and other writers wait for the same lease, so they cannot pair an unpublished
@@ -126,8 +127,12 @@ an error in those sidecars can be returned after the main data mutation has comm
 Those failures, publication failures after a durable append, and failed post-publication
 compaction cleanup carry `CommittedMutationError`. HTTP reports `mutation_committed`;
 Node errors carry the same code prefix. Inspect the resulting state and reopen or reconcile
-it before retrying. A retained-text cache write failure can leave live document/vector
-publication incomplete even though the complete batch is journaled; reopen or reconcile
+it before retrying. Retained-text cache writes are prepared before the journal append, so
+their failure leaves live documents, vectors and the revision unchanged. Deleted text is
+hidden during publication; physical cleanup runs afterwards. A cleanup failure reports a
+committed outcome and retains pending spans. After the I/O fault clears, `flush()` retries
+that cleanup without replaying the business mutation; new writes also drain pending cleanup
+before committing. Other publication failures can still require reopen or reconciliation
 before relying on that state. A reported cache-scrub failure does not mean the old bytes
 were erased. This contract distinguishes durable data from completed auxiliary effects;
 it does not supply an automatic sidecar repair service or exactly-once external delivery.

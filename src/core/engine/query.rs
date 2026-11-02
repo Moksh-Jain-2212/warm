@@ -153,8 +153,14 @@ impl WarmCore {
     /// Flush persistent data and deliver pending audit records to durable storage.
     pub fn flush(&self) -> anyhow::Result<()> {
         {
-            let _transaction = self.mutation_gate.write();
+            let transaction = self.mutation_gate.begin_write();
             self.arena.flush()?;
+            let segment = self.documents.read().text_segment();
+            if let Some(segment) = segment {
+                segment.prepare_write()?;
+                segment.sync()?;
+            }
+            let _transaction = transaction.publish();
             self.persist_indices(&self.shards.read())?;
         }
         self.flush_audit()?;
