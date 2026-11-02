@@ -1842,6 +1842,15 @@ The final vector experiment now pins this integrated source rather than only the
 isolated vector commit; the premeasurement plan revision is retained. Performance
 qualification, hosted CI and merge remain pending.
 
+Both local attempts collected no timing because their fixed host preflights failed.
+The same integrated source and 1,024-query workload are now being evaluated by one
+separately preregistered Linux comparison on a standard public GitHub runner, with
+unchanged latency/writer thresholds and a 600-second measurement budget. The optional
+manual job preserves existing push/PR checks and exports bounded evidence through
+logs without artifact or cache uploads. See
+[Linux preregistration](vector-contention-20261101/ci-linux-1024/README.md);
+run `41383296700` is pending. This will establish only the stated Linux workload result.
+
 ## Next authorized phase: changing agent memory and Vectra migration
 
 The user queued this phase after the four recovery/query followups are completed.
@@ -1870,3 +1879,31 @@ WASM distribution gaps if browser users are included in the target.
 No paid development API/cloud calls, tuning or model downloads are authorized.
 The core Node npm rename to `warm-sdk` is prepared separately as local signed commit
 `bfcbb708f683823a851f05c783529dd86795cdc3`; it has not been pushed or published.
+
+Read-only preparation found that the existing `Memory` Node wrapper already supports
+the complete temporal workflow. Use explicit `latest-by-subject`, stable distinct fact
+IDs, a common subject and explicit validity times; preserve existing global defaults.
+Reapply runtime memory configuration after restart. The missing product example/test
+combines explanation, whole-chain purge and a final process restart asserting both
+versions remain absent; a public close binding is currently absent. The `purge`
+TypeScript comment also needs alignment with current compaction behavior.
+
+Vectra 0.15.0 is the current npm comparator, and the inspected packaged implementations
+match the user's pinned source after line-ending normalization. Its implementation
+already uses a bounded top-k heap despite older documentation describing a full sort.
+Its selector has non-Mongo numeric/string `$in`/`$nin` quirks that require explicit
+compatibility tests. WARM already filters exact metadata/document IDs before ranking;
+the missing work is predicate expressiveness and full adapter coverage, including
+vector-only items, original-vector retrieval and mixed transactions. Fabricated text
+must not disguise unsupported vector-only records. Vector snapshots need their own
+bounded mutation ledger; the existing dense tracker has an independent lifetime.
+
+Reusable cached data lives under `/Volumes/A/.hms-bench-cache` (the old
+`~/.cache/hms-bench` resolves there), with additional BGE arrays under
+`/Volumes/A/.hms-embed-work/select-cache`. SciFact (5,183 documents/300 test queries)
+and NFCorpus (3,633/323) have cached MiniLM embeddings and judgments. The prepared
+GloVe 100D subset supplies 100,000 vectors/1,000 queries and exact-neighbor truth;
+1K/10K prefixes need recomputed truth. BGE has 44,305 LME turn rows, not a ready
+100K unique-document fixture. LME occurrences require per-question haystack eligibility.
+These are inventory observations: freeze actual hashes and row/text mappings before
+running comparisons, and do not present synthetic replication as unique-document evidence.
