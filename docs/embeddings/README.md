@@ -185,6 +185,14 @@ space, so it cannot silently replace another task in an existing store. The
 `Conversation` task remains the instruction for retrieving both conversation roles.
 All three tasks keep the current 2048-token input cap and full model output width.
 
+Qwen3-Embedding-0.6B supports Matryoshka prefixes from 32 through 1024 dimensions,
+according to its pinned model card. WARM's opt-in
+[candidate projection](../guides/retrieval-contracts.md#optional-matryoshka-candidates)
+uses those short prefixes for graph search and the retained full vectors for
+reranking. This changes retrieval work, not embedding inference cost. It is separate
+from the default BERT-family local embedder; prefix compatibility must be established
+for the chosen model and preprocessing. Quality and speed require workload evidence.
+
 Previously created managed-model stores with nominal revisions cannot establish their original
 embedding function. Preserve them with the original binary and configuration; re-embed original
 source documents into a new destination. Rewriting `store.json` to a new fingerprint does not
