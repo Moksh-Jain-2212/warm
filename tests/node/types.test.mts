@@ -29,7 +29,7 @@ const vectors = new WarmMemorySystem(1024, './vectors-types-only', {
   embeddingModel: 'matryoshka-model', embeddingRevision: '1', embeddingDimensions: 1024,
   vectorCandidateDimensions: 256, vectorRerankCandidates: 100,
 })
-const vectorOptions: import('../../index.js').VectorSearchOptions = {
+const vectorOptions: import('warm-sdk').VectorSearchOptions = {
   mode: 'auto', ef: 128, minScore: -1, filter: { project: 'alpha' },
   sourceUri: 'guide.md', documentIds: ['guide'],
 }
