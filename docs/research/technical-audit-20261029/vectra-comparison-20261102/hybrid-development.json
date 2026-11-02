@@ -1,0 +1,69 @@
+{
+  "recorded_at": "2026-11-02T07:41:32.029875+00:00",
+  "scope": "Synthetic hybrid harness development only; no SciFact search, dataset preparation, benchmark timings, model inference, downloads or paid calls.",
+  "command": "VECTRA_MODULE=/Volumes/A/toip-warm-backend/toip-mcp-server/node_modules/vectra WARM_MODULE=/Volumes/A/warm-vectra-node-qualification node --test benchmarks/public/vectra_comparison/test_hybrid.mjs",
+  "tests": {
+    "passed": 11,
+    "failed": 0,
+    "skipped": 0
+  },
+  "node": "v26.8.1",
+  "uv": "uv 0.12.10 (3c979abda 2026-09-04 aarch64-apple-darwin)",
+  "tokenizer": {
+    "runtime": "tokenizers==0.23.3, persistent offline uv subprocess",
+    "file": "/Volumes/A/hms-models/Qwen3-Embedding-0.6B/tokenizer.json",
+    "sha256": "def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a",
+    "synthetic_reference_token_counts": [
+      9,
+      6,
+      513,
+      12
+    ],
+    "old_node_binding": "Cached @anush008/tokenizers cannot parse the pinned Qwen model JSON; no file conversion or substituted tokenizer was used."
+  },
+  "actual_native_addon_selection_verified": true,
+  "source_files_sha256": {
+    "hybrid-run.mjs": "949f9adc49c97c8db5252aca4877f9afc76b3a167e4ab98fadc48139b6cb2ed9",
+    "hybrid-tokenizer.py": "9ac5a35591ace5b09f7c79d5dc75559b4f4b088faf91c9ed8e7d1cf092730d3d",
+    "hybrid-worker.mjs": "d4cc5c8129e0830265d9cb98c5cd8ef538845ebc98e123ff3ba172584a5e46a8",
+    "hybrid.mjs": "da44316a9a5550a5c40ad1f7d0eef6a2da0e28e68f5b2decf4bee43d63f63daa",
+    "README-hybrid.md": "2a00e0bdc4ac729d9b24e836173b597ed455f0b207388a2063a03d765950a9fd",
+    "test_hybrid.mjs": "ba3613fd5327a5a384b77f253c4223e8832b5b3c2bb452b61564e09175b468ce"
+  },
+  "development_artifacts": {
+    "vectra_package": {
+      "path": "/Volumes/A/toip-warm-backend/toip-mcp-server/node_modules/vectra/package.json",
+      "bytes": 5094,
+      "sha256": "a8bebb8f7bb5ffd1f9a5ea39a281c0ef7c59457fe2bcff9d80fee754f2910f0a"
+    },
+    "vectra_local_index": {
+      "path": "/Volumes/A/toip-warm-backend/toip-mcp-server/node_modules/vectra/lib/LocalIndex.js",
+      "bytes": 25244,
+      "sha256": "e6cc75b718909438546dd84c60d0e23f6a84a09380a950a0986b737027b5682a"
+    },
+    "warm_loader": {
+      "path": "/Volumes/A/warm-vectra-node-qualification/index.js",
+      "bytes": 2029,
+      "sha256": "1c28979a2fca2accc26893712035ba50c10ac07455bae8d49f5c24f30163673d"
+    },
+    "warm_selected_addon": {
+      "path": "/Volumes/A/warm-vectra-node-qualification/warm-sdk.node",
+      "bytes": 13060400,
+      "sha256": "e3bea8c431406cbc8c1359f353f225c2d3382e40033101c02a61059eb6b99c77"
+    },
+    "shared_monitor": {
+      "path": "/Volumes/A/warm-vectra-vector-harness/benchmarks/public/vectra_comparison/vector-receipts.mjs",
+      "bytes": 10339,
+      "sha256": "125994a5917329b771e21191625cb338c16e0387dd9572fc4ea1c51f908fb9c5"
+    }
+  },
+  "shared_monitor_note": "Read-only symlink to the sibling-owned monitor was used for integration validation, then removed. The final integrated source/addon/dependency freeze remains a coordinator task.",
+  "known_vectra_behavior": "BM25 consolidation throws when the residual document collection after semantic topK is too small, including empty eligibility. Per-query errors remain visible and fail completion/qualification; no fallback.",
+  "test_iteration_note": "A new negative-source-hash assertion initially checked the expected field instead of actual in Node AssertionError; corrected the test predicate, retained the local failure log, and reran the focused gate.",
+  "source_gates": [
+    "Node syntax checks",
+    "Python AST parse",
+    "git diff --check"
+  ],
+  "measurement_status": "Not run; source freeze, coordinator admission and both quiet-host preflights are still required."
+}
