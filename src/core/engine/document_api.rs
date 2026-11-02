@@ -826,10 +826,7 @@ impl WarmCore {
             stages.params.validate()?;
         }
         if let Some(e) = stages.as_ref().and_then(|s| s.embedder.as_ref()) {
-            ensure!(
-                self.config.embedding_space.as_ref() == Some(&e.space()),
-                "the embedder's effective model identity does not match the store embedding space; reopen with the original model or re-embed original source documents into a new store"
-            );
+            self.validate_model_embedder(e)?;
         }
         *self.model_stages.write() = stages;
         Ok(())
@@ -837,6 +834,14 @@ impl WarmCore {
 
     pub fn model_stages(&self) -> Option<std::sync::Arc<crate::core::models::ModelStages>> {
         self.model_stages.read().clone()
+    }
+
+    fn validate_model_embedder(&self, embedder: &crate::core::models::Embedder) -> Result<()> {
+        ensure!(
+            self.config.embedding_space.as_ref() == Some(&embedder.space()),
+            "the embedder's effective model identity does not match the store embedding space; reopen with the original model or re-embed original source documents into a new store"
+        );
+        Ok(())
     }
 
     fn memorize_document_with_models(
@@ -905,6 +910,9 @@ impl WarmCore {
         stages: &crate::core::models::ModelStages,
     ) -> Result<Vec<DocumentResult>> {
         stages.params.validate()?;
+        if let (Some(embedder), None) = (&stages.embedder, &options.embedding) {
+            self.validate_model_embedder(embedder)?;
+        }
         let k = options.k.unwrap_or(10) as usize;
         ensure!((1..=1000).contains(&k), "require 1 <= k <= 1000");
         let pool = k.max(stages.params.rerank_n) as u32;

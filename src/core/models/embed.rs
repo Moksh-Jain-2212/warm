@@ -220,6 +220,50 @@ mod tests {
     }
 
     #[test]
+    fn direct_document_search_checks_the_embedder_it_uses() -> Result<()> {
+        let dir = tempfile::tempdir()?;
+        let mut compatible = tiny(1);
+        let tokenizer = tokenizers::models::wordlevel::WordLevel::builder()
+            .vocab([("[UNK]".to_string(), 0)].into_iter().collect())
+            .unk_token("[UNK]".into())
+            .build()
+            .unwrap();
+        compatible.tokenizer = tokenizers::Tokenizer::new(tokenizer);
+        compatible
+            .tokenizer
+            .with_pre_tokenizer(Some(tokenizers::pre_tokenizers::whitespace::Whitespace));
+        let config = crate::core::WarmConfig {
+            embedding_space: Some(compatible.space()),
+            ..Default::default()
+        };
+        let core =
+            crate::WarmCore::new(1024, Some(dir.path().display().to_string()), Some(config))?;
+        let compatible = crate::core::models::ModelStages {
+            embedder: Some(compatible),
+            ..Default::default()
+        };
+        assert!(core
+            .search_documents_with_models("query", "", &Default::default(), &compatible)
+            .is_ok());
+        let incompatible = crate::core::models::ModelStages {
+            embedder: Some(tiny(2)),
+            ..Default::default()
+        };
+        let error = core
+            .search_documents_with_models("query", "", &Default::default(), &incompatible)
+            .unwrap_err();
+        assert!(error.to_string().contains("effective model identity"));
+        let options = crate::SearchOptions {
+            embedding: Some(vec![1.0; 32]),
+            ..Default::default()
+        };
+        assert!(core
+            .search_documents_with_models("query", "", &options, &incompatible)
+            .is_ok());
+        Ok(())
+    }
+
+    #[test]
     fn document_task_changes_queries_without_changing_passage_vectors() {
         let mut embedder = tiny(7);
         let model = tokenizers::models::wordlevel::WordLevel::builder()

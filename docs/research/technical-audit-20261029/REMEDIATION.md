@@ -2246,3 +2246,14 @@ installation changes concurrently. A regression covers single and batch ingestio
 and both staged search entry points; it has not been run while tests are paused.
 Offline, locked library compile checks passed with all features and with only the
 local-embed feature.
+
+### Direct staged-search embedding identity (2026-11-02)
+
+The public direct model-stage search accepted a caller-supplied embedder without
+checking its effective identity against the store, allowing an incompatible model
+with the same dimensions to score stored embeddings. It now applies the same
+identity check as stage installation before using that embedder. A caller-supplied
+query embedding still bypasses the unused stage embedder. A regression covers a
+matching embedder, a same-dimension mismatch, and the explicit-embedding path;
+it has not been run while tests remain paused.
+The offline, locked all-features library compile check passed.
