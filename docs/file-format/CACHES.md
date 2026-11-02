@@ -28,23 +28,31 @@ remains. Open zeroes and unlinks a `documents.text.canonical` left by an interru
 ## indices.json
 
 ```json
-{"checkpoint":["vectors_data.bin",4736],"shardCount":1,
+{"encoding":"cbor-v1","checkpoint":["vectors_data.bin",4736],"shardCount":1,
  "shards":[{"ivf":false,"ivfCrc":null,"nsg":false,"nsgCrc":null}]}
 ```
 
 `checkpoint` is the live generation directory name (`vectors_data.bin` or `gen-...`) and the
 journal length (`segment_index * segment_size + end offset`). It is rewritten by every flush
 (atomic write). On open the caches are used only if the checkpoint equals the arena's, the shard
-count matches, and the file's CRC32 equals `nsgCrc`/`ivfCrc`; otherwise they are ignored or
+count matches, encoding is `cbor-v1`, and the file's CRC32 equals `nsgCrc`/`ivfCrc`; otherwise they are ignored or
 discarded (a log line, not an error). A stale checkpoint is normal after any later append.
 Invalid JSON is ignored.
 
 ## nsg_index.bin, ivf_index.bin
 
-`nsg_index_<i>.bin` / `ivf_index_<i>.bin` per shard when `shardCount > 1`. `bincode` 2
-(`standard` config, serde) of the index structure, sealed if the store is encrypted. The layout
-is internal to the engine version and **not specified**: a file that fails its CRC32 or does not
-decode is discarded and the index retrained. Written atomically, files before `indices.json`.
+`nsg_index_<i>.bin` / `ivf_index_<i>.bin` per shard when `shardCount > 1`. The decoded
+payload starts with `ff 57 41 52 4d 49 44 58 01`, followed by CBOR of the index structure;
+the whole payload is sealed if the store is encrypted. The layout is internal to the
+engine version and **not specified**. Invalid checksums, malformed or trailing data,
+invalid index dimensions, and unsupported encodings discard the cache. Durable vectors
+still reopen through the rebuilt inverted index; ANN training can rebuild its caches.
+Older bincode caches are ignored without decoding. The leading `ff` also makes older
+bincode readers reject new caches. Written atomically, files before `indices.json`.
+
+Each decoded cache has a 512 MiB limit and decoding has a nesting limit of 32. An index
+that would exceed the byte limit is omitted from the persisted cache, without failing a
+durable flush. Existing files outside the current cache metadata are never loaded.
 
 ## shard_meta.json
 

@@ -1,0 +1,217 @@
+{
+  "cases": [
+    {
+      "crc32": 558161692,
+      "encoded_length": 4,
+      "length": 0,
+      "tag": 0
+    },
+    {
+      "crc32": 612149648,
+      "encoded_length": 5,
+      "length": 1,
+      "tag": 0
+    },
+    {
+      "crc32": 1718857844,
+      "encoded_length": 253,
+      "length": 249,
+      "tag": 0
+    },
+    {
+      "crc32": 2035699103,
+      "encoded_length": 254,
+      "length": 250,
+      "tag": 0
+    },
+    {
+      "crc32": 3066234145,
+      "encoded_length": 257,
+      "length": 251,
+      "tag": 0
+    },
+    {
+      "crc32": 3274988172,
+      "encoded_length": 258,
+      "length": 252,
+      "tag": 0
+    },
+    {
+      "crc32": 2252159780,
+      "encoded_length": 65540,
+      "length": 65534,
+      "tag": 0
+    },
+    {
+      "crc32": 1115055153,
+      "encoded_length": 65541,
+      "length": 65535,
+      "tag": 0
+    },
+    {
+      "crc32": 1573435545,
+      "encoded_length": 65544,
+      "length": 65536,
+      "tag": 0
+    },
+    {
+      "crc32": 2372943598,
+      "encoded_length": 65545,
+      "length": 65537,
+      "tag": 0
+    },
+    {
+      "crc32": 55084175,
+      "encoded_length": 16777215,
+      "length": 16777207,
+      "tag": 0
+    },
+    {
+      "crc32": 956953595,
+      "encoded_length": 16777216,
+      "length": 16777208,
+      "tag": 0
+    },
+    {
+      "crc32": 411902168,
+      "encoded_length": 16777217,
+      "length": 16777209,
+      "tag": 0
+    },
+    {
+      "crc32": 2583214201,
+      "encoded_length": 4,
+      "length": 0,
+      "tag": 1
+    },
+    {
+      "crc32": 421298208,
+      "encoded_length": 5,
+      "length": 1,
+      "tag": 1
+    },
+    {
+      "crc32": 2999679342,
+      "encoded_length": 253,
+      "length": 249,
+      "tag": 1
+    },
+    {
+      "crc32": 2229275692,
+      "encoded_length": 254,
+      "length": 250,
+      "tag": 1
+    },
+    {
+      "crc32": 3132829032,
+      "encoded_length": 257,
+      "length": 251,
+      "tag": 1
+    },
+    {
+      "crc32": 3426278288,
+      "encoded_length": 258,
+      "length": 252,
+      "tag": 1
+    },
+    {
+      "crc32": 2853353156,
+      "encoded_length": 65540,
+      "length": 65534,
+      "tag": 1
+    },
+    {
+      "crc32": 3796937156,
+      "encoded_length": 65541,
+      "length": 65535,
+      "tag": 1
+    },
+    {
+      "crc32": 1117660668,
+      "encoded_length": 65544,
+      "length": 65536,
+      "tag": 1
+    },
+    {
+      "crc32": 2964848036,
+      "encoded_length": 65545,
+      "length": 65537,
+      "tag": 1
+    },
+    {
+      "crc32": 3111342165,
+      "encoded_length": 16777215,
+      "length": 16777207,
+      "tag": 1
+    },
+    {
+      "crc32": 1605759973,
+      "encoded_length": 16777216,
+      "length": 16777208,
+      "tag": 1
+    },
+    {
+      "crc32": 3806634427,
+      "encoded_length": 16777217,
+      "length": 16777209,
+      "tag": 1
+    }
+  ],
+  "examples": [
+    {
+      "bytes": [
+        2
+      ],
+      "event": "Decay"
+    },
+    {
+      "bytes": [
+        0,
+        8,
+        0,
+        195,
+        169,
+        108,
+        195,
+        168,
+        118,
+        101,
+        3,
+        232,
+        137,
+        178,
+        4,
+        240,
+        159,
+        167,
+        163
+      ],
+      "event": {
+        "Store": [
+          "\u0000élève",
+          "色",
+          "🧣"
+        ]
+      }
+    },
+    {
+      "bytes": [
+        1,
+        2,
+        195,
+        169,
+        0,
+        1,
+        0
+      ],
+      "event": {
+        "Strengthen": [
+          "é",
+          "",
+          "\u0000"
+        ]
+      }
+    }
+  ],
+  "reference": "bincode 2.0.1 serde standard"
+}

@@ -1,0 +1,13 @@
+[package]
+name = "warm-legacy-fixture"
+version = "0.0.0"
+edition = "2021"
+[workspace]
+[[bin]]
+name = "fixture"
+path = "../../docs/research/technical-audit-20261029/bincode-removal-20261102/legacy-fixture-generator.rs"
+[dependencies]
+bincode = { version = "=2.0.1", features = ["serde"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+crc32fast = "1.3"

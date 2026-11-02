@@ -98,7 +98,7 @@ fn rng_select(
     vectors: &[EntangledHVec],
     max_degree: usize,
 ) -> Vec<u32> {
-    let mut selected = Vec::with_capacity(max_degree);
+    let mut selected = Vec::with_capacity(max_degree.min(sorted_candidates.len()));
     'outer: for &(dist_ic, c) in sorted_candidates {
         if selected.len() >= max_degree {
             break;
