@@ -1804,6 +1804,33 @@ tests, and strict scoped Clippy; see
 [publication validation](publication-recovery-20261101/validation.json).
 Integrated CI and merge remain pending.
 
+Durable HTTP retry receipts are implemented with a bounded serial writer, reservation
+before execution, response recording before acknowledgment, and restart reconciliation
+for interrupted operations. Erasure barriers invalidate late completions and scrub
+retained response bodies while protecting keys. The final isolated source passes
+129 tests with zero skips and strict Clippy. Receipt and business commits remain
+separate; plaintext receipts require encrypted-volume protection. See
+[HTTP retry evidence](durable-http-retries-20261101/evidence.json).
+
+Filtered query capture now reuses the document-reference allocation for sorted owner
+addresses and releases its lexical slot mask earlier. The frozen synthetic workload
+shows roughly 52% lower rare-query requested allocation peaks and identical ordered
+results across 7,680 oracle checks. Updated-rare empirical p99 increased 10.37%;
+the preregistered sustained-regression trigger did not fire, and concurrent host
+activity prevents a latency noninferiority or speedup claim. See
+[query memory evidence](query-memory-20261101/README.md).
+
+Stale exact-vector capture releases the store lock before scoring, but its first
+frozen comparison failed the fresh 16-dimensional p99 threshold. A separately
+preregistered 1,024-sample confirmation collected no measurements because both host
+preflights exceeded their fixed external-load limit. Neither result is discarded.
+The candidate remains unqualified; a production refactor is isolating stale-only
+state from the fresh dispatcher before a new, separately recorded comparison.
+
+Final integration review also identified a cleanup-ownership gap in canonical
+compaction: replacing a segment could lose its pending scrub retry queue. A focused
+regression and fix are in progress before the combined gate.
+
 ## Next authorized phase: changing agent memory and Vectra migration
 
 The user queued this phase after the four recovery/query followups are completed.
