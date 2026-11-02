@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "baseline_commit": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+  "recorded_at": "2026-11-02T02:49:14.089Z",
+  "platform": "darwin-arm64",
+  "source_sha256": {
+    "docs/SERVER.md": "00b89f73d325cd00314b83a32c2dd98a7ecee972afd79e4f42ac01a675082ed9",
+    "docs/server/errors.md": "400998c92ce5c40c1207dc753cf04ab08f31550f9a3549b3a31b946498f22e21",
+    "src/bin/warm-server/documents.rs": "49deb58d13230433e42abbb6e26db7485715408443d0b3fad510b5f4167cda1a",
+    "src/bin/warm-server/error.rs": "25969c32fbc7ddee8f4169c48b4dc8554cc17ac728210e6c252183f95dba0c97",
+    "src/bin/warm-server/limits.rs": "2dd6d475c0af25ef3deb341b04113622df915cc43d783cf53abdb341e3d42f8f",
+    "src/bin/warm-server/limits/durable.rs": "1317cfc29dfede3a4c0591c8f133c6175dbc6b4a82bd46e2044474494b15f9ea",
+    "src/bin/warm-server/limits/durable/tests.rs": "5f35f356f0c4d6a8af53a2389f65a6ac0f41bddd096c14783f5887569bb89628",
+    "src/bin/warm-server/main.rs": "4c7c59e47803cc94ba61f1f7f3d0d6ea15b80b0dcd2b6ced6384b989cb07df71",
+    "src/bin/warm-server/request.rs": "cb942a132a78c47767301ad5a4aa16d92d998155371eb724152ca0f4d50f8bbd",
+    "src/bin/warm-server/tenants.rs": "ff7a62f75bcdd928fc16b14fd374fbb7e2689d32e6aaa7b7ff9f2e36cc7a225b",
+    "src/bin/warm-server/tests.rs": "651be58d33c1220b172af4164cf68927e5ffddf79b3a6fa0c41b0e0d4a40867f",
+    "tests/server_api.rs": "b2fee055ae7611dde552c00d54f573c5a7c1ad114889cd8abd4eee410483f4a2"
+  },
+  "implementation": {
+    "persistence": "A bounded serial writer owns private checksummed receipts under one process lease. Reservations precede work; completed responses or reconciliation markers precede acknowledgment.",
+    "crash_gap": "Interrupted reservations become reconciliation markers. They are never automatically reexecuted.",
+    "erasure": "A durable tenant barrier precedes forget, forgetting maintenance, consolidation, document deletion, and restore publication; it invalidates late completions and scrubs existing response bodies while retaining protected keys.",
+    "restart": "Startup recovers pending scrubbing and retired receipts before admission. A fresh monotonic retention window uses at least the longest configured or recorded TTL.",
+    "expiry": "Expired receipts are durably renamed into cleanup staging before overwrite and unlink so interruption cannot leave a damaged live control header."
+  },
+  "validation": [
+    {
+      "command": "CARGO_TARGET_DIR=target/durable-retry-build CARGO_BUILD_JOBS=2 cargo +1.99.0 test --locked --features security,server --bin warm-server --test server_api --test server_ops",
+      "exit_code": 0,
+      "passed": 129,
+      "ignored": 0,
+      "suites": {
+        "server_unit": 94,
+        "server_api": 22,
+        "server_ops": 13
+      }
+    },
+    {
+      "command": "CARGO_TARGET_DIR=target/durable-retry-build CARGO_BUILD_JOBS=2 cargo +1.99.0 clippy --locked --features security,server --bin warm-server --test server_api --test server_ops -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "check": "rustfmt +1.99.0 --check with skip_children=true on touched Rust files; git diff --check",
+      "exit_code": 0
+    }
+  ],
+  "regression_coverage": [
+    "Exact response and committed-error replay across restart",
+    "Actual child process termination before reservation publication, after durable reservation, after business mutation, and after receipt completion",
+    "Abrupt HTTP server restart after acknowledgment",
+    "Erasure admission barrier, other-tenant isolation, preserved current erasure response, and invalidated late completion",
+    "Process interruption after erasure-barrier publication, during body overwrite, and after receipt retirement",
+    "Scrub write/sync faults preserve the barrier until successful startup cleanup",
+    "Corrupt header/body checksum, oversized header length, truncation and trailing bytes fail startup",
+    "Capacity and body-budget boundaries, monotonic expiry boundary, conservative TTL after restart, and exclusive ownership",
+    "HTTP forgetting and document deletion scrub retained read responses and protect their keys after restart",
+    "Existing restore, authentication, admission, and operational integration suites"
+  ],
+  "limitations": [
+    "Receipt and business operations are separate commits; this is bounded retry protection, not arbitrary exactly-once execution.",
+    "Receipts may contain plaintext source text; encrypted-volume deployment remains required for encryption at rest.",
+    "Restart extends retention; reducing configured bounds below retained data fails startup.",
+    "Fault tests cover process termination and injected I/O failure, not physical power loss or filesystem snapshots.",
+    "Validation was local macOS arm64; no Windows runtime or performance benchmark was run."
+  ],
+  "logs": {
+    "server-gate.log.gz": {
+      "uncompressed_sha256": "e244f4db4c8185c5bb028228172779e81308ce512c67c577c9ef695dcf969c11",
+      "uncompressed_bytes": 31146
+    },
+    "clippy.log.gz": {
+      "uncompressed_sha256": "2cfc68145c4260e7a770b52efa33b680fe6a4c918748b619dd6f91c745df1224",
+      "uncompressed_bytes": 141
+    }
+  }
+}

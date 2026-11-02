@@ -1,0 +1,379 @@
+{
+  "original_study_query_gate": "failed; retained unchanged",
+  "confirmation_scope": "Linux x64 standard public ubuntu-24.04 VM, 1024 samples per phase, fixed synthetic workload, observed external CPU capacity <=20%; no macOS, production or isolated-host qualification",
+  "oracle_checks": 92880,
+  "processes": 10,
+  "execution_seconds": 594.311146197,
+  "rows": [
+    {
+      "dimensions": 16,
+      "phase": "fresh_idle",
+      "baseline": {
+        "query_ns_p50": 129643,
+        "query_ns_p99": 160410,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 129782,
+        "query_ns_p99": 167433,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "delta_percent": {
+        "query_ns_p50": 0.10721751270796887,
+        "query_ns_p99": 4.378155975313258,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 0.0,
+        "peak_requested_bytes_p99": 0.0,
+        "allocations_p50": 0.0,
+        "allocations_p99": 0.0
+      }
+    },
+    {
+      "dimensions": 16,
+      "phase": "stale_idle",
+      "baseline": {
+        "query_ns_p50": 1134503,
+        "query_ns_p99": 1292348,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 1360,
+        "peak_requested_bytes_p99": 1360,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 1119983,
+        "query_ns_p99": 1257809,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 3408,
+        "peak_requested_bytes_p99": 3408,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": -1.2798555843395731,
+        "query_ns_p99": -2.672577355325345,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 150.58823529411765,
+        "peak_requested_bytes_p99": 150.58823529411765,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 16,
+      "phase": "stale_writer",
+      "baseline": {
+        "query_ns_p50": 1157513,
+        "query_ns_p99": 1334394,
+        "writer_wait_ns_p50": 1150683,
+        "writer_wait_ns_p99": 1332133,
+        "writer_total_ns_p50": 1155251,
+        "writer_total_ns_p99": 1338841,
+        "peak_requested_bytes_p50": 1552,
+        "peak_requested_bytes_p99": 1552,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 1152493,
+        "query_ns_p99": 1291412,
+        "writer_wait_ns_p50": 61,
+        "writer_wait_ns_p99": 141,
+        "writer_total_ns_p50": 2985,
+        "writer_total_ns_p99": 6884,
+        "peak_requested_bytes_p50": 3600,
+        "peak_requested_bytes_p99": 3600,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": -0.4336884337368119,
+        "query_ns_p99": -3.221087624794472,
+        "writer_wait_ns_p50": -99.99469880062537,
+        "writer_wait_ns_p99": -99.98941547127802,
+        "writer_total_ns_p50": -99.74161459284606,
+        "writer_total_ns_p99": -99.48582393278963,
+        "peak_requested_bytes_p50": 131.95876288659795,
+        "peak_requested_bytes_p99": 131.95876288659795,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 128,
+      "phase": "fresh_idle",
+      "baseline": {
+        "query_ns_p50": 960012,
+        "query_ns_p99": 1250667,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 906384,
+        "query_ns_p99": 1214509,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "delta_percent": {
+        "query_ns_p50": -5.586180172747845,
+        "query_ns_p99": -2.8910973104751325,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 0.0,
+        "peak_requested_bytes_p99": 0.0,
+        "allocations_p50": 0.0,
+        "allocations_p99": 0.0
+      }
+    },
+    {
+      "dimensions": 128,
+      "phase": "stale_idle",
+      "baseline": {
+        "query_ns_p50": 1981192,
+        "query_ns_p99": 2170290,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 1360,
+        "peak_requested_bytes_p99": 1360,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 2055510,
+        "query_ns_p99": 2513746,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 3408,
+        "peak_requested_bytes_p99": 3408,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": 3.7511760596650845,
+        "query_ns_p99": 15.825350529191962,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 150.58823529411765,
+        "peak_requested_bytes_p99": 150.58823529411765,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 128,
+      "phase": "stale_writer",
+      "baseline": {
+        "query_ns_p50": 2014778,
+        "query_ns_p99": 2185685,
+        "writer_wait_ns_p50": 1998187,
+        "writer_wait_ns_p99": 2165026,
+        "writer_total_ns_p50": 2007224,
+        "writer_total_ns_p99": 2177820,
+        "peak_requested_bytes_p50": 1552,
+        "peak_requested_bytes_p99": 1552,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 2079797,
+        "query_ns_p99": 2477338,
+        "writer_wait_ns_p50": 90,
+        "writer_wait_ns_p99": 291,
+        "writer_total_ns_p50": 5440,
+        "writer_total_ns_p99": 11612,
+        "peak_requested_bytes_p50": 3600,
+        "peak_requested_bytes_p99": 3600,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": 3.2271049217333037,
+        "query_ns_p99": 13.343780096399982,
+        "writer_wait_ns_p50": -99.9954959170488,
+        "writer_wait_ns_p99": -99.98655905287049,
+        "writer_total_ns_p50": -99.72897892811166,
+        "writer_total_ns_p99": -99.46680625579708,
+        "peak_requested_bytes_p50": 131.95876288659795,
+        "peak_requested_bytes_p99": 131.95876288659795,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 768,
+      "phase": "fresh_idle",
+      "baseline": {
+        "query_ns_p50": 6074270,
+        "query_ns_p99": 6343285,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 6070231,
+        "query_ns_p99": 6199305,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "delta_percent": {
+        "query_ns_p50": -0.0664935868836869,
+        "query_ns_p99": -2.2698018455737046,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 0.0,
+        "peak_requested_bytes_p99": 0.0,
+        "allocations_p50": 0.0,
+        "allocations_p99": 0.0
+      }
+    },
+    {
+      "dimensions": 768,
+      "phase": "stale_idle",
+      "baseline": {
+        "query_ns_p50": 7510481,
+        "query_ns_p99": 7786770,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 1360,
+        "peak_requested_bytes_p99": 1360,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 7796153,
+        "query_ns_p99": 8257190,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 3408,
+        "peak_requested_bytes_p99": 3408,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": 3.803644533552508,
+        "query_ns_p99": 6.0412725687287505,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 150.58823529411765,
+        "peak_requested_bytes_p99": 150.58823529411765,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 768,
+      "phase": "stale_writer",
+      "baseline": {
+        "query_ns_p50": 7544491,
+        "query_ns_p99": 8256968,
+        "writer_wait_ns_p50": 7504727,
+        "writer_wait_ns_p99": 8212464,
+        "writer_total_ns_p50": 7518830,
+        "writer_total_ns_p99": 8223335,
+        "peak_requested_bytes_p50": 1552,
+        "peak_requested_bytes_p99": 1552,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 7835637,
+        "query_ns_p99": 8456697,
+        "writer_wait_ns_p50": 110,
+        "writer_wait_ns_p99": 321,
+        "writer_total_ns_p50": 10800,
+        "writer_total_ns_p99": 16150,
+        "peak_requested_bytes_p50": 3600,
+        "peak_requested_bytes_p99": 3600,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": 3.8590542423604157,
+        "query_ns_p99": 2.418914545872042,
+        "writer_wait_ns_p50": -99.9985342571422,
+        "writer_wait_ns_p99": -99.99609130706692,
+        "writer_total_ns_p50": -99.85636063057683,
+        "writer_total_ns_p99": -99.80360766039568,
+        "peak_requested_bytes_p50": 131.95876288659795,
+        "peak_requested_bytes_p99": 131.95876288659795,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    }
+  ],
+  "query_acceptance": false,
+  "writer_acceptance": true,
+  "confirmation_acceptance": false,
+  "linux_steal_observation": {
+    "samples": 130,
+    "acceptance_gate": false,
+    "first_ticks": 0,
+    "last_ticks": 0,
+    "delta_ticks": 0
+  }
+}

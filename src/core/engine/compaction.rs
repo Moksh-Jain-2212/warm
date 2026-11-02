@@ -463,6 +463,76 @@ mod tests {
     }
 
     #[test]
+    fn canonical_rebuild_retains_pending_scrubs_until_cleanup_succeeds() -> Result<()> {
+        for flush_first in [false, true] {
+            for mut config in configurations() {
+                config.document_checkpoint.enabled = false;
+                let directory = tempfile::tempdir()?;
+                let core = WarmCore::new(
+                    64,
+                    Some(directory.path().display().to_string()),
+                    Some(config),
+                )?;
+                core.memorize_document(document("deleted", "old"))?;
+                core.memorize_document(document("kept", "live"))?;
+                let path = directory.path().join("documents.text");
+                let old_file = std::fs::File::open(&path)?;
+                let mut expected = std::fs::read(&path)?;
+                let span = core.documents.read().get("deleted").unwrap().chunks[0]
+                    .text_at
+                    .unwrap();
+                let start = span.0 as usize;
+                let end = start + span.1 as usize;
+                expected[start..end].fill(0);
+                core.sync_text_segment()?;
+                let error = core
+                    .compact_impl(
+                        || {
+                            core.documents.write().make_text_read_only(&path).unwrap();
+                            let deleted = core.delete_document("deleted").unwrap_err();
+                            assert!(deleted.is::<crate::CommittedMutationError>());
+                        },
+                        || {},
+                        true,
+                    )
+                    .expect_err("canonical replacement discarded failed scrub cleanup");
+                assert!(error.is::<crate::CommittedMutationError>());
+                assert!(format!("{error:#}").contains("scrubbing chunk text"));
+                assert!(core.get_document("deleted")?.is_none());
+                let failed_segment = core.documents.read().text_segment().unwrap();
+                assert!(failed_segment.is_scrubbed(span.0, span.1));
+                assert!(failed_segment.sync().is_err());
+                assert_ne!(&std::fs::read(&path)?[start..end], &expected[start..end]);
+                assert_eq!(
+                    core.get_document("kept")?.unwrap().text.as_deref(),
+                    Some("needle durable source")
+                );
+
+                core.documents.write().restore_text_writes(&path)?;
+                let recovered = core.documents.read().text_segment().unwrap();
+                if flush_first {
+                    core.flush()?;
+                    assert_eq!(std::fs::read(&path)?, expected);
+                }
+                core.canonicalize_documents()?;
+                assert!(!Arc::ptr_eq(
+                    &recovered,
+                    &core.documents.read().text_segment().unwrap()
+                ));
+                let mut old_bytes = vec![0; expected.len()];
+                crate::core::durable_file::positioned_read(&old_file, &mut old_bytes, 0)?;
+                assert_eq!(old_bytes, expected);
+                assert_eq!(
+                    core.get_document("kept")?.unwrap().text.as_deref(),
+                    Some("needle durable source")
+                );
+                assert!(core.get_document("deleted")?.is_none());
+            }
+        }
+        Ok(())
+    }
+
+    #[test]
     fn scrubbing_releases_deleted_dense_owners_even_below_training_threshold() -> Result<()> {
         for count in [128, 129] {
             for config in configurations() {

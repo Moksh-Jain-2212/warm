@@ -23,6 +23,93 @@ impl Default for StoreIdentity {
     }
 }
 
+/// Latest mutations per ID, covered from `from` through `through`. A newer capture permits
+/// reclamation; older snapshots then fall back. No deleted document owners are retained.
+#[cfg(not(target_arch = "wasm32"))]
+#[derive(Default)]
+pub(super) struct VectorChanges {
+    from: Option<u64>,
+    through: u64,
+    captured: u64,
+    id_bytes: usize,
+    changes: BTreeMap<String, u64>,
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+impl VectorChanges {
+    fn reset(&mut self, generation: u64) {
+        self.from = Some(generation);
+        self.through = generation;
+        self.captured = generation;
+        self.id_bytes = 0;
+        self.changes.clear();
+    }
+
+    pub(super) fn capture(&mut self, generation: u64) {
+        if self.from.is_none() || self.through != generation {
+            self.reset(generation);
+        }
+        self.captured = generation;
+    }
+
+    fn record<'a>(
+        &mut self,
+        previous: u64,
+        generation: u64,
+        ids: impl IntoIterator<Item = &'a str>,
+    ) {
+        use super::dense::{MAX_DELTA_DOCUMENTS, MAX_DELTA_ID_BYTES};
+        if self.from.is_none() {
+            return;
+        }
+        assert!(
+            generation > previous,
+            "vector changes must advance generation"
+        );
+        if self.through != previous {
+            self.reset(previous);
+        }
+        self.through = generation;
+        for id in ids {
+            if let Some(last) = self.changes.get_mut(id) {
+                *last = generation;
+                continue;
+            }
+            if self.changes.len() == MAX_DELTA_DOCUMENTS
+                || id.len() > MAX_DELTA_ID_BYTES.saturating_sub(self.id_bytes)
+            {
+                self.changes.retain(|_, last| *last > self.captured);
+                self.id_bytes = self.changes.keys().map(String::len).sum();
+                self.from = Some(self.captured);
+            }
+            if self.changes.len() == MAX_DELTA_DOCUMENTS
+                || id.len() > MAX_DELTA_ID_BYTES.saturating_sub(self.id_bytes)
+            {
+                self.reset(generation);
+                return;
+            }
+            self.id_bytes += id.len();
+            self.changes.insert(id.to_owned(), generation);
+        }
+    }
+
+    pub(super) fn since(
+        &self,
+        snapshot: u64,
+        generation: u64,
+    ) -> Option<impl Iterator<Item = &str>> {
+        (self.from.is_some_and(|from| from <= snapshot)
+            && snapshot <= generation
+            && self.through == generation)
+            .then(|| {
+                self.changes
+                    .iter()
+                    .filter(move |(_, last)| **last > snapshot)
+                    .map(|(id, _)| id.as_str())
+            })
+    }
+}
+
 #[derive(Default)]
 pub(crate) struct DocumentStore {
     /// With `generation`, names one state of the lexical index (every mutation advances
@@ -39,6 +126,8 @@ pub(crate) struct DocumentStore {
     pub(super) generation: u64,
     pub(super) dense_index: Option<Arc<DenseIndex>>,
     pub(super) dense_changes: BTreeMap<String, DenseChange>,
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(super) vector_changes: crate::core::sync::RwLock<VectorChanges>,
     pub(super) embedded_documents: BTreeSet<String>,
     embedded_count: usize,
     owners: Vec<Option<(Arc<StoredDocument>, usize)>>,
@@ -67,6 +156,12 @@ impl DocumentStore {
     pub(crate) fn make_text_read_only(&mut self, path: &std::path::Path) -> anyhow::Result<()> {
         let segment = self.text.as_ref().context("fixture needs a text segment")?;
         self.text = Some(Arc::new(segment.read_only_copy(path)?));
+        Ok(())
+    }
+
+    pub(crate) fn restore_text_writes(&mut self, path: &std::path::Path) -> anyhow::Result<()> {
+        let segment = self.text.as_ref().context("fixture needs a text segment")?;
+        self.text = Some(Arc::new(segment.writable_copy(path)?));
         Ok(())
     }
 
@@ -525,10 +620,16 @@ impl DocumentStore {
             return false;
         };
         base.kill(ordinal);
+        #[cfg(not(target_arch = "wasm32"))]
+        let previous = self.generation;
         self.generation = self
             .generation
             .checked_add(1)
             .expect("document generation overflow");
+        #[cfg(not(target_arch = "wasm32"))]
+        self.vector_changes
+            .write()
+            .record(previous, self.generation, [id]);
         true
     }
 
@@ -771,16 +872,7 @@ impl DocumentStore {
         let Some(segment) = self.text.as_deref() else {
             return Ok(document);
         };
-        if document.chunks.iter().all(|c| c.text.is_none()) {
-            return Ok(document);
-        }
-        let mut owned = StoredDocument::clone(&document);
-        for chunk in &mut owned.chunks {
-            if let Some(text) = chunk.text.take() {
-                chunk.text_at = Some(segment.append(&text)?);
-            }
-        }
-        Ok(Arc::new(owned))
+        segment.append_document(document)
     }
 
     /// Installs `document` (text already stripped) over the stored document with its id: in
@@ -879,10 +971,18 @@ impl DocumentStore {
         }
         super::postings::index_chunks(&mut self.postings, &indexed, &self.word_counts);
         // One generation step per document, as single inserts take.
+        #[cfg(not(target_arch = "wasm32"))]
+        let previous = self.generation;
         self.generation = self
             .generation
             .checked_add(group.len() as u64)
             .expect("document generation overflow");
+        #[cfg(not(target_arch = "wasm32"))]
+        self.vector_changes.write().record(
+            previous,
+            self.generation,
+            group.iter().map(|document| document.id.as_str()),
+        );
         for document in group {
             self.track_dense_change(&document.id, document.chunks.len(), None);
             self.documents.insert(document.id.clone(), document);
@@ -1002,6 +1102,10 @@ impl DocumentStore {
             );
         }
         self.advance_generation();
+        #[cfg(not(target_arch = "wasm32"))]
+        self.vector_changes
+            .write()
+            .record(self.generation - 1, self.generation, [id.as_str()]);
         self.track_dense_change(&id, document.chunks.len(), Some(&previous));
         let scrubbed = self.scrub_replaced(&previous, &document);
         self.documents.insert(id, document);
@@ -1027,16 +1131,18 @@ impl DocumentStore {
         let Some(segment) = self.text.as_deref() else {
             return Ok(());
         };
+        let mut failure = None;
         for span in old.chunks.iter().filter_map(|c| c.text_at) {
             if new.chunks.iter().all(|c| c.text_at != Some(span)) {
-                segment.scrub(span.0, span.1)?;
+                if let Err(error) = segment.queue_scrub(span.0, span.1) {
+                    failure.get_or_insert(error);
+                }
             }
         }
-        Ok(())
+        failure.map_or(Ok(()), Err)
     }
 
-    /// Removes a document and zeroes its chunk text in the segment (see
-    /// [`TextSegment::scrub`]); the caller syncs the segment once per transaction.
+    /// Removes a document and schedules its text for scrubbing; the caller drains cleanup.
     #[cfg(test)]
     pub(crate) fn remove_scrubbed(
         &mut self,
@@ -1046,17 +1152,20 @@ impl DocumentStore {
         self.scrub_removed(removed)
     }
 
-    /// Zeroes the segment text of `removed`, returning it.
+    /// Hides the segment text of `removed` and schedules physical cleanup.
     pub(crate) fn scrub_removed(
         &self,
         removed: Option<Arc<StoredDocument>>,
     ) -> anyhow::Result<Option<Arc<StoredDocument>>> {
+        let mut failure = None;
         if let (Some(document), Some(segment)) = (&removed, self.text.as_deref()) {
             for (at, len, _) in document.chunks.iter().filter_map(|c| c.text_at) {
-                segment.scrub(at, len)?;
+                if let Err(error) = segment.queue_scrub(at, len) {
+                    failure.get_or_insert(error);
+                }
             }
         }
-        Ok(removed)
+        failure.map_or(Ok(removed), Err)
     }
 
     /// An empty store whose generation starts at [`opaque_counter_start`], so the generation a
@@ -1082,6 +1191,7 @@ impl DocumentStore {
         let Some(old) = self.text.clone() else {
             return Ok(());
         };
+        old.sync()?;
         let staging = canonical_staging_path(path);
         let segment = Arc::new(old.recreate(&staging)?);
         let documents = self
@@ -1139,6 +1249,10 @@ impl DocumentStore {
         let document = self.documents.remove(id)?;
         self.multichunk_documents.remove(id);
         self.advance_generation();
+        #[cfg(not(target_arch = "wasm32"))]
+        self.vector_changes
+            .write()
+            .record(self.generation - 1, self.generation, [id]);
         self.track_dense_change(id, 0, Some(&document));
         if document
             .chunks

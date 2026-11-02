@@ -1,0 +1,369 @@
+{
+  "oracle_checks": 6480,
+  "processes": 10,
+  "execution_seconds": 20.758875877945684,
+  "rows": [
+    {
+      "dimensions": 16,
+      "phase": "fresh_idle",
+      "baseline": {
+        "query_ns_p50": 27917,
+        "query_ns_p99": 35875,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 27916,
+        "query_ns_p99": 44708,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "delta_percent": {
+        "query_ns_p50": -0.0035820467815361745,
+        "query_ns_p99": 24.621602787456442,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 0.0,
+        "peak_requested_bytes_p99": 0.0,
+        "allocations_p50": 0.0,
+        "allocations_p99": 0.0
+      }
+    },
+    {
+      "dimensions": 16,
+      "phase": "stale_idle",
+      "baseline": {
+        "query_ns_p50": 590208,
+        "query_ns_p99": 629541,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 1360,
+        "peak_requested_bytes_p99": 1360,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 591209,
+        "query_ns_p99": 660250,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 3408,
+        "peak_requested_bytes_p99": 3408,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": 0.16960122533073996,
+        "query_ns_p99": 4.877998414718032,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 150.58823529411765,
+        "peak_requested_bytes_p99": 150.58823529411765,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 16,
+      "phase": "stale_writer",
+      "baseline": {
+        "query_ns_p50": 596333,
+        "query_ns_p99": 631625,
+        "writer_wait_ns_p50": 591500,
+        "writer_wait_ns_p99": 627625,
+        "writer_total_ns_p50": 592625,
+        "writer_total_ns_p99": 630708,
+        "peak_requested_bytes_p50": 1552,
+        "peak_requested_bytes_p99": 1552,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 598125,
+        "query_ns_p99": 653333,
+        "writer_wait_ns_p50": 41,
+        "writer_wait_ns_p99": 125,
+        "writer_total_ns_p50": 833,
+        "writer_total_ns_p99": 9541,
+        "peak_requested_bytes_p50": 3600,
+        "peak_requested_bytes_p99": 3600,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": 0.3005032423159637,
+        "query_ns_p99": 3.4368493963981894,
+        "writer_wait_ns_p50": -99.99306846999154,
+        "writer_wait_ns_p99": -99.98008364867556,
+        "writer_total_ns_p50": -99.85943893693313,
+        "writer_total_ns_p99": -98.48725559212821,
+        "peak_requested_bytes_p50": 131.95876288659795,
+        "peak_requested_bytes_p99": 131.95876288659795,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 128,
+      "phase": "fresh_idle",
+      "baseline": {
+        "query_ns_p50": 285375,
+        "query_ns_p99": 309709,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 284958,
+        "query_ns_p99": 319208,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "delta_percent": {
+        "query_ns_p50": -0.1461235216819956,
+        "query_ns_p99": 3.067072639154822,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 0.0,
+        "peak_requested_bytes_p99": 0.0,
+        "allocations_p50": 0.0,
+        "allocations_p99": 0.0
+      }
+    },
+    {
+      "dimensions": 128,
+      "phase": "stale_idle",
+      "baseline": {
+        "query_ns_p50": 888833,
+        "query_ns_p99": 1003791,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 1360,
+        "peak_requested_bytes_p99": 1360,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 875250,
+        "query_ns_p99": 1067750,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 3408,
+        "peak_requested_bytes_p99": 3408,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": -1.5281835845428748,
+        "query_ns_p99": 6.371744715782479,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 150.58823529411765,
+        "peak_requested_bytes_p99": 150.58823529411765,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 128,
+      "phase": "stale_writer",
+      "baseline": {
+        "query_ns_p50": 899250,
+        "query_ns_p99": 951042,
+        "writer_wait_ns_p50": 894500,
+        "writer_wait_ns_p99": 946459,
+        "writer_total_ns_p50": 895458,
+        "writer_total_ns_p99": 953125,
+        "peak_requested_bytes_p50": 1552,
+        "peak_requested_bytes_p99": 1552,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 889208,
+        "query_ns_p99": 938459,
+        "writer_wait_ns_p50": 42,
+        "writer_wait_ns_p99": 125,
+        "writer_total_ns_p50": 875,
+        "writer_total_ns_p99": 6042,
+        "peak_requested_bytes_p50": 3600,
+        "peak_requested_bytes_p99": 3600,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": -1.116708368084518,
+        "query_ns_p99": -1.323075111298977,
+        "writer_wait_ns_p50": -99.99530463946338,
+        "writer_wait_ns_p99": -99.98679287745163,
+        "writer_total_ns_p50": -99.90228464093235,
+        "writer_total_ns_p99": -99.36608524590163,
+        "peak_requested_bytes_p50": 131.95876288659795,
+        "peak_requested_bytes_p99": 131.95876288659795,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 768,
+      "phase": "fresh_idle",
+      "baseline": {
+        "query_ns_p50": 2995250,
+        "query_ns_p99": 3382750,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 2986333,
+        "query_ns_p99": 3241667,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 720,
+        "peak_requested_bytes_p99": 720,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "delta_percent": {
+        "query_ns_p50": -0.29770469910691544,
+        "query_ns_p99": -4.170659966003987,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 0.0,
+        "peak_requested_bytes_p99": 0.0,
+        "allocations_p50": 0.0,
+        "allocations_p99": 0.0
+      }
+    },
+    {
+      "dimensions": 768,
+      "phase": "stale_idle",
+      "baseline": {
+        "query_ns_p50": 3807292,
+        "query_ns_p99": 4094417,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 1360,
+        "peak_requested_bytes_p99": 1360,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 3577083,
+        "query_ns_p99": 3895375,
+        "writer_wait_ns_p50": 0,
+        "writer_wait_ns_p99": 0,
+        "writer_total_ns_p50": 0,
+        "writer_total_ns_p99": 0,
+        "peak_requested_bytes_p50": 3408,
+        "peak_requested_bytes_p99": 3408,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": -6.0465286087854615,
+        "query_ns_p99": -4.8613025981476765,
+        "writer_wait_ns_p50": null,
+        "writer_wait_ns_p99": null,
+        "writer_total_ns_p50": null,
+        "writer_total_ns_p99": null,
+        "peak_requested_bytes_p50": 150.58823529411765,
+        "peak_requested_bytes_p99": 150.58823529411765,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    },
+    {
+      "dimensions": 768,
+      "phase": "stale_writer",
+      "baseline": {
+        "query_ns_p50": 3805709,
+        "query_ns_p99": 4031208,
+        "writer_wait_ns_p50": 3787250,
+        "writer_wait_ns_p99": 4010750,
+        "writer_total_ns_p50": 3790375,
+        "writer_total_ns_p99": 4014125,
+        "peak_requested_bytes_p50": 1552,
+        "peak_requested_bytes_p99": 1552,
+        "allocations_p50": 2,
+        "allocations_p99": 2
+      },
+      "current": {
+        "query_ns_p50": 3597250,
+        "query_ns_p99": 3882416,
+        "writer_wait_ns_p50": 42,
+        "writer_wait_ns_p99": 167,
+        "writer_total_ns_p50": 2000,
+        "writer_total_ns_p99": 9958,
+        "peak_requested_bytes_p50": 3600,
+        "peak_requested_bytes_p99": 3600,
+        "allocations_p50": 4,
+        "allocations_p99": 4
+      },
+      "delta_percent": {
+        "query_ns_p50": -5.477533883962227,
+        "query_ns_p99": -3.691002796184173,
+        "writer_wait_ns_p50": -99.99889101590864,
+        "writer_wait_ns_p99": -99.99583619023873,
+        "writer_total_ns_p50": -99.94723477228507,
+        "writer_total_ns_p99": -99.7519260112727,
+        "peak_requested_bytes_p50": 131.95876288659795,
+        "peak_requested_bytes_p99": 131.95876288659795,
+        "allocations_p50": 100.0,
+        "allocations_p99": 100.0
+      }
+    }
+  ],
+  "query_acceptance": false,
+  "writer_acceptance": true
+}

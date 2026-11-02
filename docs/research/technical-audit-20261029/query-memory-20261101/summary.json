@@ -1,0 +1,4025 @@
+{
+  "revisions": {
+    "baseline": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+    "sorted": "5b3b4c61d0adeb39f7373fa19c4da00cfc4a5108",
+    "current": "64af5a4804717562c48922cee1776e1bb0d4cf5b"
+  },
+  "execution_seconds": 99.22705133294221,
+  "exhaustive_ordered_result_equalities": 7680,
+  "complete_cross_revision_results_equal": true,
+  "independent_rounds_per_variant": 5,
+  "samples_per_group_per_round": 128,
+  "method": "Within-round nearest-rank quantiles, paired round ratios and median of round quantiles. Empirical p99 is not a population-tail guarantee. No pooled-query significance claim.",
+  "groups": {
+    "initial-rare": {
+      "prepare_ns_p50": {
+        "rounds": {
+          "baseline": [
+            3083,
+            3417,
+            4500,
+            3291,
+            5334
+          ],
+          "sorted": [
+            3208,
+            3500,
+            3042,
+            4375,
+            3917
+          ],
+          "current": [
+            3208,
+            2875,
+            3042,
+            3833,
+            5500
+          ]
+        },
+        "median": {
+          "baseline": 3417,
+          "sorted": 3500,
+          "current": 3208
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 2.4290313140181485,
+            "paired_change_percent": [
+              4.054492377554331,
+              2.4290313140181485,
+              -32.4,
+              32.938316621087814,
+              -26.565429321334832
+            ],
+            "median_paired_change_percent": 2.4290313140181485,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -6.116476441322794,
+            "paired_change_percent": [
+              4.054492377554331,
+              -15.861867134913666,
+              -32.4,
+              16.469158310543897,
+              3.112110986126737
+            ],
+            "median_paired_change_percent": 3.112110986126737,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "prepare_ns_p95": {
+        "rounds": {
+          "baseline": [
+            5000,
+            5708,
+            8500,
+            6667,
+            14625
+          ],
+          "sorted": [
+            5542,
+            6375,
+            4708,
+            10541,
+            6917
+          ],
+          "current": [
+            6458,
+            4875,
+            4458,
+            7459,
+            15208
+          ]
+        },
+        "median": {
+          "baseline": 6667,
+          "sorted": 6375,
+          "current": 6458
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -4.379781010949458,
+            "paired_change_percent": [
+              10.840000000000005,
+              11.685353889278204,
+              -44.61176470588235,
+              58.10709464526773,
+              -52.7042735042735
+            ],
+            "median_paired_change_percent": 10.840000000000005,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -3.1348432578371055,
+            "paired_change_percent": [
+              29.160000000000007,
+              -14.593552908199015,
+              -47.55294117647059,
+              11.879406029698526,
+              3.986324786324791
+            ],
+            "median_paired_change_percent": 3.986324786324791,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "prepare_ns_p99": {
+        "rounds": {
+          "baseline": [
+            9167,
+            17833,
+            15917,
+            8750,
+            19750
+          ],
+          "sorted": [
+            9667,
+            14042,
+            6250,
+            15459,
+            15041
+          ],
+          "current": [
+            13667,
+            8375,
+            9000,
+            19042,
+            22958
+          ]
+        },
+        "median": {
+          "baseline": 15917,
+          "sorted": 14042,
+          "current": 13667
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -11.779858013444745,
+            "paired_change_percent": [
+              5.454347114650382,
+              -21.258341277407055,
+              -60.73380662185085,
+              76.67428571428572,
+              -23.843037974683547
+            ],
+            "median_paired_change_percent": -21.258341277407055,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -14.135829616133687,
+            "paired_change_percent": [
+              49.089124031853395,
+              -53.036505355240294,
+              -43.45668153546522,
+              117.62285714285716,
+              16.24303797468354
+            ],
+            "median_paired_change_percent": 16.24303797468354,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "capture_ns_p50": {
+        "rounds": {
+          "baseline": [
+            823583,
+            883750,
+            1089750,
+            834167,
+            1170375
+          ],
+          "sorted": [
+            803417,
+            848083,
+            842416,
+            1045959,
+            938417
+          ],
+          "current": [
+            857291,
+            817625,
+            821500,
+            1015958,
+            1132958
+          ]
+        },
+        "median": {
+          "baseline": 883750,
+          "sorted": 848083,
+          "current": 857291
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -4.035869872701559,
+            "paired_change_percent": [
+              -2.448569239530196,
+              -4.035869872701559,
+              -22.696398256480844,
+              25.38964020393999,
+              -19.81911780412261
+            ],
+            "median_paired_change_percent": -4.035869872701559,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -2.9939462517680315,
+            "paired_change_percent": [
+              4.092847958250712,
+              -7.482319660537485,
+              -24.615737554484973,
+              21.793118164588154,
+              -3.19700950550037
+            ],
+            "median_paired_change_percent": -3.19700950550037,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "capture_ns_p95": {
+        "rounds": {
+          "baseline": [
+            1023000,
+            1152417,
+            1468250,
+            1075541,
+            1808417
+          ],
+          "sorted": [
+            1041708,
+            1137500,
+            1071209,
+            2307875,
+            1264500
+          ],
+          "current": [
+            1133875,
+            1074541,
+            1030417,
+            1335625,
+            3940333
+          ]
+        },
+        "median": {
+          "baseline": 1152417,
+          "sorted": 1137500,
+          "current": 1133875
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -1.2944099227970463,
+            "paired_change_percent": [
+              1.8287390029325445,
+              -1.2944099227970463,
+              -27.041784437255235,
+              114.57805885596177,
+              -30.076967867477467
+            ],
+            "median_paired_change_percent": -1.2944099227970463,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -1.6089661988672455,
+            "paired_change_percent": [
+              10.838220918866082,
+              -6.757623325584405,
+              -29.820057892048357,
+              24.181690888585372,
+              117.88851796903037
+            ],
+            "median_paired_change_percent": 10.838220918866082,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "capture_ns_p99": {
+        "rounds": {
+          "baseline": [
+            1152083,
+            1428417,
+            1711750,
+            1191625,
+            2241209
+          ],
+          "sorted": [
+            1195833,
+            1256375,
+            1138834,
+            4007041,
+            1500792
+          ],
+          "current": [
+            1442375,
+            1154541,
+            1255458,
+            1407291,
+            9720083
+          ]
+        },
+        "median": {
+          "baseline": 1428417,
+          "sorted": 1256375,
+          "current": 1407291
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -12.044241982558312,
+            "paired_change_percent": [
+              3.7974694531557107,
+              -12.044241982558312,
+              -33.469607127209,
+              236.26694639672715,
+              -33.03649949647712
+            ],
+            "median_paired_change_percent": -12.044241982558312,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -1.4789798777247842,
+            "paired_change_percent": [
+              25.1971429141824,
+              -19.17339264374479,
+              -26.65646268438733,
+              18.098478967796083,
+              333.6981959290722
+            ],
+            "median_paired_change_percent": 18.098478967796083,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "execute_ns_p50": {
+        "rounds": {
+          "baseline": [
+            98792,
+            118791,
+            149959,
+            110791,
+            161208
+          ],
+          "sorted": [
+            124250,
+            125750,
+            122667,
+            159750,
+            141625
+          ],
+          "current": [
+            111708,
+            101875,
+            102208,
+            138166,
+            153417
+          ]
+        },
+        "median": {
+          "baseline": 118791,
+          "sorted": 125750,
+          "current": 111708
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 5.858187909858481,
+            "paired_change_percent": [
+              25.76929306016682,
+              5.858187909858481,
+              -18.19964123527097,
+              44.19041257863905,
+              -12.147660165748597
+            ],
+            "median_paired_change_percent": 5.858187909858481,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -5.962572922191079,
+            "paired_change_percent": [
+              13.073933111992876,
+              -14.240136037241879,
+              -31.8427036723371,
+              24.708685723569612,
+              -4.832886705374428
+            ],
+            "median_paired_change_percent": -4.832886705374428,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "execute_ns_p95": {
+        "rounds": {
+          "baseline": [
+            135083,
+            157250,
+            200583,
+            146792,
+            248834
+          ],
+          "sorted": [
+            159125,
+            176084,
+            154208,
+            258708,
+            187792
+          ],
+          "current": [
+            144375,
+            141250,
+            138000,
+            177792,
+            535084
+          ]
+        },
+        "median": {
+          "baseline": 157250,
+          "sorted": 176084,
+          "current": 144375
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 11.977106518282987,
+            "paired_change_percent": [
+              17.797946447739534,
+              11.977106518282987,
+              -23.120104894233307,
+              76.24121205515286,
+              -24.531213580137766
+            ],
+            "median_paired_change_percent": 11.977106518282987,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -8.187599364069953,
+            "paired_change_percent": [
+              6.878733815506033,
+              -10.174880763116057,
+              -31.20055039559684,
+              21.11831707449998,
+              115.03653037768152
+            ],
+            "median_paired_change_percent": 6.878733815506033,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "execute_ns_p99": {
+        "rounds": {
+          "baseline": [
+            215875,
+            200709,
+            219625,
+            166208,
+            347167
+          ],
+          "sorted": [
+            197959,
+            202875,
+            161167,
+            627833,
+            204542
+          ],
+          "current": [
+            172833,
+            150250,
+            173333,
+            322625,
+            843917
+          ]
+        },
+        "median": {
+          "baseline": 215875,
+          "sorted": 202875,
+          "current": 173333
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -6.022003474232774,
+            "paired_change_percent": [
+              -8.299247249565722,
+              1.0791743270107457,
+              -26.61718838929994,
+              277.7393386599923,
+              -41.08253376617017
+            ],
+            "median_paired_change_percent": -8.299247249565722,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -19.70677475390851,
+            "paired_change_percent": [
+              -19.938390272148233,
+              -25.14037736225082,
+              -21.077746158224244,
+              94.10918848671544,
+              143.08675651775658
+            ],
+            "median_paired_change_percent": -19.938390272148233,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "total_ns_p50": {
+        "rounds": {
+          "baseline": [
+            926750,
+            1011875,
+            1240084,
+            947375,
+            1332250
+          ],
+          "sorted": [
+            933666,
+            975375,
+            968458,
+            1209667,
+            1086000
+          ],
+          "current": [
+            969959,
+            922875,
+            931958,
+            1162083,
+            1292209
+          ]
+        },
+        "median": {
+          "baseline": 1011875,
+          "sorted": 975375,
+          "current": 969959
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -3.607164916615191,
+            "paired_change_percent": [
+              0.7462638251955811,
+              -3.607164916615191,
+              -21.903838772212204,
+              27.686185512600602,
+              -18.48376806155001
+            ],
+            "median_paired_change_percent": -3.607164916615191,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -4.142408894379246,
+            "paired_change_percent": [
+              4.662422444024816,
+              -8.795552810376773,
+              -24.847187771150992,
+              22.66346483704975,
+              -3.0055169825483175
+            ],
+            "median_paired_change_percent": -3.0055169825483175,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "total_ns_p95": {
+        "rounds": {
+          "baseline": [
+            1162750,
+            1309833,
+            1719083,
+            1218458,
+            2010459
+          ],
+          "sorted": [
+            1193167,
+            1302000,
+            1235125,
+            2562958,
+            1456542
+          ],
+          "current": [
+            1287666,
+            1211584,
+            1144291,
+            1508750,
+            4489584
+          ]
+        },
+        "median": {
+          "baseline": 1309833,
+          "sorted": 1302000,
+          "current": 1287666
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -0.598015166818977,
+            "paired_change_percent": [
+              2.6159535583745397,
+              -0.598015166818977,
+              -28.152102021833734,
+              110.34438610112124,
+              -27.55176802909186
+            ],
+            "median_paired_change_percent": -0.598015166818977,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -1.692353147309622,
+            "paired_change_percent": [
+              10.743152010320367,
+              -7.500879883160683,
+              -33.435965570016116,
+              23.82453888439322,
+              123.31139306994076
+            ],
+            "median_paired_change_percent": 10.743152010320367,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "total_ns_p99": {
+        "rounds": {
+          "baseline": [
+            1280667,
+            1669375,
+            1959500,
+            1377000,
+            2446375
+          ],
+          "sorted": [
+            1397584,
+            1423250,
+            1315375,
+            4569333,
+            1712959
+          ],
+          "current": [
+            1704500,
+            1285500,
+            1456083,
+            2432375,
+            10310292
+          ]
+        },
+        "median": {
+          "baseline": 1669375,
+          "sorted": 1423250,
+          "current": 1704500
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -14.743541744664924,
+            "paired_change_percent": [
+              9.129383360389554,
+              -14.743541744664924,
+              -32.87190609849452,
+              231.83246187363835,
+              -29.979704665065654
+            ],
+            "median_paired_change_percent": -14.743541744664924,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 2.1040808685885537,
+            "paired_change_percent": [
+              33.094707679670044,
+              -22.995132909022843,
+              -25.691094667006887,
+              76.64306463326072,
+              321.4518215727351
+            ],
+            "median_paired_change_percent": 33.094707679670044,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "allocations_p50": {
+        "rounds": {
+          "baseline": [
+            166,
+            166,
+            166,
+            166,
+            166
+          ],
+          "sorted": [
+            165,
+            165,
+            165,
+            165,
+            165
+          ],
+          "current": [
+            166,
+            166,
+            166,
+            166,
+            166
+          ]
+        },
+        "median": {
+          "baseline": 166,
+          "sorted": 165,
+          "current": 166
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -0.6024096385542133,
+            "paired_change_percent": [
+              -0.6024096385542133,
+              -0.6024096385542133,
+              -0.6024096385542133,
+              -0.6024096385542133,
+              -0.6024096385542133
+            ],
+            "median_paired_change_percent": -0.6024096385542133,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 0.0,
+            "paired_change_percent": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median_paired_change_percent": 0.0,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "peak_requested_bytes_p50": {
+        "rounds": {
+          "baseline": [
+            127509,
+            127509,
+            127509,
+            127509,
+            127509
+          ],
+          "sorted": [
+            60391,
+            60391,
+            60391,
+            60391,
+            60391
+          ],
+          "current": [
+            117205,
+            117205,
+            117205,
+            117205,
+            117205
+          ]
+        },
+        "median": {
+          "baseline": 127509,
+          "sorted": 60391,
+          "current": 117205
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -52.63785301429703,
+            "paired_change_percent": [
+              -52.63785301429703,
+              -52.63785301429703,
+              -52.63785301429703,
+              -52.63785301429703,
+              -52.63785301429703
+            ],
+            "median_paired_change_percent": -52.63785301429703,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -8.08099820404834,
+            "paired_change_percent": [
+              -8.08099820404834,
+              -8.08099820404834,
+              -8.08099820404834,
+              -8.08099820404834,
+              -8.08099820404834
+            ],
+            "median_paired_change_percent": -8.08099820404834,
+            "sustained_above_five_percent": false
+          }
+        }
+      }
+    },
+    "initial-hot": {
+      "prepare_ns_p50": {
+        "rounds": {
+          "baseline": [
+            2000,
+            1917,
+            2500,
+            2042,
+            4667
+          ],
+          "sorted": [
+            2083,
+            2125,
+            1958,
+            3500,
+            2583
+          ],
+          "current": [
+            2000,
+            1709,
+            1958,
+            2500,
+            2917
+          ]
+        },
+        "median": {
+          "baseline": 2042,
+          "sorted": 2125,
+          "current": 2000
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 4.06464250734575,
+            "paired_change_percent": [
+              4.150000000000009,
+              10.850286906624929,
+              -21.68,
+              71.4005876591577,
+              -44.65395328905078
+            ],
+            "median_paired_change_percent": 4.150000000000009,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -2.0568070519098924,
+            "paired_change_percent": [
+              0.0,
+              -10.85028690662494,
+              -21.68,
+              22.428991185112636,
+              -37.497321619884296
+            ],
+            "median_paired_change_percent": -10.85028690662494,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "prepare_ns_p95": {
+        "rounds": {
+          "baseline": [
+            4625,
+            4292,
+            5500,
+            5666,
+            9750
+          ],
+          "sorted": [
+            4000,
+            5416,
+            5250,
+            9416,
+            6000
+          ],
+          "current": [
+            7000,
+            3416,
+            4042,
+            6500,
+            6709
+          ]
+        },
+        "median": {
+          "baseline": 5500,
+          "sorted": 5416,
+          "current": 6500
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -1.5272727272727327,
+            "paired_change_percent": [
+              -13.513513513513509,
+              26.188257222739985,
+              -4.545454545454541,
+              66.18425697140839,
+              -38.46153846153846
+            ],
+            "median_paired_change_percent": -4.545454545454541,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 18.181818181818187,
+            "paired_change_percent": [
+              51.35135135135136,
+              -20.41006523765144,
+              -26.509090909090904,
+              14.719378750441226,
+              -31.18974358974359
+            ],
+            "median_paired_change_percent": -20.41006523765144,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "prepare_ns_p99": {
+        "rounds": {
+          "baseline": [
+            6083,
+            4958,
+            8375,
+            6916,
+            15667
+          ],
+          "sorted": [
+            6667,
+            6750,
+            6625,
+            21375,
+            8833
+          ],
+          "current": [
+            12583,
+            4875,
+            4875,
+            8458,
+            9750
+          ]
+        },
+        "median": {
+          "baseline": 6916,
+          "sorted": 6750,
+          "current": 8458
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -2.4002313475997683,
+            "paired_change_percent": [
+              9.600526056222257,
+              36.14360629286002,
+              -20.895522388059707,
+              209.06593406593407,
+              -43.62034850322334
+            ],
+            "median_paired_change_percent": 9.600526056222257,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 22.296124927703875,
+            "paired_change_percent": [
+              106.8551701463094,
+              -1.6740621218233165,
+              -41.7910447761194,
+              22.296124927703875,
+              -37.76728154720112
+            ],
+            "median_paired_change_percent": -1.6740621218233165,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "capture_ns_p50": {
+        "rounds": {
+          "baseline": [
+            1513500,
+            1537750,
+            1592667,
+            1508500,
+            1888917
+          ],
+          "sorted": [
+            1473542,
+            1493375,
+            1514250,
+            1768541,
+            1570708
+          ],
+          "current": [
+            1504000,
+            1503917,
+            1495541,
+            1665959,
+            1688875
+          ]
+        },
+        "median": {
+          "baseline": 1537750,
+          "sorted": 1514250,
+          "current": 1504000
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -1.5282067956429835,
+            "paired_change_percent": [
+              -2.6401057152296015,
+              -2.8857096407088223,
+              -4.9236281030497935,
+              17.238382499171358,
+              -16.84610811380278
+            ],
+            "median_paired_change_percent": -2.8857096407088223,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -2.1947650788489703,
+            "paired_change_percent": [
+              -0.6276841757515639,
+              -2.2001625751910225,
+              -6.098324382937548,
+              10.438117335101094,
+              -10.590301214928976
+            ],
+            "median_paired_change_percent": -2.2001625751910225,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "capture_ns_p95": {
+        "rounds": {
+          "baseline": [
+            1777708,
+            1807417,
+            1895083,
+            1928167,
+            3124416
+          ],
+          "sorted": [
+            1627708,
+            1807458,
+            1759125,
+            2567833,
+            1841375
+          ],
+          "current": [
+            2052375,
+            1815542,
+            1732667,
+            2001084,
+            2202083
+          ]
+        },
+        "median": {
+          "baseline": 1895083,
+          "sorted": 1807458,
+          "current": 2001084
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -4.623808033737841,
+            "paired_change_percent": [
+              -8.437831184874012,
+              0.002268430583529657,
+              -7.174250415417161,
+              33.17482355003483,
+              -41.064986224625656
+            ],
+            "median_paired_change_percent": -7.174250415417161,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 5.593475325355146,
+            "paired_change_percent": [
+              15.450625187038591,
+              0.4495365485662761,
+              -8.570389792953659,
+              3.781674512632982,
+              -29.520172729879757
+            ],
+            "median_paired_change_percent": 0.4495365485662761,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "capture_ns_p99": {
+        "rounds": {
+          "baseline": [
+            1964916,
+            2032167,
+            2063208,
+            2324208,
+            4080292
+          ],
+          "sorted": [
+            1696792,
+            1966583,
+            1903833,
+            3212875,
+            1982750
+          ],
+          "current": [
+            2626000,
+            2087083,
+            1903084,
+            2199166,
+            2417417
+          ]
+        },
+        "median": {
+          "baseline": 2063208,
+          "sorted": 1966583,
+          "current": 2199166
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -4.6832408559873695,
+            "paired_change_percent": [
+              -13.645570599455647,
+              -3.2272938198484646,
+              -7.724621075528981,
+              38.235261215863645,
+              -51.40666403286824
+            ],
+            "median_paired_change_percent": -7.724621075528981,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 6.589640986269929,
+            "paired_change_percent": [
+              33.644389887404856,
+              2.7023369634483707,
+              -7.760923765320804,
+              -5.37998320288029,
+              -40.75382350086709
+            ],
+            "median_paired_change_percent": -5.37998320288029,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "execute_ns_p50": {
+        "rounds": {
+          "baseline": [
+            153750,
+            155792,
+            186667,
+            153666,
+            254667
+          ],
+          "sorted": [
+            154875,
+            144792,
+            156333,
+            229292,
+            185000
+          ],
+          "current": [
+            148375,
+            145750,
+            150750,
+            194000,
+            194916
+          ]
+        },
+        "median": {
+          "baseline": 155792,
+          "sorted": 156333,
+          "current": 150750
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 0.34725788230460797,
+            "paired_change_percent": [
+              0.7317073170731714,
+              -7.060696313032766,
+              -16.25032812441406,
+              49.21453021488163,
+              -27.356116026026143
+            ],
+            "median_paired_change_percent": -7.060696313032766,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -3.2363664373010192,
+            "paired_change_percent": [
+              -3.495934959349589,
+              -6.445773852315906,
+              -19.24121564068636,
+              26.247836216209187,
+              -23.46240384502114
+            ],
+            "median_paired_change_percent": -6.445773852315906,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "execute_ns_p95": {
+        "rounds": {
+          "baseline": [
+            257500,
+            244542,
+            246375,
+            256958,
+            446625
+          ],
+          "sorted": [
+            222041,
+            238750,
+            231667,
+            383792,
+            255583
+          ],
+          "current": [
+            256125,
+            231167,
+            214625,
+            276500,
+            318875
+          ]
+        },
+        "median": {
+          "baseline": 256958,
+          "sorted": 238750,
+          "current": 256125
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -7.085982923279288,
+            "paired_change_percent": [
+              -13.770485436893198,
+              -2.368509294926846,
+              -5.9697615423642825,
+              49.35981755773318,
+              -42.77458718164008
+            ],
+            "median_paired_change_percent": -5.9697615423642825,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -0.3241774920414997,
+            "paired_change_percent": [
+              -0.5339805825242738,
+              -5.469408118032892,
+              -12.886859462201928,
+              7.60513391293518,
+              -28.60341449762105
+            ],
+            "median_paired_change_percent": -5.469408118032892,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "execute_ns_p99": {
+        "rounds": {
+          "baseline": [
+            286042,
+            326125,
+            278125,
+            320709,
+            667292
+          ],
+          "sorted": [
+            253500,
+            337459,
+            260292,
+            519750,
+            324500
+          ],
+          "current": [
+            446500,
+            270791,
+            236542,
+            340917,
+            440041
+          ]
+        },
+        "median": {
+          "baseline": 320709,
+          "sorted": 324500,
+          "current": 340917
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 1.1820684795250447,
+            "paired_change_percent": [
+              -11.37665098132442,
+              3.4753545419700993,
+              -6.411865168539322,
+              62.06280459856131,
+              -51.37061436372683
+            ],
+            "median_paired_change_percent": -6.411865168539322,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 6.301039259889807,
+            "paired_change_percent": [
+              56.09595793624713,
+              -16.96711383671905,
+              -14.951191011235954,
+              6.301039259889807,
+              -34.05570574800837
+            ],
+            "median_paired_change_percent": -14.951191011235954,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "total_ns_p50": {
+        "rounds": {
+          "baseline": [
+            1664625,
+            1702959,
+            1787083,
+            1654083,
+            2187292
+          ],
+          "sorted": [
+            1629959,
+            1632292,
+            1669584,
+            2033583,
+            1755042
+          ],
+          "current": [
+            1649917,
+            1652250,
+            1652333,
+            1864166,
+            1890375
+          ]
+        },
+        "median": {
+          "baseline": 1702959,
+          "sorted": 1669584,
+          "current": 1652333
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -1.9598240474374307,
+            "paired_change_percent": [
+              -2.082511076068183,
+              -4.149659504427294,
+              -6.574904467223963,
+              22.943225944526358,
+              -19.761879072387224
+            ],
+            "median_paired_change_percent": -4.149659504427294,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -2.9728255348484556,
+            "paired_change_percent": [
+              -0.8835623638957735,
+              -2.9776994043896554,
+              -7.540220571736178,
+              12.700874139931306,
+              -13.574639325705029
+            ],
+            "median_paired_change_percent": -2.9776994043896554,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "total_ns_p95": {
+        "rounds": {
+          "baseline": [
+            2042625,
+            2020625,
+            2141541,
+            2186583,
+            3508875
+          ],
+          "sorted": [
+            1833292,
+            2037208,
+            1976584,
+            3004583,
+            2096125
+          ],
+          "current": [
+            2306708,
+            2044292,
+            1940833,
+            2240625,
+            2593709
+          ]
+        },
+        "median": {
+          "baseline": 2141541,
+          "sorted": 2037208,
+          "current": 2240625
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -4.871865633205252,
+            "paired_change_percent": [
+              -10.248234502172448,
+              0.8206866687287429,
+              -7.702724346627033,
+              37.40996797285994,
+              -40.26219229810124
+            ],
+            "median_paired_change_percent": -7.702724346627033,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 4.626761757071196,
+            "paired_change_percent": [
+              12.928609020255788,
+              1.171271265078877,
+              -9.372129695392239,
+              2.4715274928964526,
+              -26.081464856969827
+            ],
+            "median_paired_change_percent": 1.171271265078877,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "total_ns_p99": {
+        "rounds": {
+          "baseline": [
+            2269542,
+            2315583,
+            2394125,
+            2557500,
+            4494209
+          ],
+          "sorted": [
+            1926459,
+            2289291,
+            2155791,
+            3559041,
+            2231333
+          ],
+          "current": [
+            3048334,
+            2437250,
+            2139667,
+            2459000,
+            2768834
+          ]
+        },
+        "median": {
+          "baseline": 2394125,
+          "sorted": 2231333,
+          "current": 2459000
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -6.7996449642353625,
+            "paired_change_percent": [
+              -15.116838551566792,
+              -1.1354375982204012,
+              -9.954952226805203,
+              39.1609384164223,
+              -50.350929384904
+            ],
+            "median_paired_change_percent": -9.954952226805203,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 2.7097582624131977,
+            "paired_change_percent": [
+              34.31494107621713,
+              5.254270738729727,
+              -10.628434187855685,
+              -3.851417399804502,
+              -38.391071710283164
+            ],
+            "median_paired_change_percent": -3.851417399804502,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "allocations_p50": {
+        "rounds": {
+          "baseline": [
+            151,
+            151,
+            151,
+            151,
+            151
+          ],
+          "sorted": [
+            151,
+            151,
+            151,
+            151,
+            151
+          ],
+          "current": [
+            151,
+            151,
+            151,
+            151,
+            151
+          ]
+        },
+        "median": {
+          "baseline": 151,
+          "sorted": 151,
+          "current": 151
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 0.0,
+            "paired_change_percent": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median_paired_change_percent": 0.0,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 0.0,
+            "paired_change_percent": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median_paired_change_percent": 0.0,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "peak_requested_bytes_p50": {
+        "rounds": {
+          "baseline": [
+            44255,
+            44255,
+            44255,
+            44255,
+            44255
+          ],
+          "sorted": [
+            44247,
+            44247,
+            44247,
+            44247,
+            44247
+          ],
+          "current": [
+            44271,
+            44271,
+            44271,
+            44271,
+            44271
+          ]
+        },
+        "median": {
+          "baseline": 44255,
+          "sorted": 44247,
+          "current": 44271
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -0.018077053440290758,
+            "paired_change_percent": [
+              -0.018077053440290758,
+              -0.018077053440290758,
+              -0.018077053440290758,
+              -0.018077053440290758,
+              -0.018077053440290758
+            ],
+            "median_paired_change_percent": -0.018077053440290758,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 0.036154106880581516,
+            "paired_change_percent": [
+              0.036154106880581516,
+              0.036154106880581516,
+              0.036154106880581516,
+              0.036154106880581516,
+              0.036154106880581516
+            ],
+            "median_paired_change_percent": 0.036154106880581516,
+            "sustained_above_five_percent": false
+          }
+        }
+      }
+    },
+    "updated-rare": {
+      "prepare_ns_p50": {
+        "rounds": {
+          "baseline": [
+            2916,
+            2958,
+            3166,
+            3000,
+            7750
+          ],
+          "sorted": [
+            2917,
+            2833,
+            3083,
+            4208,
+            3500
+          ],
+          "current": [
+            3167,
+            2834,
+            2958,
+            3625,
+            3542
+          ]
+        },
+        "median": {
+          "baseline": 3000,
+          "sorted": 3083,
+          "current": 3167
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 2.766666666666673,
+            "paired_change_percent": [
+              0.03429355281208135,
+              -4.225828262339415,
+              -2.621604548325962,
+              40.26666666666667,
+              -54.83870967741935
+            ],
+            "median_paired_change_percent": -2.621604548325962,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 5.566666666666675,
+            "paired_change_percent": [
+              8.60768175582991,
+              -4.192021636240706,
+              -6.5698041692987985,
+              20.833333333333325,
+              -54.296774193548394
+            ],
+            "median_paired_change_percent": -4.192021636240706,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "prepare_ns_p95": {
+        "rounds": {
+          "baseline": [
+            5375,
+            4542,
+            6167,
+            6208,
+            22084
+          ],
+          "sorted": [
+            4500,
+            4084,
+            5833,
+            8375,
+            8000
+          ],
+          "current": [
+            6458,
+            4333,
+            6333,
+            7083,
+            6583
+          ]
+        },
+        "median": {
+          "baseline": 6167,
+          "sorted": 5833,
+          "current": 6458
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -5.415923463596561,
+            "paired_change_percent": [
+              -16.279069767441857,
+              -10.083663584324087,
+              -5.415923463596561,
+              34.90657216494846,
+              -63.7746785002717
+            ],
+            "median_paired_change_percent": -10.083663584324087,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 4.718663856007788,
+            "paired_change_percent": [
+              20.148837209302318,
+              -4.601497137824751,
+              2.6917463920869134,
+              14.094716494845372,
+              -70.19108857091106
+            ],
+            "median_paired_change_percent": 2.6917463920869134,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "prepare_ns_p99": {
+        "rounds": {
+          "baseline": [
+            7250,
+            5708,
+            7125,
+            8125,
+            37000
+          ],
+          "sorted": [
+            6166,
+            8000,
+            7959,
+            14458,
+            8750
+          ],
+          "current": [
+            7250,
+            6375,
+            8125,
+            10209,
+            7167
+          ]
+        },
+        "median": {
+          "baseline": 7250,
+          "sorted": 8000,
+          "current": 7250
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 10.344827586206895,
+            "paired_change_percent": [
+              -14.951724137931032,
+              40.15416958654521,
+              11.70526315789473,
+              77.94461538461539,
+              -76.35135135135135
+            ],
+            "median_paired_change_percent": 11.70526315789473,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 0.0,
+            "paired_change_percent": [
+              0.0,
+              11.685353889278204,
+              14.035087719298245,
+              25.64923076923078,
+              -80.62972972972973
+            ],
+            "median_paired_change_percent": 11.685353889278204,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "capture_ns_p50": {
+        "rounds": {
+          "baseline": [
+            818208,
+            848000,
+            869292,
+            832625,
+            1346583
+          ],
+          "sorted": [
+            794791,
+            834625,
+            832083,
+            1013250,
+            951417
+          ],
+          "current": [
+            875458,
+            838708,
+            829209,
+            974125,
+            966791
+          ]
+        },
+        "median": {
+          "baseline": 848000,
+          "sorted": 834625,
+          "current": 875458
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -1.5772405660377409,
+            "paired_change_percent": [
+              -2.861986194219568,
+              -1.5772405660377409,
+              -4.280379895363118,
+              21.693439423509986,
+              -29.34583311982997
+            ],
+            "median_paired_change_percent": -2.861986194219568,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 3.237971698113218,
+            "paired_change_percent": [
+              6.9969983182760265,
+              -1.0957547169811344,
+              -4.610993774243866,
+              16.9944452784867,
+              -28.2041285238266
+            ],
+            "median_paired_change_percent": -1.0957547169811344,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "capture_ns_p95": {
+        "rounds": {
+          "baseline": [
+            1003833,
+            1080958,
+            1072875,
+            1071667,
+            3027167
+          ],
+          "sorted": [
+            957125,
+            1111583,
+            1056416,
+            1364750,
+            1210000
+          ],
+          "current": [
+            1326250,
+            1154209,
+            1061083,
+            1266000,
+            1244542
+          ]
+        },
+        "median": {
+          "baseline": 1072875,
+          "sorted": 1111583,
+          "current": 1244542
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 3.6078760340207294,
+            "paired_change_percent": [
+              -4.652965184448011,
+              2.833135052425728,
+              -1.5341022952347627,
+              27.34832741887172,
+              -60.02863403307449
+            ],
+            "median_paired_change_percent": -1.5341022952347627,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 16.000652452522424,
+            "paired_change_percent": [
+              32.11858944665098,
+              6.776489003273012,
+              -1.0991028777816658,
+              18.133711311442834,
+              -58.88756715437239
+            ],
+            "median_paired_change_percent": 6.776489003273012,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "capture_ns_p99": {
+        "rounds": {
+          "baseline": [
+            1099917,
+            1164541,
+            1228500,
+            1203375,
+            4057667
+          ],
+          "sorted": [
+            1040625,
+            1463250,
+            1167916,
+            1874084,
+            1308542
+          ],
+          "current": [
+            1902375,
+            1266958,
+            1158958,
+            1358834,
+            1373250
+          ]
+        },
+        "median": {
+          "baseline": 1203375,
+          "sorted": 1308542,
+          "current": 1358834
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 8.739337280565085,
+            "paired_change_percent": [
+              -5.390588562591536,
+              25.650363533787136,
+              -4.931542531542532,
+              55.73566012257194,
+              -67.75137043034827
+            ],
+            "median_paired_change_percent": -4.931542531542532,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 12.91858315155292,
+            "paired_change_percent": [
+              72.95623215206237,
+              8.794623804571922,
+              -5.660724460724465,
+              12.91858315155292,
+              -66.15666095813185
+            ],
+            "median_paired_change_percent": 8.794623804571922,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "execute_ns_p50": {
+        "rounds": {
+          "baseline": [
+            102167,
+            108042,
+            115250,
+            111500,
+            181458
+          ],
+          "sorted": [
+            116750,
+            123042,
+            121417,
+            152708,
+            146583
+          ],
+          "current": [
+            114958,
+            104208,
+            108125,
+            134875,
+            132250
+          ]
+        },
+        "median": {
+          "baseline": 111500,
+          "sorted": 123042,
+          "current": 114958
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 10.351569506726467,
+            "paired_change_percent": [
+              14.2736891559897,
+              13.883489753984568,
+              5.3509761388286226,
+              36.95784753363229,
+              -19.21932347981351
+            ],
+            "median_paired_change_percent": 13.883489753984568,
+            "sustained_above_five_percent": true
+          },
+          "current": {
+            "median_quantile_change_percent": 3.101345291479829,
+            "paired_change_percent": [
+              12.51969814127849,
+              -3.5486199811184505,
+              -6.182212581344904,
+              20.96412556053813,
+              -27.118120997696437
+            ],
+            "median_paired_change_percent": -3.5486199811184505,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "execute_ns_p95": {
+        "rounds": {
+          "baseline": [
+            136458,
+            138417,
+            149042,
+            150041,
+            452583
+          ],
+          "sorted": [
+            143125,
+            148667,
+            147042,
+            188584,
+            184584
+          ],
+          "current": [
+            170750,
+            136834,
+            144125,
+            163416,
+            170250
+          ]
+        },
+        "median": {
+          "baseline": 149042,
+          "sorted": 148667,
+          "current": 163416
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -0.25160692959032005,
+            "paired_change_percent": [
+              4.885752392677611,
+              7.4051597708373995,
+              -1.3419036244816884,
+              25.688311861424552,
+              -59.215436726523095
+            ],
+            "median_paired_change_percent": 4.885752392677611,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 9.644261349149907,
+            "paired_change_percent": [
+              25.130076653622368,
+              -1.1436456504620107,
+              -3.299070060788234,
+              8.914230110436483,
+              -62.38259059664194
+            ],
+            "median_paired_change_percent": -1.1436456504620107,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "execute_ns_p99": {
+        "rounds": {
+          "baseline": [
+            150875,
+            150375,
+            166167,
+            163791,
+            823000
+          ],
+          "sorted": [
+            150125,
+            171500,
+            167500,
+            320250,
+            203792
+          ],
+          "current": [
+            221459,
+            159875,
+            165542,
+            179083,
+            180500
+          ]
+        },
+        "median": {
+          "baseline": 163791,
+          "sorted": 171500,
+          "current": 179083
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 4.706607811174002,
+            "paired_change_percent": [
+              -0.4971002485501197,
+              14.048212801330017,
+              0.8022050106218481,
+              95.52356356576368,
+              -75.23791008505466
+            ],
+            "median_paired_change_percent": 0.8022050106218481,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 9.336288318649988,
+            "paired_change_percent": [
+              46.7830985915493,
+              6.31753948462177,
+              -0.3761276306366468,
+              9.336288318649988,
+              -78.06804374240583
+            ],
+            "median_paired_change_percent": 6.31753948462177,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "total_ns_p50": {
+        "rounds": {
+          "baseline": [
+            923042,
+            955375,
+            983125,
+            945584,
+            1562375
+          ],
+          "sorted": [
+            912833,
+            962208,
+            954458,
+            1180250,
+            1102750
+          ],
+          "current": [
+            992167,
+            946375,
+            943666,
+            1116667,
+            1098000
+          ]
+        },
+        "median": {
+          "baseline": 955375,
+          "sorted": 962208,
+          "current": 992167
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 0.7152165380086339,
+            "paired_change_percent": [
+              -1.1060168443039475,
+              0.7152165380086339,
+              -2.915905912269545,
+              24.81704428162914,
+              -29.41835346827746
+            ],
+            "median_paired_change_percent": -1.1060168443039475,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 3.8510532513410967,
+            "paired_change_percent": [
+              7.488824993878929,
+              -0.942038466570716,
+              -4.013630006357283,
+              18.09283998037192,
+              -29.72237779022322
+            ],
+            "median_paired_change_percent": -0.942038466570716,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "total_ns_p95": {
+        "rounds": {
+          "baseline": [
+            1147541,
+            1201375,
+            1216000,
+            1221917,
+            3272041
+          ],
+          "sorted": [
+            1082083,
+            1269709,
+            1209334,
+            1597625,
+            1386292
+          ],
+          "current": [
+            1512417,
+            1288833,
+            1198709,
+            1418458,
+            1406500
+          ]
+        },
+        "median": {
+          "baseline": 1216000,
+          "sorted": 1269709,
+          "current": 1406500
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 4.416858552631586,
+            "paired_change_percent": [
+              -5.70419706136861,
+              5.687982520029133,
+              -0.5481907894736793,
+              30.7474239248656,
+              -57.6321934841281
+            ],
+            "median_paired_change_percent": -0.5481907894736793,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 15.666118421052634,
+            "paired_change_percent": [
+              31.79633668862376,
+              7.279825200291334,
+              -1.4219572368421085,
+              16.084644047017925,
+              -57.01459731097501
+            ],
+            "median_paired_change_percent": 7.279825200291334,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "total_ns_p99": {
+        "rounds": {
+          "baseline": [
+            1238583,
+            1304791,
+            1410709,
+            1367625,
+            4909292
+          ],
+          "sorted": [
+            1196125,
+            1640292,
+            1332917,
+            2092250,
+            1509500
+          ],
+          "current": [
+            2088750,
+            1399916,
+            1297667,
+            1516125,
+            1537792
+          ]
+        },
+        "median": {
+          "baseline": 1367625,
+          "sorted": 1509500,
+          "current": 1516125
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 10.37382323370808,
+            "paired_change_percent": [
+              -3.427949519733442,
+              25.713006910685323,
+              -5.514390281766124,
+              52.98418791700941,
+              -69.25218544751463
+            ],
+            "median_paired_change_percent": -3.427949519733442,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 10.85823964902659,
+            "paired_change_percent": [
+              68.64029297996177,
+              7.290439618299027,
+              -8.013133821362162,
+              10.85823964902659,
+              -68.67589053574324
+            ],
+            "median_paired_change_percent": 7.290439618299027,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "allocations_p50": {
+        "rounds": {
+          "baseline": [
+            168,
+            168,
+            168,
+            168,
+            168
+          ],
+          "sorted": [
+            167,
+            167,
+            167,
+            167,
+            167
+          ],
+          "current": [
+            168,
+            168,
+            168,
+            168,
+            168
+          ]
+        },
+        "median": {
+          "baseline": 168,
+          "sorted": 167,
+          "current": 168
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -0.5952380952380931,
+            "paired_change_percent": [
+              -0.5952380952380931,
+              -0.5952380952380931,
+              -0.5952380952380931,
+              -0.5952380952380931,
+              -0.5952380952380931
+            ],
+            "median_paired_change_percent": -0.5952380952380931,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 0.0,
+            "paired_change_percent": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median_paired_change_percent": 0.0,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "peak_requested_bytes_p50": {
+        "rounds": {
+          "baseline": [
+            127445,
+            127445,
+            127445,
+            127445,
+            127445
+          ],
+          "sorted": [
+            60991,
+            60991,
+            60991,
+            60991,
+            60991
+          ],
+          "current": [
+            117141,
+            117141,
+            117141,
+            117141,
+            117141
+          ]
+        },
+        "median": {
+          "baseline": 127445,
+          "sorted": 60991,
+          "current": 117141
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -52.14327749225156,
+            "paired_change_percent": [
+              -52.14327749225156,
+              -52.14327749225156,
+              -52.14327749225156,
+              -52.14327749225156,
+              -52.14327749225156
+            ],
+            "median_paired_change_percent": -52.14327749225156,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -8.085056298795557,
+            "paired_change_percent": [
+              -8.085056298795557,
+              -8.085056298795557,
+              -8.085056298795557,
+              -8.085056298795557,
+              -8.085056298795557
+            ],
+            "median_paired_change_percent": -8.085056298795557,
+            "sustained_above_five_percent": false
+          }
+        }
+      }
+    },
+    "updated-hot": {
+      "prepare_ns_p50": {
+        "rounds": {
+          "baseline": [
+            1667,
+            1667,
+            2250,
+            1833,
+            4667
+          ],
+          "sorted": [
+            1667,
+            1792,
+            1667,
+            2375,
+            3583
+          ],
+          "current": [
+            1875,
+            1625,
+            1750,
+            2208,
+            2250
+          ]
+        },
+        "median": {
+          "baseline": 1833,
+          "sorted": 1792,
+          "current": 1875
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -2.236770321876702,
+            "paired_change_percent": [
+              0.0,
+              7.498500299940014,
+              -25.911111111111108,
+              29.569012547735962,
+              -23.22691236340262
+            ],
+            "median_paired_change_percent": 0.0,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 2.2913256955810146,
+            "paired_change_percent": [
+              12.477504499100188,
+              -2.519496100779839,
+              -22.22222222222222,
+              20.458265139116193,
+              -51.78915791729162
+            ],
+            "median_paired_change_percent": -2.519496100779839,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "prepare_ns_p95": {
+        "rounds": {
+          "baseline": [
+            4375,
+            4500,
+            6125,
+            5166,
+            9084
+          ],
+          "sorted": [
+            3375,
+            4375,
+            3375,
+            7833,
+            8708
+          ],
+          "current": [
+            6500,
+            3541,
+            3625,
+            6875,
+            7334
+          ]
+        },
+        "median": {
+          "baseline": 5166,
+          "sorted": 4375,
+          "current": 6500
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -15.311653116531165,
+            "paired_change_percent": [
+              -22.857142857142854,
+              -2.777777777777779,
+              -44.89795918367348,
+              51.62601626016261,
+              -4.13914575077059
+            ],
+            "median_paired_change_percent": -4.13914575077059,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 25.82268679829656,
+            "paired_change_percent": [
+              48.57142857142858,
+              -21.311111111111114,
+              -40.816326530612244,
+              33.08168795973674,
+              -19.26464112725671
+            ],
+            "median_paired_change_percent": -19.26464112725671,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "prepare_ns_p99": {
+        "rounds": {
+          "baseline": [
+            5583,
+            7334,
+            10375,
+            6625,
+            14125
+          ],
+          "sorted": [
+            4834,
+            6042,
+            5458,
+            9041,
+            10209
+          ],
+          "current": [
+            9041,
+            5833,
+            5584,
+            14375,
+            8584
+          ]
+        },
+        "median": {
+          "baseline": 7334,
+          "sorted": 6042,
+          "current": 8584
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -17.616580310880824,
+            "paired_change_percent": [
+              -13.415726312018627,
+              -17.616580310880824,
+              -47.39277108433735,
+              36.46792452830188,
+              -27.72389380530973
+            ],
+            "median_paired_change_percent": -17.616580310880824,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 17.043905099536417,
+            "paired_change_percent": [
+              61.938026150814984,
+              -20.46632124352331,
+              -46.17831325301205,
+              116.98113207547172,
+              -39.2283185840708
+            ],
+            "median_paired_change_percent": -20.46632124352331,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "capture_ns_p50": {
+        "rounds": {
+          "baseline": [
+            1451958,
+            1492959,
+            1577833,
+            1539167,
+            1860916
+          ],
+          "sorted": [
+            1463125,
+            1492500,
+            1469542,
+            1668542,
+            1747917
+          ],
+          "current": [
+            1575666,
+            1444333,
+            1519708,
+            1647500,
+            1612791
+          ]
+        },
+        "median": {
+          "baseline": 1539167,
+          "sorted": 1492500,
+          "current": 1575666
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -3.0319646925902166,
+            "paired_change_percent": [
+              0.7690993816625635,
+              -0.030744313809016877,
+              -6.863273869921594,
+              8.405520648506638,
+              -6.072224646356961
+            ],
+            "median_paired_change_percent": -0.030744313809016877,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 2.371347618549513,
+            "paired_change_percent": [
+              8.520081159372372,
+              -3.2570217936326418,
+              -3.68384993849159,
+              7.03841753363994,
+              -13.333487379333619
+            ],
+            "median_paired_change_percent": -3.2570217936326418,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "capture_ns_p95": {
+        "rounds": {
+          "baseline": [
+            1751458,
+            1666250,
+            2111917,
+            1823625,
+            3003583
+          ],
+          "sorted": [
+            1610958,
+            1784250,
+            1712000,
+            1975667,
+            2274917
+          ],
+          "current": [
+            2089042,
+            1665917,
+            1681500,
+            2010458,
+            1956333
+          ]
+        },
+        "median": {
+          "baseline": 1823625,
+          "sorted": 1784250,
+          "current": 1956333
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -2.1591610117211557,
+            "paired_change_percent": [
+              -8.021888049841907,
+              7.0817704426106465,
+              -18.93620819378792,
+              8.337350058263082,
+              -24.259892268667127
+            ],
+            "median_paired_change_percent": -8.021888049841907,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 7.277154020152166,
+            "paired_change_percent": [
+              19.274455910447188,
+              -0.019984996249067244,
+              -20.380393737064473,
+              10.245143601343475,
+              -34.8666908821897
+            ],
+            "median_paired_change_percent": -0.019984996249067244,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "capture_ns_p99": {
+        "rounds": {
+          "baseline": [
+            1830792,
+            1856750,
+            2504958,
+            2402500,
+            5120542
+          ],
+          "sorted": [
+            1666917,
+            1956291,
+            1796458,
+            2176583,
+            2759167
+          ],
+          "current": [
+            2397917,
+            1727750,
+            1813333,
+            7410875,
+            2403250
+          ]
+        },
+        "median": {
+          "baseline": 2402500,
+          "sorted": 1956291,
+          "current": 2397917
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -18.572695109261183,
+            "paired_change_percent": [
+              -8.951044138274577,
+              5.36103406489834,
+              -28.28390735493369,
+              -9.403413111342351,
+              -46.11572368706282
+            ],
+            "median_paired_change_percent": -9.403413111342351,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": -0.1907596253902133,
+            "paired_change_percent": [
+              30.977030705836594,
+              -6.947623535747949,
+              -27.610243365357825,
+              208.46514047866808,
+              -53.06649178934574
+            ],
+            "median_paired_change_percent": -6.947623535747949,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "execute_ns_p50": {
+        "rounds": {
+          "baseline": [
+            153750,
+            158125,
+            182667,
+            172583,
+            283625
+          ],
+          "sorted": [
+            151417,
+            153042,
+            158584,
+            220541,
+            269583
+          ],
+          "current": [
+            173500,
+            143916,
+            165208,
+            196958,
+            194125
+          ]
+        },
+        "median": {
+          "baseline": 172583,
+          "sorted": 158584,
+          "current": 173500
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -8.111459413731358,
+            "paired_change_percent": [
+              -1.517398373983736,
+              -3.214545454545459,
+              -13.184100029014544,
+              27.788368495158842,
+              -4.95090348171
+            ],
+            "median_paired_change_percent": -3.214545454545459,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 0.5313385443525664,
+            "paired_change_percent": [
+              12.84552845528455,
+              -8.985928853754944,
+              -9.55782927403417,
+              14.123639060625903,
+              -31.555751432349055
+            ],
+            "median_paired_change_percent": -8.985928853754944,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "execute_ns_p95": {
+        "rounds": {
+          "baseline": [
+            223625,
+            230500,
+            300833,
+            272792,
+            568541
+          ],
+          "sorted": [
+            207125,
+            222458,
+            233625,
+            307916,
+            390792
+          ],
+          "current": [
+            313250,
+            214375,
+            237875,
+            279750,
+            273167
+          ]
+        },
+        "median": {
+          "baseline": 272792,
+          "sorted": 233625,
+          "current": 273167
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -14.3578257426904,
+            "paired_change_percent": [
+              -7.378423700391279,
+              -3.4889370932754904,
+              -22.34063417244784,
+              12.875744156720149,
+              -31.26406011175975
+            ],
+            "median_paired_change_percent": -7.378423700391279,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 0.1374673744098054,
+            "paired_change_percent": [
+              40.07825600894355,
+              -6.995661605206072,
+              -20.927890224809108,
+              2.550661309715818,
+              -51.95298140327611
+            ],
+            "median_paired_change_percent": -6.995661605206072,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "execute_ns_p99": {
+        "rounds": {
+          "baseline": [
+            245875,
+            305667,
+            360541,
+            310875,
+            725208
+          ],
+          "sorted": [
+            303834,
+            286250,
+            286833,
+            417250,
+            544791
+          ],
+          "current": [
+            370708,
+            286792,
+            268708,
+            344750,
+            368791
+          ]
+        },
+        "median": {
+          "baseline": 310875,
+          "sorted": 303834,
+          "current": 344750
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -2.264897466827498,
+            "paired_change_percent": [
+              23.572547025927815,
+              -6.352337674659026,
+              -20.443722073217753,
+              34.21793325291516,
+              -24.877966045603472
+            ],
+            "median_paired_change_percent": -6.352337674659026,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 10.89666264575795,
+            "paired_change_percent": [
+              50.77092018301983,
+              -6.175020528876196,
+              -25.470889579825872,
+              10.89666264575795,
+              -49.14686545101543
+            ],
+            "median_paired_change_percent": -6.175020528876196,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "total_ns_p50": {
+        "rounds": {
+          "baseline": [
+            1607000,
+            1648083,
+            1756167,
+            1725125,
+            2173875
+          ],
+          "sorted": [
+            1616625,
+            1651000,
+            1638750,
+            1906333,
+            2025167
+          ],
+          "current": [
+            1754208,
+            1596208,
+            1680583,
+            1843458,
+            1816250
+          ]
+        },
+        "median": {
+          "baseline": 1725125,
+          "sorted": 1651000,
+          "current": 1754208
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -4.296790087674807,
+            "paired_change_percent": [
+              0.5989421281891616,
+              0.17699351306943445,
+              -6.685981458483159,
+              10.504050431128187,
+              -6.840687712034965
+            ],
+            "median_paired_change_percent": 0.17699351306943445,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 1.6858488515324899,
+            "paired_change_percent": [
+              9.16042314872434,
+              -3.147596328582969,
+              -4.303918704770105,
+              6.859387000941952,
+              -16.451037893163132
+            ],
+            "median_paired_change_percent": -3.147596328582969,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "total_ns_p95": {
+        "rounds": {
+          "baseline": [
+            1965500,
+            1896250,
+            2410666,
+            2129041,
+            3432167
+          ],
+          "sorted": [
+            1810750,
+            2008083,
+            1937250,
+            2248083,
+            2613791
+          ],
+          "current": [
+            2449417,
+            1864708,
+            1935667,
+            2292666,
+            2208875
+          ]
+        },
+        "median": {
+          "baseline": 2129041,
+          "sorted": 2008083,
+          "current": 2208875
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -5.681337278145415,
+            "paired_change_percent": [
+              -7.873314678198929,
+              5.897587343440991,
+              -19.638390386723003,
+              5.591343708270524,
+              -23.844294289875755
+            ],
+            "median_paired_change_percent": -7.873314678198929,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 3.749763391123051,
+            "paired_change_percent": [
+              24.620554566268126,
+              -1.6633882663150912,
+              -19.704056887183874,
+              7.685385110009624,
+              -35.64197196698179
+            ],
+            "median_paired_change_percent": -1.6633882663150912,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "total_ns_p99": {
+        "rounds": {
+          "baseline": [
+            2054834,
+            2139583,
+            2768375,
+            2672584,
+            5691625
+          ],
+          "sorted": [
+            1876250,
+            2200666,
+            2048375,
+            2480375,
+            3094709
+          ],
+          "current": [
+            2720042,
+            2003750,
+            2058542,
+            7745958,
+            2719958
+          ]
+        },
+        "median": {
+          "baseline": 2672584,
+          "sorted": 2200666,
+          "current": 2719958
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -17.65774246946027,
+            "paired_change_percent": [
+              -8.690921018437503,
+              2.854902100082124,
+              -26.008037205942113,
+              -7.191878721117839,
+              -45.62696945072804
+            ],
+            "median_paired_change_percent": -8.690921018437503,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 1.772591619197006,
+            "paired_change_percent": [
+              32.372834009949216,
+              -6.348573530449631,
+              -25.64078204722987,
+              189.8302915829774,
+              -52.21122262974107
+            ],
+            "median_paired_change_percent": -6.348573530449631,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "allocations_p50": {
+        "rounds": {
+          "baseline": [
+            156,
+            156,
+            156,
+            156,
+            156
+          ],
+          "sorted": [
+            156,
+            156,
+            156,
+            156,
+            156
+          ],
+          "current": [
+            156,
+            156,
+            156,
+            156,
+            156
+          ]
+        },
+        "median": {
+          "baseline": 156,
+          "sorted": 156,
+          "current": 156
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": 0.0,
+            "paired_change_percent": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median_paired_change_percent": 0.0,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 0.0,
+            "paired_change_percent": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ],
+            "median_paired_change_percent": 0.0,
+            "sustained_above_five_percent": false
+          }
+        }
+      },
+      "peak_requested_bytes_p50": {
+        "rounds": {
+          "baseline": [
+            44191,
+            44191,
+            44191,
+            44191,
+            44191
+          ],
+          "sorted": [
+            44183,
+            44183,
+            44183,
+            44183,
+            44183
+          ],
+          "current": [
+            44207,
+            44207,
+            44207,
+            44207,
+            44207
+          ]
+        },
+        "median": {
+          "baseline": 44191,
+          "sorted": 44183,
+          "current": 44207
+        },
+        "candidate_comparisons": {
+          "sorted": {
+            "median_quantile_change_percent": -0.01810323369011435,
+            "paired_change_percent": [
+              -0.01810323369011435,
+              -0.01810323369011435,
+              -0.01810323369011435,
+              -0.01810323369011435,
+              -0.01810323369011435
+            ],
+            "median_paired_change_percent": -0.01810323369011435,
+            "sustained_above_five_percent": false
+          },
+          "current": {
+            "median_quantile_change_percent": 0.0362064673802287,
+            "paired_change_percent": [
+              0.0362064673802287,
+              0.0362064673802287,
+              0.0362064673802287,
+              0.0362064673802287,
+              0.0362064673802287
+            ],
+            "median_paired_change_percent": 0.0362064673802287,
+            "sustained_above_five_percent": false
+          }
+        }
+      }
+    }
+  },
+  "memory_samples": {
+    "initial-rare": {
+      "baseline": [
+        {
+          "first_query_peak": 327689,
+          "peak_counts": {
+            "127473": 1,
+            "127477": 7,
+            "127481": 2,
+            "127485": 1,
+            "127489": 2,
+            "127493": 1,
+            "127497": 1,
+            "127501": 2,
+            "127505": 2,
+            "127509": 108,
+            "327689": 1
+          }
+        },
+        {
+          "first_query_peak": 327689,
+          "peak_counts": {
+            "127473": 1,
+            "127477": 7,
+            "127481": 2,
+            "127485": 1,
+            "127489": 2,
+            "127493": 1,
+            "127497": 1,
+            "127501": 2,
+            "127505": 2,
+            "127509": 108,
+            "327689": 1
+          }
+        },
+        {
+          "first_query_peak": 327689,
+          "peak_counts": {
+            "127473": 1,
+            "127477": 7,
+            "127481": 2,
+            "127485": 1,
+            "127489": 2,
+            "127493": 1,
+            "127497": 1,
+            "127501": 2,
+            "127505": 2,
+            "127509": 108,
+            "327689": 1
+          }
+        },
+        {
+          "first_query_peak": 327689,
+          "peak_counts": {
+            "127473": 1,
+            "127477": 7,
+            "127481": 2,
+            "127485": 1,
+            "127489": 2,
+            "127493": 1,
+            "127497": 1,
+            "127501": 2,
+            "127505": 2,
+            "127509": 108,
+            "327689": 1
+          }
+        },
+        {
+          "first_query_peak": 327689,
+          "peak_counts": {
+            "127473": 1,
+            "127477": 7,
+            "127481": 2,
+            "127485": 1,
+            "127489": 2,
+            "127493": 1,
+            "127497": 1,
+            "127501": 2,
+            "127505": 2,
+            "127509": 108,
+            "327689": 1
+          }
+        }
+      ],
+      "sorted": [
+        {
+          "first_query_peak": 260562,
+          "peak_counts": {
+            "60349": 1,
+            "60350": 1,
+            "60352": 1,
+            "60353": 1,
+            "60354": 4,
+            "60356": 1,
+            "60358": 1,
+            "60362": 1,
+            "60366": 5,
+            "60367": 5,
+            "60371": 1,
+            "60376": 1,
+            "60381": 2,
+            "60386": 2,
+            "60389": 9,
+            "60390": 26,
+            "60391": 65,
+            "260562": 1
+          }
+        },
+        {
+          "first_query_peak": 260562,
+          "peak_counts": {
+            "60349": 1,
+            "60350": 1,
+            "60352": 1,
+            "60353": 1,
+            "60354": 4,
+            "60356": 1,
+            "60358": 1,
+            "60362": 1,
+            "60366": 5,
+            "60367": 5,
+            "60371": 1,
+            "60376": 1,
+            "60381": 2,
+            "60386": 2,
+            "60389": 9,
+            "60390": 26,
+            "60391": 65,
+            "260562": 1
+          }
+        },
+        {
+          "first_query_peak": 260562,
+          "peak_counts": {
+            "60349": 1,
+            "60350": 1,
+            "60352": 1,
+            "60353": 1,
+            "60354": 4,
+            "60356": 1,
+            "60358": 1,
+            "60362": 1,
+            "60366": 5,
+            "60367": 5,
+            "60371": 1,
+            "60376": 1,
+            "60381": 2,
+            "60386": 2,
+            "60389": 9,
+            "60390": 26,
+            "60391": 65,
+            "260562": 1
+          }
+        },
+        {
+          "first_query_peak": 260562,
+          "peak_counts": {
+            "60349": 1,
+            "60350": 1,
+            "60352": 1,
+            "60353": 1,
+            "60354": 4,
+            "60356": 1,
+            "60358": 1,
+            "60362": 1,
+            "60366": 5,
+            "60367": 5,
+            "60371": 1,
+            "60376": 1,
+            "60381": 2,
+            "60386": 2,
+            "60389": 9,
+            "60390": 26,
+            "60391": 65,
+            "260562": 1
+          }
+        },
+        {
+          "first_query_peak": 260562,
+          "peak_counts": {
+            "60349": 1,
+            "60350": 1,
+            "60352": 1,
+            "60353": 1,
+            "60354": 4,
+            "60356": 1,
+            "60358": 1,
+            "60362": 1,
+            "60366": 5,
+            "60367": 5,
+            "60371": 1,
+            "60376": 1,
+            "60381": 2,
+            "60386": 2,
+            "60389": 9,
+            "60390": 26,
+            "60391": 65,
+            "260562": 1
+          }
+        }
+      ],
+      "current": [
+        {
+          "first_query_peak": 317385,
+          "peak_counts": {
+            "117169": 1,
+            "117173": 7,
+            "117177": 2,
+            "117181": 1,
+            "117185": 2,
+            "117189": 1,
+            "117193": 1,
+            "117197": 2,
+            "117201": 2,
+            "117205": 108,
+            "317385": 1
+          }
+        },
+        {
+          "first_query_peak": 317385,
+          "peak_counts": {
+            "117169": 1,
+            "117173": 7,
+            "117177": 2,
+            "117181": 1,
+            "117185": 2,
+            "117189": 1,
+            "117193": 1,
+            "117197": 2,
+            "117201": 2,
+            "117205": 108,
+            "317385": 1
+          }
+        },
+        {
+          "first_query_peak": 317385,
+          "peak_counts": {
+            "117169": 1,
+            "117173": 7,
+            "117177": 2,
+            "117181": 1,
+            "117185": 2,
+            "117189": 1,
+            "117193": 1,
+            "117197": 2,
+            "117201": 2,
+            "117205": 108,
+            "317385": 1
+          }
+        },
+        {
+          "first_query_peak": 317385,
+          "peak_counts": {
+            "117169": 1,
+            "117173": 7,
+            "117177": 2,
+            "117181": 1,
+            "117185": 2,
+            "117189": 1,
+            "117193": 1,
+            "117197": 2,
+            "117201": 2,
+            "117205": 108,
+            "317385": 1
+          }
+        },
+        {
+          "first_query_peak": 317385,
+          "peak_counts": {
+            "117169": 1,
+            "117173": 7,
+            "117177": 2,
+            "117181": 1,
+            "117185": 2,
+            "117189": 1,
+            "117193": 1,
+            "117197": 2,
+            "117201": 2,
+            "117205": 108,
+            "317385": 1
+          }
+        }
+      ]
+    },
+    "initial-hot": {
+      "baseline": [
+        {
+          "first_query_peak": 44255,
+          "peak_counts": {
+            "44255": 128
+          }
+        },
+        {
+          "first_query_peak": 44255,
+          "peak_counts": {
+            "44255": 128
+          }
+        },
+        {
+          "first_query_peak": 44255,
+          "peak_counts": {
+            "44255": 128
+          }
+        },
+        {
+          "first_query_peak": 44255,
+          "peak_counts": {
+            "44255": 128
+          }
+        },
+        {
+          "first_query_peak": 44255,
+          "peak_counts": {
+            "44255": 128
+          }
+        }
+      ],
+      "sorted": [
+        {
+          "first_query_peak": 44247,
+          "peak_counts": {
+            "44247": 128
+          }
+        },
+        {
+          "first_query_peak": 44247,
+          "peak_counts": {
+            "44247": 128
+          }
+        },
+        {
+          "first_query_peak": 44247,
+          "peak_counts": {
+            "44247": 128
+          }
+        },
+        {
+          "first_query_peak": 44247,
+          "peak_counts": {
+            "44247": 128
+          }
+        },
+        {
+          "first_query_peak": 44247,
+          "peak_counts": {
+            "44247": 128
+          }
+        }
+      ],
+      "current": [
+        {
+          "first_query_peak": 44271,
+          "peak_counts": {
+            "44271": 128
+          }
+        },
+        {
+          "first_query_peak": 44271,
+          "peak_counts": {
+            "44271": 128
+          }
+        },
+        {
+          "first_query_peak": 44271,
+          "peak_counts": {
+            "44271": 128
+          }
+        },
+        {
+          "first_query_peak": 44271,
+          "peak_counts": {
+            "44271": 128
+          }
+        },
+        {
+          "first_query_peak": 44271,
+          "peak_counts": {
+            "44271": 128
+          }
+        }
+      ]
+    },
+    "updated-rare": {
+      "baseline": [
+        {
+          "first_query_peak": 127385,
+          "peak_counts": {
+            "127385": 1,
+            "127409": 2,
+            "127413": 7,
+            "127417": 2,
+            "127421": 1,
+            "127425": 1,
+            "127429": 1,
+            "127433": 1,
+            "127437": 2,
+            "127441": 2,
+            "127445": 108
+          }
+        },
+        {
+          "first_query_peak": 127385,
+          "peak_counts": {
+            "127385": 1,
+            "127409": 2,
+            "127413": 7,
+            "127417": 2,
+            "127421": 1,
+            "127425": 1,
+            "127429": 1,
+            "127433": 1,
+            "127437": 2,
+            "127441": 2,
+            "127445": 108
+          }
+        },
+        {
+          "first_query_peak": 127385,
+          "peak_counts": {
+            "127385": 1,
+            "127409": 2,
+            "127413": 7,
+            "127417": 2,
+            "127421": 1,
+            "127425": 1,
+            "127429": 1,
+            "127433": 1,
+            "127437": 2,
+            "127441": 2,
+            "127445": 108
+          }
+        },
+        {
+          "first_query_peak": 127385,
+          "peak_counts": {
+            "127385": 1,
+            "127409": 2,
+            "127413": 7,
+            "127417": 2,
+            "127421": 1,
+            "127425": 1,
+            "127429": 1,
+            "127433": 1,
+            "127437": 2,
+            "127441": 2,
+            "127445": 108
+          }
+        },
+        {
+          "first_query_peak": 127385,
+          "peak_counts": {
+            "127385": 1,
+            "127409": 2,
+            "127413": 7,
+            "127417": 2,
+            "127421": 1,
+            "127425": 1,
+            "127429": 1,
+            "127433": 1,
+            "127437": 2,
+            "127441": 2,
+            "127445": 108
+          }
+        }
+      ],
+      "sorted": [
+        {
+          "first_query_peak": 60500,
+          "peak_counts": {
+            "60500": 1,
+            "60528": 1,
+            "60949": 1,
+            "60950": 1,
+            "60952": 1,
+            "60953": 1,
+            "60954": 4,
+            "60956": 1,
+            "60958": 1,
+            "60962": 1,
+            "60966": 4,
+            "60967": 5,
+            "60971": 1,
+            "60976": 1,
+            "60981": 2,
+            "60986": 2,
+            "60989": 9,
+            "60990": 26,
+            "60991": 65
+          }
+        },
+        {
+          "first_query_peak": 60500,
+          "peak_counts": {
+            "60500": 1,
+            "60528": 1,
+            "60949": 1,
+            "60950": 1,
+            "60952": 1,
+            "60953": 1,
+            "60954": 4,
+            "60956": 1,
+            "60958": 1,
+            "60962": 1,
+            "60966": 4,
+            "60967": 5,
+            "60971": 1,
+            "60976": 1,
+            "60981": 2,
+            "60986": 2,
+            "60989": 9,
+            "60990": 26,
+            "60991": 65
+          }
+        },
+        {
+          "first_query_peak": 60500,
+          "peak_counts": {
+            "60500": 1,
+            "60528": 1,
+            "60949": 1,
+            "60950": 1,
+            "60952": 1,
+            "60953": 1,
+            "60954": 4,
+            "60956": 1,
+            "60958": 1,
+            "60962": 1,
+            "60966": 4,
+            "60967": 5,
+            "60971": 1,
+            "60976": 1,
+            "60981": 2,
+            "60986": 2,
+            "60989": 9,
+            "60990": 26,
+            "60991": 65
+          }
+        },
+        {
+          "first_query_peak": 60500,
+          "peak_counts": {
+            "60500": 1,
+            "60528": 1,
+            "60949": 1,
+            "60950": 1,
+            "60952": 1,
+            "60953": 1,
+            "60954": 4,
+            "60956": 1,
+            "60958": 1,
+            "60962": 1,
+            "60966": 4,
+            "60967": 5,
+            "60971": 1,
+            "60976": 1,
+            "60981": 2,
+            "60986": 2,
+            "60989": 9,
+            "60990": 26,
+            "60991": 65
+          }
+        },
+        {
+          "first_query_peak": 60500,
+          "peak_counts": {
+            "60500": 1,
+            "60528": 1,
+            "60949": 1,
+            "60950": 1,
+            "60952": 1,
+            "60953": 1,
+            "60954": 4,
+            "60956": 1,
+            "60958": 1,
+            "60962": 1,
+            "60966": 4,
+            "60967": 5,
+            "60971": 1,
+            "60976": 1,
+            "60981": 2,
+            "60986": 2,
+            "60989": 9,
+            "60990": 26,
+            "60991": 65
+          }
+        }
+      ],
+      "current": [
+        {
+          "first_query_peak": 117081,
+          "peak_counts": {
+            "117081": 1,
+            "117105": 2,
+            "117109": 7,
+            "117113": 2,
+            "117117": 1,
+            "117121": 1,
+            "117125": 1,
+            "117129": 1,
+            "117133": 2,
+            "117137": 2,
+            "117141": 108
+          }
+        },
+        {
+          "first_query_peak": 117081,
+          "peak_counts": {
+            "117081": 1,
+            "117105": 2,
+            "117109": 7,
+            "117113": 2,
+            "117117": 1,
+            "117121": 1,
+            "117125": 1,
+            "117129": 1,
+            "117133": 2,
+            "117137": 2,
+            "117141": 108
+          }
+        },
+        {
+          "first_query_peak": 117081,
+          "peak_counts": {
+            "117081": 1,
+            "117105": 2,
+            "117109": 7,
+            "117113": 2,
+            "117117": 1,
+            "117121": 1,
+            "117125": 1,
+            "117129": 1,
+            "117133": 2,
+            "117137": 2,
+            "117141": 108
+          }
+        },
+        {
+          "first_query_peak": 117081,
+          "peak_counts": {
+            "117081": 1,
+            "117105": 2,
+            "117109": 7,
+            "117113": 2,
+            "117117": 1,
+            "117121": 1,
+            "117125": 1,
+            "117129": 1,
+            "117133": 2,
+            "117137": 2,
+            "117141": 108
+          }
+        },
+        {
+          "first_query_peak": 117081,
+          "peak_counts": {
+            "117081": 1,
+            "117105": 2,
+            "117109": 7,
+            "117113": 2,
+            "117117": 1,
+            "117121": 1,
+            "117125": 1,
+            "117129": 1,
+            "117133": 2,
+            "117137": 2,
+            "117141": 108
+          }
+        }
+      ]
+    },
+    "updated-hot": {
+      "baseline": [
+        {
+          "first_query_peak": 44191,
+          "peak_counts": {
+            "44191": 128
+          }
+        },
+        {
+          "first_query_peak": 44191,
+          "peak_counts": {
+            "44191": 128
+          }
+        },
+        {
+          "first_query_peak": 44191,
+          "peak_counts": {
+            "44191": 128
+          }
+        },
+        {
+          "first_query_peak": 44191,
+          "peak_counts": {
+            "44191": 128
+          }
+        },
+        {
+          "first_query_peak": 44191,
+          "peak_counts": {
+            "44191": 128
+          }
+        }
+      ],
+      "sorted": [
+        {
+          "first_query_peak": 44183,
+          "peak_counts": {
+            "44183": 128
+          }
+        },
+        {
+          "first_query_peak": 44183,
+          "peak_counts": {
+            "44183": 128
+          }
+        },
+        {
+          "first_query_peak": 44183,
+          "peak_counts": {
+            "44183": 128
+          }
+        },
+        {
+          "first_query_peak": 44183,
+          "peak_counts": {
+            "44183": 128
+          }
+        },
+        {
+          "first_query_peak": 44183,
+          "peak_counts": {
+            "44183": 128
+          }
+        }
+      ],
+      "current": [
+        {
+          "first_query_peak": 44207,
+          "peak_counts": {
+            "44207": 128
+          }
+        },
+        {
+          "first_query_peak": 44207,
+          "peak_counts": {
+            "44207": 128
+          }
+        },
+        {
+          "first_query_peak": 44207,
+          "peak_counts": {
+            "44207": 128
+          }
+        },
+        {
+          "first_query_peak": 44207,
+          "peak_counts": {
+            "44207": 128
+          }
+        },
+        {
+          "first_query_peak": 44207,
+          "peak_counts": {
+            "44207": 128
+          }
+        }
+      ]
+    }
+  },
+  "lifecycle": {
+    "baseline": {
+      "initial_train_ns": [
+        5655125,
+        5267000,
+        6026791,
+        5497542,
+        6657500
+      ],
+      "maintenance_rebuilds": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "update_and_maintenance_ns": [
+        529957,
+        436038,
+        509082,
+        385753,
+        497416
+      ],
+      "reopen_ns": [
+        195757708,
+        323046417,
+        3746343166,
+        1330879084,
+        642796500
+      ]
+    },
+    "sorted": {
+      "initial_train_ns": [
+        4909875,
+        4770125,
+        4961500,
+        21783375,
+        4945750
+      ],
+      "maintenance_rebuilds": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "update_and_maintenance_ns": [
+        459292,
+        462082,
+        440208,
+        494043,
+        457874
+      ],
+      "reopen_ns": [
+        260457417,
+        285523833,
+        2420666458,
+        193304333,
+        274148750
+      ]
+    },
+    "current": {
+      "initial_train_ns": [
+        5029292,
+        5021167,
+        4775209,
+        5704250,
+        5225958
+      ],
+      "maintenance_rebuilds": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "update_and_maintenance_ns": [
+        473417,
+        463207,
+        431330,
+        423875,
+        444210
+      ],
+      "reopen_ns": [
+        198735625,
+        235613958,
+        2169570334,
+        237841500,
+        550469416
+      ]
+    }
+  },
+  "limits": [
+    "Free local synthetic development only; no paid API/cloud/models.",
+    "Requested-byte accounting excludes allocator internal storage and process RSS. The probe uses one worker; no production or population-tail guarantee.",
+    "Historical timing comparison remains the separate retained study; this study compares current main to one scoped optimization."
+  ]
+}

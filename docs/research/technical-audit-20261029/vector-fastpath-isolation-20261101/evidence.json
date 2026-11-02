@@ -1,0 +1,79 @@
+{
+  "recorded_at": "2026-11-02T03:05:10.016605+00:00",
+  "baseline_revision": "0e49e592f8d7d3fddd68a842748a4c462408c4ed",
+  "scope": "Isolate stale exact capture and ranking in a non-inlined helper; preserve canonical candidate scoring and ranking, bounds, fallback, and scrub checks.",
+  "source_sha256": {
+    "src/core/documents/vector_index.rs": "b7ada58a05e3fb2e6a884cf60ff264246386f6a839ea5442de744af4a046086b"
+  },
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+  "settings": {
+    "CARGO_TARGET_DIR": "/Volumes/A/warm-vector-contention/target/vector-contention/build",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_PROFILE_DEV_OPT_LEVEL": "3",
+    "CARGO_PROFILE_TEST_OPT_LEVEL": "3",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "RAYON_NUM_THREADS": "1"
+  },
+  "gates": [
+    {
+      "command": [
+        "cargo",
+        "+1.99.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--lib",
+        "core::documents::vector_index::tests"
+      ],
+      "exit_code": 0,
+      "passed": 8,
+      "log": "vector-tests.log.gz",
+      "log_gzip_sha256": "30da2d252f532f597dbe7c2a60c1c4f632035e900f67ee18a1b1e701539fd8c9"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.99.0",
+        "test",
+        "--offline",
+        "--locked",
+        "--lib",
+        "document_snapshot_tests"
+      ],
+      "exit_code": 0,
+      "passed": 15,
+      "log": "snapshot-tests.log.gz",
+      "log_gzip_sha256": "1583d2142d92d3ab8149cb9646c11ee516c529e676e47d8fc529267b5d068de2"
+    },
+    {
+      "command": [
+        "cargo",
+        "+1.99.0",
+        "clippy",
+        "--offline",
+        "--locked",
+        "--lib",
+        "--tests",
+        "--",
+        "-D",
+        "warnings"
+      ],
+      "exit_code": 0,
+      "passed": null,
+      "log": "clippy.log.gz",
+      "log_gzip_sha256": "ad52cb03730a5af910a7e078af173a562d3fe5c5e53dd62fa14b9f2f60689240"
+    }
+  ],
+  "other_checks": [
+    "rustfmt +1.99.0 --edition 2021 --check src/core/documents/vector_index.rs",
+    "git diff --check"
+  ],
+  "source_invariants_verified": [
+    "ExactScan::search_canonical is byte-identical to the baseline source",
+    "capture_stale_exact is byte-identical to the baseline source",
+    "One common finalizer retains canonical reranking, score ordering with document/chunk ties, min-score filtering, and k truncation"
+  ],
+  "regression_coverage": "Existing vector and snapshot tests cover canonical oracle equality, paused scoring with writer progress, coherent old/new document ownership, bitmap 63/64/65 and 127/128/129 boundaries, delta document 127/128/129 and chunk 1023/1024/1025 bounds, complete fallback, text scrubbing, compaction, and reopen. No semantics change or additional test required.",
+  "performance_status": "No timing samples or performance claims. The measurement agent will inspect code generation from the forthcoming pinned changed-candidate probe and run only after root grants its preregistered quiet window. Original failed and blocked comparison evidence remains unchanged."
+}

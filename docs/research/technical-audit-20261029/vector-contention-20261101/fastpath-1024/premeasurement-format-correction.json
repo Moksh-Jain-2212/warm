@@ -1,0 +1,6 @@
+{
+  "reason": "git diff --cached --check detected an extra blank line at EOF in the copied Python harness wrapper. Its first baseline build had already started; preserve that build separately and rebuild before measurement. No Rust harness, engine source, plan, acceptance threshold, or timing sample changed.",
+  "old_wrapper_sha256": "74541659e1f2c699d8ec2d47326fbf655a62d8c716cf6325d94bcf27c931c67d",
+  "new_wrapper_sha256": "2bd68b691e76f228acf086d858665071ebd9ca2243530d2ca8d7c935bfb867ec",
+  "timings_collected": 0
+}

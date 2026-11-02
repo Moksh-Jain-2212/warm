@@ -1755,3 +1755,231 @@ Go race tests (14 tests plus one example). See
 [Go packaging validation](go-header-parity-20261101/validation.json).
 This followup changes packaging and parity checks; the benchmarked engine source
 remains unchanged. The new PR head must pass the hosted release/platform matrix.
+
+PR #374 merged as `ba980ffc16e01981bf1d025debfb83d6e7334aac` after 68 checks
+succeeded and four conditional jobs skipped. Every workflow completed successfully
+or skipped, with no unresolved review threads or open code-scanning alerts. The
+signed merge tree matches the tested head; root main was clean and fast-forwarded.
+Only the existing owner-review allowance was used. Evidence:
+[readiness final gate](readiness-completion-20261101/final-gate.json.gz).
+
+## Recovery and query efficiency followup (2026-11-01; qualification complete)
+
+The user authorized parallel completion of the remaining code opportunities:
+restart-safe HTTP retries, recovery from retained-text publication/cleanup failures,
+stale exact-vector lock contention, and lexical/hybrid scratch-memory cost. The
+baseline is PR #374 main above; workflow policy and release conditions are outside
+this scope. No paid services or models are used.
+
+Ownership is disjoint: durable HTTP receipts in `/Volumes/A/warm-durable-http-retries`,
+vector capture/scoring in `/Volumes/A/warm-vector-contention`, query membership
+storage in `/Volumes/A/warm-query-memory`, and core publication/cleanup plus final
+integration in `/Volumes/A/holographic-memory` on `fix/recovery-query-improvements`.
+Builds use explicit private Cargo targets. Timed comparisons require a coordinated
+quiet window and immutable baseline/candidate evidence; correctness and memory
+limits take precedence over measured speed.
+
+The HTTP design durably reserves a key before business execution and persists a
+known response before acknowledgment. Restart retains ambiguous outcomes as
+reconciliation markers, never automatically reexecuting them. Restores and
+forgetting must invalidate response retention without releasing protected keys or
+allowing late completions to restore erased responses. The durability/privacy
+boundary and bounded storage/actor behavior are part of acceptance.
+
+The core compares replaying partial business batches with pre-staging retained
+text before journal append. The latter avoids replaying non-idempotent auxiliary
+mutations and preserves the existing journal format. Physical cleanup will remain
+retryable separately from logical publication. The diagnosis, invariants and
+deferred checks are recorded in
+[publication recovery plan](publication-recovery-20261101/plan.json).
+
+Retained-text preparation now precedes journal append under the writer lease;
+failed preparation or append rolls back the staged tail. Publication hides deleted
+spans immediately, while physical scrubbing runs outside publication locks and
+failed cleanup is retried by flush or before another write. Hydration shares the
+writer lease so preparation cannot target an obsolete segment. The baseline
+regression failed as expected. Local validation passes 752 core tests (12 existing
+diagnostic ignores), 25 document integration tests, six final text recovery/boundary
+tests, and strict scoped Clippy; see
+[publication validation](publication-recovery-20261101/validation.json).
+Integrated CI and merge remain pending.
+
+Durable HTTP retry receipts are implemented with a bounded serial writer, reservation
+before execution, response recording before acknowledgment, and restart reconciliation
+for interrupted operations. Erasure barriers invalidate late completions and scrub
+retained response bodies while protecting keys. The final isolated source passes
+129 tests with zero skips and strict Clippy. Receipt and business commits remain
+separate; plaintext receipts require encrypted-volume protection. See
+[HTTP retry evidence](durable-http-retries-20261101/evidence.json).
+
+Filtered query capture now reuses the document-reference allocation for sorted owner
+addresses and releases its lexical slot mask earlier. The frozen synthetic workload
+shows roughly 52% lower rare-query requested allocation peaks and identical ordered
+results across 7,680 oracle checks. Updated-rare empirical p99 increased 10.37%;
+the preregistered sustained-regression trigger did not fire, and concurrent host
+activity prevents a latency noninferiority or speedup claim. See
+[query memory evidence](query-memory-20261101/README.md).
+
+Stale exact-vector capture releases the store lock before scoring, but its first
+frozen comparison failed the fresh 16-dimensional p99 threshold. A separately
+preregistered 1,024-sample confirmation collected no measurements because both host
+preflights exceeded their fixed external-load limit. Neither result is discarded.
+The candidate remains unqualified; a production refactor is isolating stale-only
+state from the fresh dispatcher before a new, separately recorded comparison.
+
+Final integration review also identified a cleanup-ownership gap in canonical
+compaction: replacing a segment could lose its pending scrub retry queue. Canonical
+replacement now drains and syncs that queue first, retaining its owner on failure.
+The regression failed before the fix; all 13 compaction tests and strict Clippy pass.
+See [compaction cleanup validation](publication-recovery-20261101/compaction-validation.json).
+
+Integrated production source `d7f5982f4612a16b78071d013ee858c64447a133` passes
+1,051 local tests: 823 library tests, all binaries including 94 HTTP and 48 MCP
+tests, and the selected document/HTTP integration suites. Twelve existing library
+diagnostics remain ignored. Strict scoped Clippy and repository formatting pass;
+see [combined validation](recovery-query-completion-20261101/validation.json).
+The final vector experiment now pins this integrated source rather than only the
+isolated vector commit; the premeasurement plan revision is retained. Performance
+qualification, hosted CI and merge remain pending.
+
+Both local attempts collected no timing because their fixed host preflights failed.
+The same integrated source and 1,024-query workload are now being evaluated by one
+separately preregistered Linux comparison on a standard public GitHub runner, with
+unchanged latency/writer thresholds and a 600-second measurement budget. The optional
+manual job preserves existing push/PR checks and exports bounded evidence through
+logs without artifact or cache uploads. See
+[Linux preregistration](vector-contention-20261101/ci-linux-1024/README.md);
+run `41383296700` completed all ten processes and 92,880 oracle checks in 594.311
+seconds. Host checks and the writer gate passed, but stale-idle 128D p99 increased
+15.825%, exceeding the 15% limit. Every other idle gate passed. The complete exact
+export, failed summary and independent verification remain in the linked evidence.
+
+To address the remaining stale-capture work, integrated source
+`b4fc1ba634e1cca0ae8024f259fa6bcb8ef73954` now tracks changed document IDs with a
+bounded, generation-covered ledger independent of the dense index. Existing sorted
+snapshot rows provide binary range lookup; stale exact capture no longer rediscovers
+changes by walking live documents or probing every base owner. Overflow, generation
+gaps and store-identity changes use complete fallback. Persistent tracking is limited
+to 128 entries/64 KiB identifier bytes plus fixed metadata, retaining no deleted payload
+owners. Graph-mode delta discovery still scans the collection; that next-phase scaling
+work is not claimed complete.
+
+The revised source passes 1,059 local tests (12 existing diagnostic ignores), strict
+scoped Clippy, repository formatting and the optional workflow's lint/security checks.
+See [tracked-source validation](recovery-query-completion-20261101/tracked-validation.json).
+The [tracked Linux plan](vector-contention-20261101/tracked-linux-1024/README.md)
+preserves every workload and quality threshold. Before measurement its completion
+allowance increases to 900 seconds because the prior complete run nearly exhausted
+600 seconds; this does not relax latency, writer or correctness criteria.
+
+The single tracked Linux run
+[41387201348](https://github.com/writerslogic/warm/actions/runs/41387201348)
+passes every fixed qualification gate in 537.555 seconds. All 92,880 oracle checks
+pass, and all 92,160 measured ordered answers match across revisions. Median
+per-process stale-idle p99 falls 85.31%, 52.10% and 17.74% at 16, 128 and 768
+dimensions; fresh p50/p99 changes are non-positive. Required writer lock-wait
+reductions exceed 99.99% for the scheduled scoring-entry contention workload.
+All 119 host observations pass. These findings apply to the fixed 8,192-row Linux
+VM workload, not arbitrary writer arrivals, production workloads or Vectra.
+Earlier failed experiments remain preserved. The exact compressed export, source
+verification and byte-identical summary reproduction are retained in the linked
+tracked evidence; the coordinator also independently decoded and reproduced it.
+
+All four followups now have integrated implementation and acceptance evidence.
+The complete feature/platform PR gate and merge remain pending; no release or
+ToIP publication is implied.
+
+PR #375's first CI head exposed a compile-time module-resolution failure in the
+server fuzz target, which includes production modules by path. Explicit paths for
+the durable retry implementation and its tests fix both inclusion contexts. The
+focused pinned-nightly fuzz-target check, all 94 server tests, strict server Clippy
+and repository formatting pass; see
+[fuzz module validation](recovery-query-completion-20261101/fuzz-module-validation.json).
+The qualified core source and benchmark workloads are unchanged. Full CI, including
+actual fuzz execution, remains required on the revised PR head.
+
+The next head passed hosted fuzz execution but failed the Windows runtime gate:
+877 core tests passed (14 existing platform diagnostics skipped), while 185 of
+195 HTTP/MCP tests passed. Nine failures involve retry receipt erasure or startup
+cleanup. Both paths retained a read handle across atomic receipt replacement;
+they now close it before scrubbing and replacement, then reopen when needed.
+The focused local 129-test gate passes, and the transport diagnostic follow-up
+passes all 13 operations tests. Strict scoped Clippy, formatting and workflow
+lint pass. See [Windows retry validation](recovery-query-completion-20261101/windows-retry-validation.json).
+
+The tenth Windows failure was an empty HTTP response during concurrent snapshot
+and query traffic. The available log cannot distinguish connection/setup failure
+from clean EOF, so the test harness now records these outcomes, elapsed time,
+write errors and the affected tenant without changing assertions or deadlines.
+The Windows workflow runs the same service checks before core checks to expose
+failures sooner. Windows qualification remains pending; no retry-to-pass or
+platform bypass is used. The qualified core and vector benchmark are unchanged.
+
+## Next authorized phase: changing agent memory and Vectra migration
+
+The user queued this phase after the four recovery/query followups are completed.
+The ToIP PR remains on hold; no ToIP branch has been pushed or PR opened. Its local
+21-test compatibility gate does not establish a WARM performance advantage.
+
+Lead with temporal correctness, retrieval quality and recoverable storage. Complete
+a simple Node workflow for changed preferences, current/historical recall, explanations,
+and forgetting the entire version chain across restart. Build a Vectra migration
+adapter with equivalent eligibility filters before top-k selection, then compare tiny,
+1K, 10K and 100K collections using identical cached embeddings and context budgets.
+Separate exact search from ANN at measured recall; measure hybrid relevance, selective
+filters, update/delete churn, cold start, RSS, p95/p99 latency and interrupted-write
+recovery, explicitly separating write acknowledgment from durable commit. Record cases
+where Vectra wins. Investigate explicit changed-row tracking for stale document
+snapshots; standalone ANN timings cannot qualify a continually updated memory store.
+
+Verify the user's proposed competitor observations against Vectra commit
+`dec2dadc3bb158b06ac72fa9097bee729429a271`, especially `docs/best-practices.md`,
+`docs/core-concepts.md`, `src/LocalIndex.ts` and `src/storage/LocalFileStorage.ts`,
+before treating them as current measured claims. WARM already maintains lexical
+postings/fusion and temporal memory semantics; neither hybrid search alone nor
+holographic research establishes comparative document-search superiority. Evaluate
+WASM distribution gaps if browser users are included in the target.
+
+No paid development API/cloud calls, tuning or model downloads are authorized.
+The core Node npm rename to `warm-sdk` is prepared separately as local signed commit
+`bfcbb708f683823a851f05c783529dd86795cdc3`; it has not been pushed or published.
+
+Read-only preparation found that the existing `Memory` Node wrapper already supports
+the complete temporal workflow. Use explicit `latest-by-subject`, stable distinct fact
+IDs, a common subject and explicit validity times; preserve existing global defaults.
+Reapply runtime memory configuration after restart. The missing product example/test
+combines explanation, whole-chain purge and a final process restart asserting both
+versions remain absent; a public close binding is currently absent. The `purge`
+TypeScript comment also needs alignment with current compaction behavior.
+
+Vectra 0.15.0 is the current npm comparator, and the inspected packaged implementations
+match the user's pinned source after line-ending normalization. Its implementation
+already uses a bounded top-k heap despite older documentation describing a full sort.
+Its selector has non-Mongo numeric/string `$in`/`$nin` quirks that require explicit
+compatibility tests. WARM already filters exact metadata/document IDs before ranking;
+the missing work is predicate expressiveness and full adapter coverage, including
+vector-only items, original-vector retrieval and mixed transactions. Fabricated text
+must not disguise unsupported vector-only records. Vector snapshots need their own
+bounded mutation ledger; the existing dense tracker has an independent lifetime.
+
+Reusable cached data lives under `/Volumes/A/.hms-bench-cache` (the old
+`~/.cache/hms-bench` resolves there), with additional BGE arrays under
+`/Volumes/A/.hms-embed-work/select-cache`. SciFact (5,183 documents/300 test queries)
+and NFCorpus (3,633/323) have cached MiniLM embeddings and judgments. The prepared
+GloVe 100D subset supplies 100,000 vectors/1,000 queries and exact-neighbor truth;
+1K/10K prefixes need recomputed truth. BGE has 44,305 LME turn rows, not a ready
+100K unique-document fixture. LME occurrences require per-question haystack eligibility.
+These are inventory observations: freeze actual hashes and row/text mappings before
+running comparisons, and do not present synthetic replication as unique-document evidence.
+
+The user also proposed testing whether records can be removed without reducing memory
+quality or recall. Treat this as an evaluation proposal, not permission to delete user
+data. Start with duplicates/repeated statements and reversible active-index reductions;
+preserve provenance, validity and historical answers. Test the whole proposed batch against
+held-out current, historical and multi-step questions, since individually redundant records
+may not be jointly removable. Measure recall, answer correctness, index/RSS/context size
+and latency together; passing a workload cannot guarantee all future questions. Owning
+several blue possessions does not establish an explicit favorite-color preference, which
+can have independent value and lower retrieval cost. Existing dry-run consolidation keeps
+source history unless destructive removal is separately enabled; any new policy should
+build on those controls. No pruning experiment or data removal has run.

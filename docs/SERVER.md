@@ -111,7 +111,7 @@ Index maintenance also builds the tenant's optional document index over stored e
 
 ### Retries and conditional requests
 
-- `Idempotency-Key` on `POST /api/v1/documents`, `/documents/batch` and the memory operations replays the recorded response of an earlier request with the same key, tenant, method, path and body (`Idempotent-Replayed: true`); the same key with a different request is 422 `idempotency_key_reused`, and a key still running is 409 `idempotency_in_flight`. Transient failures (5xx, 429, 408) release the key unless the mutation committed, its outcome is uncertain, or a restore invalidated the request. Completed keys are protected for `--idempotency-ttl-seconds`; running keys do not expire. Panics or insufficient replay-buffer capacity retain a key that returns 409 `idempotency_reconciliation_required`, preventing blind reexecution. Starting tenant store replacement invalidates its retained responses, even if restore later rolls back; pending keys remain in flight until their workers finish, then require reconciliation rather than replay or reexecution. Other tenants' keys are unaffected. Repeated `Idempotency-Key` fields are rejected with 422 before reserving a key or executing the write. Keys do not survive restart. An upsert alone does not guarantee that repeating every operation after restart is safe; reconcile IDs, versions and resulting state first.
+- `Idempotency-Key` on `POST /api/v1/documents`, `/documents/batch` and the memory operations replays the recorded status and response bytes for the same key, tenant, method, path and body (`Idempotent-Replayed: true`), including after restart. A different request with the same key gets 422 `idempotency_key_reused`; a running key gets 409 `idempotency_in_flight`. The server durably reserves the key before executing work and persists the response, or a bounded reconciliation marker, before acknowledging it. An interrupted request whose outcome was not recorded gets 409 `idempotency_reconciliation_required`; it is never automatically reexecuted. Known transient failures (5xx, 429, 408) release the key unless the mutation committed, its outcome is uncertain, or erasure invalidated the request. Repeated key headers are rejected before execution. The receipt and business mutation are separate commits: this prevents blind retries across the crash gap but does not make arbitrary operations exactly once.
 - `GET /api/v1/stats`, `GET /api/v1/documents`, and retained-chunk reads return a weak `ETag` derived from the serialized response and process epoch, and answer matching `If-None-Match` conditions with 304. Validators use weak comparison across repeated header lines and quoted lists; a lone `*` matches an existing representation. Malformed conditions are ignored rather than used to produce 304. See [RFC 9110 §13.1.2](https://www.rfc-editor.org/rfc/rfc9110.html#section-13.1.2). Validators are response-specific, not tenant revision tokens: unchanged pages may retain their tag after unrelated writes. Conditional reads render and hash the response before deciding whether to omit its body; this prevents reused validators during concurrent writes but adds work to 304 responses. Chunk validators include the captured revision; they are not whole-document snapshot handles.
 
 ## Tenants
@@ -175,6 +175,29 @@ original caller, but subsequent use of its key requires reconciliation. This lim
 does not cover response construction, active HTTP sends, key/record overhead, or total
 process RSS. The key-count limit bounds record overhead separately. Response clones
 share one serialized buffer instead of retaining and repeatedly serializing a JSON tree.
+
+Retry receipts live in `DATA_DIR/http-retries`, outside tenant snapshots, under one
+exclusive process lease. Checksummed private files contain tenant/key digests, request
+fingerprints, status, and response bytes; request bodies and credentials are not copied.
+Responses can contain source text. Like the server's other unencrypted files, receipts
+require an encrypted volume when encryption at rest is needed. Copying or deleting this
+directory independently of the server's data can discard retry protection.
+
+Expiry uses a monotonic clock. Restart begins a fresh retention window at least as long
+as the configured TTL and the longest recorded TTL; this deliberately extends retention
+and prevents a clock change or a shorter startup setting from releasing protected keys
+early. Running keys never expire in-process; interrupted reservations become reconciliation
+markers on restart. Startup fails if receipt integrity, ownership, or configured storage
+bounds cannot be satisfied.
+
+Before forget, forgetting maintenance, consolidation, document deletion, or tenant restore,
+a durable tenant barrier blocks new keyed calls and scrubs previously retained response
+bodies. Protected key fingerprints remain as reconciliation markers. In-flight completions
+cannot restore those bodies; the current keyed erasure operation can retain its own result.
+The barrier spans the operation and survives interruption. Startup finishes interrupted
+receipt scrubbing before admitting requests; cleanup failure leaves protection unavailable.
+Restore invalidates receipts once replacement begins, even if it subsequently rolls back.
+Other tenants are unaffected. Receipt scrubbing does not alter independent backups.
 
 The rate limiter holds at most 10,000 tenant buckets; when full, requests for a new tenant
 receive 429 until idle buckets can be reclaimed. Existing tenant buckets continue operating

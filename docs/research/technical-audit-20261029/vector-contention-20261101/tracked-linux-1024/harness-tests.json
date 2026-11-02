@@ -1,0 +1,29 @@
+{
+  "checked_at": "2026-11-02T04:06:44.357507+00:00",
+  "command": [
+    "uv",
+    "run",
+    "--no-project",
+    "python",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "docs/research/technical-audit-20261029/vector-contention-20261101/tracked-linux-1024",
+    "-p",
+    "test_*.py",
+    "-v"
+  ],
+  "exit_code": 0,
+  "tests_passed": 13,
+  "log_sha256": "1aed5ab34f7ac96b17dd8cffa521635e0a082b8cce9043cfc340581994bd08d4",
+  "draft_plan_sha256": "2a760ca5a39aa06034c74719dd36f3fe16a6845e1c234fa6aef6e54111a461ee",
+  "frozen_plan_sha256": "1e9548cd3b696d91e420c175897aad8da631de3564b17c3e07068ce1d8ac0163",
+  "harness_sha256": "74051a9906d021275b0700115bcaafe3c322e6ae7096e379aa3f984964e5114e",
+  "rust_harness_sha256": "218b539132bbb6573b759f199d7ef77bfd77d59e7a20366fa041b47e2b6fd466",
+  "rust_harness_byte_identical_to_prior_study": true,
+  "measurement_host_and_transport_functions_ast_identical_to_prior_study": true,
+  "local_builds": 0,
+  "local_timing_samples": 0,
+  "dispatches": 0
+}

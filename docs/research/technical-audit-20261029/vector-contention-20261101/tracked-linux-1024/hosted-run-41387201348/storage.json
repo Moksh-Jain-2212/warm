@@ -1,0 +1,17 @@
+{
+  "stored_at": "2026-11-02T04:31:02.771347+00:00",
+  "representation": "Exact original exported gzip tar, unchanged bytes; readable summary alongside it. Raw files materialize on demand.",
+  "archive": "evidence.tar.gz",
+  "archive_bytes": 1409904,
+  "archive_sha256": "0d1a9ef796b6eeb4f250037d23935153134ac9a7b3fc35d6bed5ba1d349108ed",
+  "members": 47,
+  "input_bytes": 5206744,
+  "member_hash_manifest": "../retrieval-41387201348/transport.json",
+  "summary_sha256": "abcc9910acb547f7eef5b0d6874c36079ae56b7db9dbc1341b46772d029f3980",
+  "verification": {
+    "all_47_materialized_files_match_original_transport_hashes": true,
+    "original_summary_reproduced_byte_for_byte": true,
+    "summary_exit_code": 0,
+    "new_benchmark_runs": 0
+  }
+}

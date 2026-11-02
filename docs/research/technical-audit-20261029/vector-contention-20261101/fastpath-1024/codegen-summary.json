@@ -1,0 +1,70 @@
+{
+  "variants": {
+    "baseline": {
+      "dispatch": {
+        "instruction_count": 1092,
+        "initial_stack_reservation_bytes": 464,
+        "normalized_instructions_sha256": "71b4b342e6a48c5b5219430dea18b97649d521f99e43ee78e620116f626ad9d4"
+      },
+      "fresh_scorer": {
+        "instruction_count": 264,
+        "initial_stack_reservation_bytes": 176,
+        "normalized_instructions_sha256": "3b832ed17d9b34f951354a3fb8e291c78f34c0506971dc186a613981a3bb44bf"
+      },
+      "fresh_collector": {
+        "instruction_count": 89,
+        "initial_stack_reservation_bytes": 64,
+        "normalized_instructions_sha256": "38da0306cef5676547fa138a5d5d3766ca41c07a47e8235c24c3ffe3246f28a4"
+      }
+    },
+    "original_candidate": {
+      "dispatch": {
+        "instruction_count": 1300,
+        "initial_stack_reservation_bytes": 512,
+        "normalized_instructions_sha256": "0a379969d4c9a0c6e6ae51b6ec31c168b402bc81a2880a8d18e669df7106d5fc"
+      },
+      "fresh_scorer": {
+        "instruction_count": 264,
+        "initial_stack_reservation_bytes": 176,
+        "normalized_instructions_sha256": "ec22c5924d512d13c0b7e7faeb51ebacfa77a2d899b769dc52113396b9323c27"
+      },
+      "fresh_collector": {
+        "instruction_count": 89,
+        "initial_stack_reservation_bytes": 64,
+        "normalized_instructions_sha256": "4fb66298ca0190824a84e63c26a275f07a28dc7a37fbd85cd677e380568777da"
+      }
+    },
+    "integrated_candidate": {
+      "dispatch": {
+        "instruction_count": 824,
+        "initial_stack_reservation_bytes": 416,
+        "normalized_instructions_sha256": "a714f1dbefada03ff05969cf6719fb9c5d6d2fc603174344af0243b680d53de4"
+      },
+      "fresh_scorer": {
+        "instruction_count": 264,
+        "initial_stack_reservation_bytes": 176,
+        "normalized_instructions_sha256": "eacbf5792ab1a44bfce34c59ee271d2d89524adf5dc69bf37f04a0bba8b52118"
+      },
+      "fresh_collector": {
+        "instruction_count": 89,
+        "initial_stack_reservation_bytes": 64,
+        "normalized_instructions_sha256": "42b6173b937ae3c9a7c7e0c5eb09a83db7f38a232a1da653820bb8723b68ecd5"
+      },
+      "rank_stale_exact_snapshot": {
+        "instruction_count": 391,
+        "initial_stack_reservation_bytes": 384,
+        "normalized_instructions_sha256": "82171bd6494718abb3f92e43931bda4e793cf56d3e065df469016f4a17bfeba1"
+      },
+      "finish_vector_hits": {
+        "instruction_count": 244,
+        "initial_stack_reservation_bytes": 112,
+        "normalized_instructions_sha256": "50028d7d423760d7789bb085928e14fc2e7ba43ec3a62096cf4d97e93999ccd9"
+      }
+    }
+  },
+  "fresh_scorer_normalized_equal": {
+    "baseline": true,
+    "original_candidate": false,
+    "integrated_candidate": false
+  }
+}

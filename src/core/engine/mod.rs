@@ -646,7 +646,9 @@ impl WarmCore {
             self.hydrate_documents()?;
         }
         self.validate_audit_transitions(mutations)?;
-        self.apply_mutations(&self.prepare_mutations(mutations), shards)
+        self.apply_mutations(&self.prepare_mutations(mutations), shards)?;
+        let segment = self.documents.read().text_segment();
+        segment.map_or(Ok(()), |segment| segment.drain_scrubs())
     }
 
     fn replay_frame(&self, json: &[u8], shards: &ShardSet) -> Result<()> {

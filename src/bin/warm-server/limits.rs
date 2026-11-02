@@ -16,6 +16,12 @@ use tokio::sync::{OwnedSemaphorePermit, Semaphore, TryAcquireError};
 
 use crate::error::ApiError;
 
+#[path = "limits/durable.rs"]
+mod durable;
+
+#[cfg(test)]
+pub(crate) use durable::crash_point;
+
 pub struct WorkLimit {
     pub slots: Arc<Semaphore>,
     pub capacity: usize,
@@ -247,6 +253,7 @@ pub struct Idempotency {
     capacity: usize,
     max_bytes: usize,
     inner: Arc<Mutex<Inner>>,
+    durable: Option<Arc<durable::Writer>>,
 }
 
 pub enum Begin {
@@ -254,14 +261,31 @@ pub enum Begin {
     Replay(StoredResponse),
 }
 
-pub struct IdempotencyGuard {
+pub enum IdempotencyGuard {
+    Volatile(VolatileGuard),
+    Durable(durable::Guard),
+}
+
+impl IdempotencyGuard {
+    pub fn complete(self, response: &StoredResponse) -> Result<(), ApiError> {
+        match self {
+            Self::Volatile(guard) => {
+                guard.complete(response);
+                Ok(())
+            }
+            Self::Durable(guard) => guard.complete(response),
+        }
+    }
+}
+
+pub struct VolatileGuard {
     inner: Arc<Mutex<Inner>>,
     key: Key,
     done: bool,
     max_bytes: usize,
 }
 
-impl IdempotencyGuard {
+impl VolatileGuard {
     /// Retain the outcome or a reconciliation marker; only known transient failures release the key.
     pub fn complete(mut self, response: &StoredResponse) {
         let mut inner = self.inner.lock();
@@ -298,7 +322,7 @@ impl IdempotencyGuard {
     }
 }
 
-impl Drop for IdempotencyGuard {
+impl Drop for VolatileGuard {
     fn drop(&mut self) {
         if !self.done {
             let mut inner = self.inner.lock();
@@ -330,7 +354,24 @@ impl Idempotency {
             capacity,
             max_bytes,
             inner: Arc::new(Mutex::new(Inner::default())),
+            durable: None,
         }
+    }
+
+    pub fn open(
+        root: &std::path::Path,
+        ttl: Duration,
+        capacity: usize,
+        max_bytes: usize,
+    ) -> anyhow::Result<Self> {
+        let (writer, inner) = durable::Writer::open(root, ttl, capacity, max_bytes)?;
+        Ok(Self {
+            ttl,
+            capacity,
+            max_bytes,
+            inner,
+            durable: Some(Arc::new(writer)),
+        })
     }
 
     pub fn usage(&self) -> (usize, usize, usize) {
@@ -346,7 +387,24 @@ impl Idempotency {
         )
     }
 
-    pub fn invalidate_tenant(&self, tenant: &str) {
+    pub fn erase(
+        &self,
+        tenant: &str,
+        preserve: Option<&IdempotencyGuard>,
+    ) -> Result<Option<durable::Erasure>, ApiError> {
+        match &self.durable {
+            Some(writer) => writer.erase(tenant, preserve).map(Some),
+            None => {
+                self.invalidate_tenant(tenant)?;
+                Ok(None)
+            }
+        }
+    }
+
+    pub fn invalidate_tenant(&self, tenant: &str) -> Result<(), ApiError> {
+        if let Some(writer) = &self.durable {
+            return writer.erase(tenant, None)?.finish();
+        }
         let mut inner = self.inner.lock();
         let mut released = 0;
         for ((name, _), record) in &mut inner.records {
@@ -366,9 +424,13 @@ impl Idempotency {
             .body_bytes
             .checked_sub(released)
             .expect("retained replay bytes are accounted");
+        Ok(())
     }
 
     pub fn begin(&self, tenant: &str, key: &str, fingerprint: [u8; 32]) -> Result<Begin, ApiError> {
+        if let Some(writer) = &self.durable {
+            return writer.begin(tenant, key, fingerprint);
+        }
         self.begin_at(tenant, key, fingerprint, Instant::now())
     }
 
@@ -439,12 +501,12 @@ impl Idempotency {
                 state: State::Running,
             },
         );
-        Ok(Begin::Proceed(IdempotencyGuard {
+        Ok(Begin::Proceed(IdempotencyGuard::Volatile(VolatileGuard {
             inner: self.inner.clone(),
             key: id,
             done: false,
             max_bytes: self.max_bytes,
-        }))
+        })))
     }
 }
 
@@ -566,7 +628,7 @@ mod tests {
             "idempotency_in_flight"
         );
         let ok = StoredResponse::new(StatusCode::OK, &serde_json::json!({"added": 1}), false);
-        guard.complete(&ok);
+        guard.complete(&ok).unwrap();
         let Begin::Replay(r) = store.begin("t", "k", fp).unwrap() else {
             panic!()
         };
@@ -593,11 +655,13 @@ mod tests {
         let Begin::Proceed(guard) = store.begin("t", "f", fp).unwrap() else {
             panic!()
         };
-        guard.complete(&StoredResponse::new(
-            StatusCode::SERVICE_UNAVAILABLE,
-            &serde_json::json!({}),
-            false,
-        ));
+        guard
+            .complete(&StoredResponse::new(
+                StatusCode::SERVICE_UNAVAILABLE,
+                &serde_json::json!({}),
+                false,
+            ))
+            .unwrap();
         assert!(matches!(
             store.begin("t", "f", fp).unwrap(),
             Begin::Proceed(_)
@@ -620,8 +684,8 @@ mod tests {
             };
             guard
         };
-        begin("t", "done").complete(&response);
-        begin("other", "done").complete(&response);
+        begin("t", "done").complete(&response).unwrap();
+        begin("other", "done").complete(&response).unwrap();
         let success = begin("t", "success");
         let failure = begin("t", "failure");
         let abandoned = begin("t", "abandoned");
@@ -633,8 +697,8 @@ mod tests {
             )
         };
 
-        store.invalidate_tenant("t");
-        store.invalidate_tenant("t");
+        store.invalidate_tenant("t").unwrap();
+        store.invalidate_tenant("t").unwrap();
         assert_eq!(store.usage(), (5, response.allocated_bytes, 1));
         assert!(matches!(
             store.begin("other", "done", [1; 32]),
@@ -656,7 +720,7 @@ mod tests {
         else {
             panic!()
         };
-        expired.complete(&transient);
+        expired.complete(&transient).unwrap();
         assert_eq!(
             store
                 .begin_at(
@@ -672,8 +736,8 @@ mod tests {
         );
         assert_eq!(store.usage(), (3, 0, 0));
 
-        success.complete(&response);
-        failure.complete(&transient);
+        success.complete(&response).unwrap();
+        failure.complete(&transient).unwrap();
         drop(abandoned);
         assert_eq!(store.usage(), (3, 0, 3));
         for key in ["success", "failure", "abandoned"] {
@@ -702,7 +766,8 @@ mod tests {
                     StatusCode::OK,
                     &serde_json::json!({}),
                     false,
-                ));
+                ))
+                .unwrap();
             } else {
                 assert_eq!(result.err().unwrap().code, "server_busy");
             }
@@ -729,7 +794,7 @@ mod tests {
             let Begin::Proceed(g) = store.begin("t", "k", [1; 32]).unwrap() else {
                 panic!()
             };
-            g.complete(&response);
+            g.complete(&response).unwrap();
             if limit < size {
                 assert_eq!(store.usage(), (1, 0, 1));
                 assert_eq!(
@@ -770,7 +835,7 @@ mod tests {
         let Begin::Proceed(done) = store.begin("t", "done", [0; 32]).unwrap() else {
             panic!()
         };
-        done.complete(&response);
+        done.complete(&response).unwrap();
         let finished = store.inner.lock().completed.front().unwrap().0;
         assert_eq!(
             store
@@ -813,7 +878,7 @@ mod tests {
         else {
             panic!()
         };
-        next.complete(&response);
+        next.complete(&response).unwrap();
         assert_eq!(store.usage(), (2, response.allocated_bytes, 0));
         drop(running);
         assert_eq!(store.usage(), (2, response.allocated_bytes, 1));
@@ -838,7 +903,7 @@ mod tests {
                 let barrier = &barrier;
                 scope.spawn(move || {
                     barrier.wait();
-                    guard.complete(response);
+                    guard.complete(response).unwrap();
                 });
             }
         });
@@ -863,7 +928,7 @@ mod tests {
             let Begin::Proceed(g) = store.begin("t", "retry", [0; 32]).unwrap() else {
                 panic!()
             };
-            g.complete(&response);
+            g.complete(&response).unwrap();
             assert_eq!(store.usage(), (0, 0, 0));
             assert!(store.inner.lock().completed.is_empty());
         }

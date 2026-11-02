@@ -1,0 +1,281 @@
+{
+  "recorded_at": "2026-11-02T03:12:40.384933+00:00",
+  "integrated_source_commit": "d7f5982f4612a16b78071d013ee858c64447a133",
+  "source_sha256": {
+    "src/bin/warm-server/documents.rs": "49deb58d13230433e42abbb6e26db7485715408443d0b3fad510b5f4167cda1a",
+    "src/bin/warm-server/error.rs": "25969c32fbc7ddee8f4169c48b4dc8554cc17ac728210e6c252183f95dba0c97",
+    "src/bin/warm-server/limits.rs": "2dd6d475c0af25ef3deb341b04113622df915cc43d783cf53abdb341e3d42f8f",
+    "src/bin/warm-server/limits/durable.rs": "1317cfc29dfede3a4c0591c8f133c6175dbc6b4a82bd46e2044474494b15f9ea",
+    "src/bin/warm-server/limits/durable/tests.rs": "5f35f356f0c4d6a8af53a2389f65a6ac0f41bddd096c14783f5887569bb89628",
+    "src/bin/warm-server/main.rs": "4c7c59e47803cc94ba61f1f7f3d0d6ea15b80b0dcd2b6ced6384b989cb07df71",
+    "src/bin/warm-server/request.rs": "cb942a132a78c47767301ad5a4aa16d92d998155371eb724152ca0f4d50f8bbd",
+    "src/bin/warm-server/tenants.rs": "ff7a62f75bcdd928fc16b14fd374fbb7e2689d32e6aaa7b7ff9f2e36cc7a225b",
+    "src/bin/warm-server/tests.rs": "651be58d33c1220b172af4164cf68927e5ffddf79b3a6fa0c41b0e0d4a40867f",
+    "src/core/documents/index.rs": "f78afb384ad62e70f1c962a801c917b2513c48e7a402fa286f77fee89bb6bc59",
+    "src/core/documents/search.rs": "9ff1475b24391f345c3717aedc73c292b53c56e6e2a48660c5726e2d28ff0105",
+    "src/core/documents/text.rs": "f1571d2d4dc39d64e3feb90061759596c9b7f647dd14ff391e41bc04f5eccaf8",
+    "src/core/documents/text/recovery_tests.rs": "18f7b0675ce8c51c39b23bcfac1dbe7b4f13be021103d6efcd9bae8111deccae",
+    "src/core/documents/vector_index.rs": "b7ada58a05e3fb2e6a884cf60ff264246386f6a839ea5442de744af4a046086b",
+    "src/core/engine/compaction.rs": "02ced488ea1c44690d418d0c5b2be6813695c4d4731360e5972840ea3b6eb683",
+    "src/core/engine/document_snapshot_tests.rs": "4d8039c48c9d637e108785214f9c20cdb12478e626ccdcf9ba594e4a0fdc2549",
+    "src/core/engine/image.rs": "2c5ca28ca55844a83ae145d332a190c77ba264c87983689c0bc5b1345a1d2d19",
+    "src/core/engine/mod.rs": "528a490df6391c505345c6a190284662386d77c0c1b9c450b0a717831813a74d",
+    "src/core/engine/mutation.rs": "3998121bf529e38a964d858f0ea66630f0666a78baf2507d11b77181cf37a59f",
+    "src/core/engine/mutation_gate.rs": "9a8d2da6bfb69b217ce5be50167dfe92f2e80922a1c362b243b9fa34de893d98",
+    "src/core/engine/query.rs": "b2cda98f639018e03b78ecd8f2ca08a5a7aee29cb11f40f9993e5b5dcee7bbbc",
+    "tests/server_api.rs": "b2fee055ae7611dde552c00d54f573c5a7c1ad114889cd8abd4eee410483f4a2"
+  },
+  "environment": {
+    "rust": "1.99.0",
+    "CARGO_TARGET_DIR": "/Volumes/A/holographic-memory/target/readiness-build",
+    "CARGO_BUILD_JOBS": 2
+  },
+  "checks": {
+    "combined-tests": {
+      "command": "cargo +1.99.0 test --locked --features security,experimental,server,mcp --lib --bins --test document_checkpoint --test document_chunks --test documents --test server --test server_api --test server_ops --test server_abuse --test server_ann",
+      "exit_code": 0,
+      "log": "combined-tests.log.gz",
+      "uncompressed_sha256": "596767a3f01d87c7965011595c0d4597a9cf0af106f048f805a67dab8a070e43",
+      "suites": [
+        {
+          "suite": "unittests src/lib.rs",
+          "result": "test result: ok. 823 passed; 0 failed; 12 ignored; 0 measured; 0 filtered out; finished in 156.54s"
+        },
+        {
+          "suite": "unittests src/bin/research/algebraic-codebook-bench.rs",
+          "result": "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s"
+        },
+        {
+          "suite": "unittests src/bin/research/amp-decode.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/ann-failure-map.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/base-residual.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/bilinear-readout.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/binding-baselines.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/binding-discriminator.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/block-recovery-test.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/bloom-wall.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/bundle-subset-sweep.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/capacity-campaign.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/document-search-bench.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/durability-driver.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/encoder-eval.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/fixed-point-holographic.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/forget-experiment.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/kernel-capacity-sweep.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/kernel-load-curve.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/memory-api-bench.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/memory-api-lme.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/noisy-retrieval.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/operand-retriever.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/pinv-memory.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/qag-diagnose.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/resonator-bundle.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/resonator-cleanup.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/resonator-factorize.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/resonator-sweep.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/ridge-memory.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/route-sweep.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/security-probe.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/sparse-bench.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests benchmarks/public/vector_glove_development.rs",
+          "result": "test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests benchmarks/public/vector_glove_diagnosis.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/vibe-rotation.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/warm-admin.rs",
+          "result": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+        },
+        {
+          "suite": "unittests src/bin/research/warm-benchmark-suite.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/warm-eval.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/warm-format.rs",
+          "result": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s"
+        },
+        {
+          "suite": "unittests src/bin/warm-mcp.rs",
+          "result": "test result: ok. 48 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.05s"
+        },
+        {
+          "suite": "unittests src/bin/research/warm-research-bench.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/warm-scaling.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/warm-server/main.rs",
+          "result": "test result: ok. 94 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 4.63s"
+        },
+        {
+          "suite": "unittests src/bin/research/warm-stress.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "unittests src/bin/research/warm-workload.rs",
+          "result": "test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s"
+        },
+        {
+          "suite": "tests/document_checkpoint.rs",
+          "result": "test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.68s"
+        },
+        {
+          "suite": "tests/document_chunks.rs",
+          "result": "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.98s"
+        },
+        {
+          "suite": "tests/documents.rs",
+          "result": "test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.71s"
+        },
+        {
+          "suite": "tests/server.rs",
+          "result": "test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 1.44s"
+        },
+        {
+          "suite": "tests/server_abuse.rs",
+          "result": "test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 12.17s"
+        },
+        {
+          "suite": "tests/server_ann.rs",
+          "result": "test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 2.09s"
+        },
+        {
+          "suite": "tests/server_api.rs",
+          "result": "test result: ok. 22 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 3.40s"
+        },
+        {
+          "suite": "tests/server_ops.rs",
+          "result": "test result: ok. 13 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 5.30s"
+        }
+      ],
+      "totals": {
+        "passed": 1051,
+        "failed": 0,
+        "ignored": 12
+      }
+    },
+    "clippy": {
+      "command": "cargo +1.99.0 clippy --locked --features security,experimental,server,mcp --lib --tests --bins -- -D warnings",
+      "exit_code": 0,
+      "log": "clippy.log.gz",
+      "uncompressed_sha256": "5c2e55f3091ca39689ee360eade9f7637914fc73a31cb9395ae8762d3edd1e26"
+    },
+    "format": {
+      "command": "cargo +1.99.0 fmt -- --check",
+      "exit_code": 0,
+      "log": "format.log.gz",
+      "uncompressed_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "limitations": [
+    "Local macOS arm64, selected feature combination; hosted full-feature/platform gates remain required.",
+    "Twelve existing library diagnostics remain ignored; no new tests were disabled.",
+    "Vector timing qualification is tracked separately from this correctness gate."
+  ]
+}

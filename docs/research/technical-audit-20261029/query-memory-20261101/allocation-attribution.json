@@ -1,0 +1,147 @@
+{
+  "source_base": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+  "source_sha256": "9fc2d788f430efdaf36c6c95c2ab322f3f3915829666ed4cbfd4bea9028b3064",
+  "instrument_sha256": "1f234f0acf721543b8c5b67bf04f5d2407d9b0f39c095785da3a41dd10a881ab",
+  "report_sha256": "503cf6465f4d071a413ddcb2252d302af12a12ead6a9162dfa3b5331047fc099",
+  "purpose": "Allocation attribution only; instrumented timings are not performance evidence.",
+  "queries": [
+    {
+      "phase": "initial",
+      "query": 1,
+      "stages": [
+        {
+          "allocation_calls": 2,
+          "largest_allocation": 632,
+          "live_end": 1008,
+          "live_start": 0,
+          "peak": 1008,
+          "requested_allocation_bytes": 1008,
+          "stage": "dispatch"
+        },
+        {
+          "allocation_calls": 3,
+          "largest_allocation": 40000,
+          "live_end": 41008,
+          "live_start": 1008,
+          "peak": 41008,
+          "requested_allocation_bytes": 40007,
+          "stage": "documents"
+        },
+        {
+          "allocation_calls": 1,
+          "largest_allocation": 10000,
+          "live_end": 51008,
+          "live_start": 41008,
+          "peak": 51008,
+          "requested_allocation_bytes": 10000,
+          "stage": "slot_mask"
+        },
+        {
+          "allocation_calls": 1,
+          "largest_allocation": 73736,
+          "live_end": 124744,
+          "live_start": 51008,
+          "peak": 124744,
+          "requested_allocation_bytes": 73736,
+          "stage": "eligible_owners"
+        },
+        {
+          "allocation_calls": 20,
+          "largest_allocation": 368,
+          "live_end": 125592,
+          "live_start": 124744,
+          "peak": 125848,
+          "requested_allocation_bytes": 1360,
+          "stage": "words_and_dfs"
+        },
+        {
+          "allocation_calls": 3,
+          "largest_allocation": 320,
+          "live_end": 75720,
+          "live_start": 125592,
+          "peak": 126040,
+          "requested_allocation_bytes": 608,
+          "stage": "lexical_ranking"
+        },
+        {
+          "allocation_calls": 1,
+          "largest_allocation": 320,
+          "live_end": 75536,
+          "live_start": 75720,
+          "peak": 76040,
+          "requested_allocation_bytes": 320,
+          "stage": "captured_chunks"
+        }
+      ]
+    },
+    {
+      "phase": "updated",
+      "query": 1,
+      "stages": [
+        {
+          "allocation_calls": 2,
+          "largest_allocation": 632,
+          "live_end": 1008,
+          "live_start": 0,
+          "peak": 1008,
+          "requested_allocation_bytes": 1008,
+          "stage": "dispatch"
+        },
+        {
+          "allocation_calls": 3,
+          "largest_allocation": 39936,
+          "live_end": 40944,
+          "live_start": 1008,
+          "peak": 40944,
+          "requested_allocation_bytes": 39943,
+          "stage": "documents"
+        },
+        {
+          "allocation_calls": 1,
+          "largest_allocation": 10000,
+          "live_end": 50944,
+          "live_start": 40944,
+          "peak": 50944,
+          "requested_allocation_bytes": 10000,
+          "stage": "slot_mask"
+        },
+        {
+          "allocation_calls": 1,
+          "largest_allocation": 73736,
+          "live_end": 124680,
+          "live_start": 50944,
+          "peak": 124680,
+          "requested_allocation_bytes": 73736,
+          "stage": "eligible_owners"
+        },
+        {
+          "allocation_calls": 20,
+          "largest_allocation": 368,
+          "live_end": 125528,
+          "live_start": 124680,
+          "peak": 125784,
+          "requested_allocation_bytes": 1360,
+          "stage": "words_and_dfs"
+        },
+        {
+          "allocation_calls": 3,
+          "largest_allocation": 320,
+          "live_end": 75720,
+          "live_start": 125528,
+          "peak": 125976,
+          "requested_allocation_bytes": 608,
+          "stage": "lexical_ranking"
+        },
+        {
+          "allocation_calls": 3,
+          "largest_allocation": 640,
+          "live_end": 75856,
+          "live_start": 75720,
+          "peak": 76384,
+          "requested_allocation_bytes": 1112,
+          "stage": "captured_chunks"
+        }
+      ]
+    }
+  ]
+}

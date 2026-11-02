@@ -66,6 +66,11 @@ pub const CODES: &[(&str, u16, &str)] = &[
     ("not_ready", 503, "Server not ready"),
     ("server_busy", 503, "Server busy"),
     (
+        "idempotency_storage_unavailable",
+        503,
+        "Durable retry protection unavailable",
+    ),
+    (
         "concurrent_mutation",
         503,
         "Concurrent mutation; retry required",

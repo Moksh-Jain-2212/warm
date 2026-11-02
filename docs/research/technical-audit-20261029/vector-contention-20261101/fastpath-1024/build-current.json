@@ -1,0 +1,219 @@
+{
+  "revision": "d7f5982f4612a16b78071d013ee858c64447a133",
+  "engine_vector_sha256": "b7ada58a05e3fb2e6a884cf60ff264246386f6a839ea5442de744af4a046086b",
+  "original_binary_sha256": "8beac2df875d0f916c6827d37e2153775f22ebefaa5a7ceaa678177725e868ad",
+  "probe_sha256": "218b539132bbb6573b759f199d7ef77bfd77d59e7a20366fa041b47e2b6fd466",
+  "instrumented_vector_sha256": "9fe2e91d8f74993c6e48c0339064e3771b978fefefb049b45bb30e81488bf942",
+  "harness_sha256": "05d0e7a1e51df40a8cb73f51f85748c3d1d69f5a988d44d46e3c51961841868b",
+  "plan_source": {
+    "scope": "Separately preregistered comparison of integrated production source including stale-exact helper isolation and the other completed remediation changes",
+    "baseline": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+    "current": "d7f5982f4612a16b78071d013ee858c64447a133",
+    "compiler": "Rust 1.99.0, opt-level 3 test profile, debug 0, default features, jobs 2",
+    "rows": 8192,
+    "dimensions": [
+      16,
+      128,
+      768
+    ],
+    "k": 10,
+    "warmup_queries": 8,
+    "samples_per_phase": 1024,
+    "phases": [
+      "fresh_idle",
+      "stale_idle",
+      "stale_writer"
+    ],
+    "stale_changes": "Replace IDs 0..16, delete IDs 16..24, insert IDs 8192..8200; writer replaces already-uncovered ID 0 once per query",
+    "writer_protocol": "Preconstruct replacement; query signals writer at canonical scoring entry without waiting; measure acquisition wait and complete insert; immutable pre-query full-scan oracle checked after every sample",
+    "memory": "Query-thread allocator calls and peak net requested bytes while rank_vector_snapshot runs; excludes corpus, writer allocations, output serialization, and allocator metadata/RSS",
+    "orders": [
+      [
+        "baseline",
+        "current"
+      ],
+      [
+        "current",
+        "baseline"
+      ],
+      [
+        "baseline",
+        "current"
+      ],
+      [
+        "current",
+        "baseline"
+      ],
+      [
+        "baseline",
+        "current"
+      ]
+    ],
+    "execution_budget_seconds": 600,
+    "acceptance": {
+      "correctness": "Every complete ordered (document ID, chunk index, canonical score bits) list equals a coherent brute-force oracle; deterministic paused-scoring writer test and delta/bitmap boundaries pass",
+      "writer": "Median per-process writer lock-wait p50 decreases at least 50% at dimensions 128 and 768",
+      "query": "Median per-process query p50 and p99 increase no more than 15% for fresh_idle and stale_idle at each dimension; concurrent query latency reported without hiding tradeoffs",
+      "allocation": "Additional stale capture remains bounded by 512 KiB bitmap plus 128 document Arcs and at most 1024 scored delta hits; no embedding or document-text copy",
+      "limits": "Local synthetic fixed workload on a shared desktop, conditional on all host checks; no production/general-hardware claim. Preserve original failed study and blocked unchanged-source confirmation. No tuning, automatic reruns or selective exclusions."
+    },
+    "source_pinning": "Integrated production commit pinned before candidate build or any timing. Its vector source is byte-identical to the isolation commit that passed focused checks. Baseline executable is reused with verified unchanged compiled inputs; integrated readiness checks precede timing grant.",
+    "query_schedule": {
+      "warmup_indices": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "recorded_indices": [
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71
+      ],
+      "repeats": 16,
+      "writer_versions": "Original index+2 progression continues through 1032 iterations; query vectors alone repeat the original 64 recorded vectors."
+    },
+    "original_study": {
+      "evidence_commit": "efb53a541767d6da8893d0a86850bd28839cd096",
+      "query_gate": "failed: fresh 16D median-process empirical p99 +24.6216%; never superseded or erased",
+      "files": {
+        "plan.json": "8202ba2e4151202563d1184a28cf15893127b9dabe232f7f8baddaec79b1d449",
+        "probe.py": "c35777ef2f4ccf1cd90967ed3ba9fc733243fb0483f9a55af55bcb7f0350cb48",
+        "contention_probe.rs": "0fc4ce4e0ed204930346cabac65dddad8a41060af1c38fb999bbcf205fa90ea0",
+        "summary.json": "bb595ce241cd7e25c0480685e181661e5871d1fce2cdd42ebb98602b449802c6",
+        "execution.json": "5cb6196cdce47cd0fd280b7e2f36992d863abfb1b4ec2f71fc5bbb74c9024715"
+      }
+    },
+    "confirmation_reason": "Evaluate an actual production source revision that isolates stale exact work from fresh dispatch after original codegen inspection found a 48-byte dispatch frame increase. This is not a repeat measurement of the unchanged candidate. Preserve original failed gate and the blocked unchanged-candidate confirmation.",
+    "binary_change": "Reuse the verified premeasurement baseline executable; its engine, instrumented vector source, Rust harness and compiler settings are unchanged. Build the integrated production candidate with the same 1024-sample Rust harness. Original build and new execution-wrapper/protocol provenance are recorded separately. No old-candidate timings.",
+    "host_conditions": {
+      "preflight_observations": 2,
+      "preflight_interval_seconds": 5,
+      "monitor_interval_seconds": 5,
+      "require_explicit_coordinator_quiet_grant": true,
+      "unexpected_build_names": [
+        "cargo",
+        "rustc",
+        "clang",
+        "clang++",
+        "cc",
+        "cc1",
+        "cc1plus",
+        "ld",
+        "lld",
+        "ninja",
+        "make",
+        "cmake"
+      ],
+      "exclusions": "Only this harness PID, its descendants (including the active probe and ps collector), and its exact ancestor PIDs; never unrelated children of ancestors.",
+      "inconclusive_if": "Any observed aggregate external CPU capacity >20%, any non-excluded build executable, failed process observation, changed logical CPU count, missing/failed process, expired execution budget, or missing quiet grant. Preflight violation prevents measurement; in-run violation stops after the active process and retains partial evidence. No exclusions or automatic retries.",
+      "limitation": "This is an observed shared-host activity budget, not an isolated or idle host. Sampled ps CPU/load observations cannot rule out activity between observations or attribute latency changes; unrelated jobs are never stopped.",
+      "external_cpu_capacity_percent_limit": 20.0,
+      "logical_cpu_count": 10,
+      "aggregate_definition": "Sum all non-excluded ps CPU percentages divided by logical CPU count; ps 100% is one logical core. Exactly 20% total external capacity is allowed; >20% is inconclusive.",
+      "worker_condition": "Coordinator confirms no WARM worker builds or tests during measurement; observed external compiler/build executables also disqualify the run."
+    },
+    "blocked_unchanged_confirmation": {
+      "evidence_commit": "052bdccf5bc752e1a9aba01ed831efc7fbd93897",
+      "path": "confirmation-1024",
+      "outcome": "No timing collected: fixed preflight external capacity 20.62% and 20.34% exceeded 20%; no retry",
+      "plan_sha256": "814a66ae234debd53e98e91d54c24d1eaeed7f4355f4556b2620c3f19d2f32e4",
+      "status_sha256": "9f1de67cb7ce8c7587f692a4b10d03628dd3fc12637b89fca5c0cbdce30e639e"
+    },
+    "preregistered_at": "2026-11-02T03:09:45.528892+00:00",
+    "frozen_at": "2026-11-02T03:09:45.528892+00:00",
+    "candidate_source_sha256": "b7ada58a05e3fb2e6a884cf60ff264246386f6a839ea5442de744af4a046086b",
+    "candidate_isolation_commit": "bf5f41f9f9114cf12fbd3fa9a0d60c8b6623b985"
+  },
+  "command": [
+    "cargo",
+    "+1.99.0",
+    "test",
+    "--offline",
+    "--locked",
+    "--lib",
+    "--no-run",
+    "--message-format=json"
+  ],
+  "settings": {
+    "CARGO_TARGET_DIR": "/Volumes/A/warm-vector-contention/target/vector-contention/build",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_PROFILE_DEV_OPT_LEVEL": "3",
+    "CARGO_PROFILE_TEST_OPT_LEVEL": "3",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "RAYON_NUM_THREADS": "1"
+  },
+  "rustc": "rustc 1.99.0 (b940084d7 2026-09-28)\nbinary: rustc\ncommit-hash: b940084d7eb6a299eb4bfeb8e34901bc051e7ac4\ncommit-date: 2026-09-28\nhost: aarch64-apple-darwin\nrelease: 1.99.0\nLLVM version: 23.1.1\n",
+  "started_at": "2026-11-02T03:10:08.349021+00:00",
+  "status": "built",
+  "exit_code": 0,
+  "binary": "/Volumes/A/warm-vector-contention/target/vector-fastpath-1024/current-probe",
+  "binary_sha256": "a76dacacdfed35ff561c6bda217a58d80af5859103378fd28bb8589f2148f6e5",
+  "finished_at": "2026-11-02T03:11:24.490099+00:00"
+}

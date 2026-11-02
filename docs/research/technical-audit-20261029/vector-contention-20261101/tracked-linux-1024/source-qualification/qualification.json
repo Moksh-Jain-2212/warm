@@ -1,0 +1,39 @@
+{
+  "baseline": "d7f5982f4612a16b78071d013ee858c64447a133",
+  "source_sha256": {
+    "src/core/documents/index.rs": "240d4dc93f692b3ce830e1f316ac174d7a384da3b81079855e0cc506c5f0f912",
+    "src/core/documents/vector_index.rs": "af65de0d28b36b7f6cbc974f557325ba9c6c4bb33d2a07248069f38147d2b042",
+    "src/core/engine/document_snapshot_tests.rs": "864499253616c0415ed9c261925f8338aaa2b677dce2caa109b69be76c647a45"
+  },
+  "gates": {
+    "vector_tests": 15,
+    "snapshot_tests": 16,
+    "ignored": 0,
+    "clippy": "cargo +1.99.0 clippy --offline --locked --lib --tests -- -D warnings",
+    "format": "rustfmt +1.99.0 --edition 2021 --check on three touched Rust files",
+    "diff": "git diff --check"
+  },
+  "settings": {
+    "CARGO_TARGET_DIR": "/Volumes/A/warm-vector-contention/target/vector-contention/build",
+    "CARGO_BUILD_JOBS": "2",
+    "CARGO_PROFILE_DEV_OPT_LEVEL": "3",
+    "CARGO_PROFILE_TEST_OPT_LEVEL": "3",
+    "CARGO_PROFILE_DEV_DEBUG": "0",
+    "CARGO_PROFILE_TEST_DEBUG": "0",
+    "RAYON_NUM_THREADS": "1"
+  },
+  "score_invariants": "ExactScan::search_canonical and finish_vector_hits byte-identical to baseline",
+  "persistent_memory": "At most 128 BTreeMap entries with 64 KiB total identifier bytes, latest generations, fixed RwLock/counters, and a store-identity field per snapshot/capture. No payload owners or new per-row/ID map. Existing rows provide binary range lookup.",
+  "fallbacks": [
+    "ledger overflow",
+    "generation coverage gap",
+    "store identity mismatch",
+    "more than 1024 delta chunks"
+  ],
+  "timings": "None; prior failed experiments preserved.",
+  "logs": {
+    "clippy.log": "a8dee4d91d392e1d492e8f7522491936211263001cd9d53305513315193aad5a",
+    "snapshot-tests.log": "248e11eb61f8fdf9e9d828cde87ae9b069c90f4fa91b5867e6e5fe85fa464fa2",
+    "vector-tests.log": "f9de7aeedc6fc5795af832af6bdd689cd7ed6d84d78e030f794cec54d508f78f"
+  }
+}

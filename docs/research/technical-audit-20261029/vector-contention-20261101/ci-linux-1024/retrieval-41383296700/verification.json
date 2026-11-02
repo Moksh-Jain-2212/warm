@@ -1,0 +1,129 @@
+{
+  "verified_at": "2026-11-02T03:49:13.568755+00:00",
+  "run_id": 41383296700,
+  "run_attempt": 1,
+  "job_id": 125078617916,
+  "workflow_head": "050223a69cb5a907887de84e3e16a2ddf6c3bff4",
+  "candidate_source": "d7f5982f4612a16b78071d013ee858c64447a133",
+  "baseline_source": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+  "archive_sha256": "e5a4e685096c04dfaa6842704d595d467078f933da5dff17f18a74881cc06991",
+  "archive_bytes": 1450491,
+  "exported_regular_files": 41,
+  "frozen_plan_sha256": "1016e2b70c87d13de73cfa05d43d2860e45a45c4806328640b837382d3c2e50c",
+  "frozen_files_match_workflow_commit": [
+    "plan.json",
+    "probe.py",
+    "contention_probe.rs",
+    "summarize.py",
+    "test_probe.py",
+    "test_summary_exit.py",
+    "README.md",
+    "harness-tests.json",
+    "harness-tests.log.gz"
+  ],
+  "all_source_and_instrumented_hashes_verified": true,
+  "cargo_inputs_verified_for_both_revisions": true,
+  "binary_hash_limit": "Executable bytes are intentionally not exported. Build manifests record SHA256 values; the pinned driver verified both executable hashes before measuring, and its build-manifest hashes match the retained execution ledger.",
+  "binary_sha256": {
+    "baseline": "c4b280dc31bb392a81ea665ce7563e1e8be837d7c10be9d7bdbb719b5e3a26c5",
+    "current": "45c7b6a3b425ae24b57dc96e772d05abb5bc87e2400585211c35a133bdefc404"
+  },
+  "all_10_compressed_report_and_log_hashes_verified": true,
+  "complete_ordered_result_lists_compared": 92160,
+  "ordered_results_equal_across_all_processes_and_revisions": true,
+  "reported_coherent_oracle_checks": 92880,
+  "oracle_limit": "In-process full-scan oracle assertions passed; raw answers and canonical score bits are retained and independently compared across all processes here. No new benchmark or independent corpus re-execution occurred.",
+  "summary_reproduction": {
+    "byte_identical": true,
+    "exit_code": 1,
+    "sha256": "4ff9fe76d8bbef1284ab7f3c95b75e372d45dd03a92f32f20f525d7dc8f1b3e3"
+  },
+  "qualification_passed": false,
+  "writer_gate_passed": true,
+  "failed_query_conditions": [
+    {
+      "dimensions": 128,
+      "phase": "stale_idle",
+      "metric": "p99",
+      "increase_percent": 15.825350529191962
+    }
+  ],
+  "host": {
+    "observations": 130,
+    "all_frozen_host_checks_passed": true,
+    "external_capacity_percent_range": [
+      0.2,
+      0.45
+    ],
+    "steal_ticks_first": 0,
+    "steal_ticks_last": 0,
+    "limits": "Guest process snapshots and zero reported steal do not establish physical-host isolation or attribute the failed tail condition; Linux VM results do not replace prior macOS findings."
+  },
+  "failed_group_per_process": [
+    {
+      "run": "execution-1-baseline",
+      "variant": "baseline",
+      "p50_ns": 2031216,
+      "p99_ns": 2174244
+    },
+    {
+      "run": "execution-1-current",
+      "variant": "current",
+      "p50_ns": 2047547,
+      "p99_ns": 2492180
+    },
+    {
+      "run": "execution-2-current",
+      "variant": "current",
+      "p50_ns": 2122957,
+      "p99_ns": 2673996
+    },
+    {
+      "run": "execution-2-baseline",
+      "variant": "baseline",
+      "p50_ns": 1944988,
+      "p99_ns": 2170290
+    },
+    {
+      "run": "execution-3-baseline",
+      "variant": "baseline",
+      "p50_ns": 1933401,
+      "p99_ns": 2028118
+    },
+    {
+      "run": "execution-3-current",
+      "variant": "current",
+      "p50_ns": 1998995,
+      "p99_ns": 2430852
+    },
+    {
+      "run": "execution-4-current",
+      "variant": "current",
+      "p50_ns": 2055510,
+      "p99_ns": 2562918
+    },
+    {
+      "run": "execution-4-baseline",
+      "variant": "baseline",
+      "p50_ns": 1988503,
+      "p99_ns": 2181654
+    },
+    {
+      "run": "execution-5-baseline",
+      "variant": "baseline",
+      "p50_ns": 1981192,
+      "p99_ns": 2081738
+    },
+    {
+      "run": "execution-5-current",
+      "variant": "current",
+      "p50_ns": 2125040,
+      "p99_ns": 2513746
+    }
+  ],
+  "job_log_sha256": "17797d60f5a299f0b047815e53f7a41c59d5e9cc7e9fab00561f8dda00cb3f43",
+  "job_log_gzip_sha256": "8351738e7ad0515158dd0715b025f94f45aa62e7bab87d3287f9480eca559657",
+  "retrieval_note": "Initial gh log download refused terminal escape sequences; downloading the same immutable job log with --allow-escape-sequences to a file succeeded. No job rerun, metric retry or exclusion occurred.",
+  "whitespace_verification": "Captured raw logs retain their exact original bytes inside hosted-run-41383296700/evidence.tar.gz. The compact storage revision passes git diff --check without captured-log exclusions.",
+  "storage_representation": "The exact 41-file exported gzip tar is canonical; summary.json is also retained as readable text. Original member hashes are in transport.json; archive/materialization/reproduction checks are in hosted-run-41383296700/storage.json."
+}

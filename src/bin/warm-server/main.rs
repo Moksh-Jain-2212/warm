@@ -188,7 +188,7 @@ async fn serve_main(config: Config) -> Result<()> {
         routes::route_templates(),
         #[cfg(feature = "local-models")]
         stages,
-    ));
+    )?);
     if let Some(tls) = &tls {
         let _ = state.tls.set(tls.clone());
     }

@@ -92,11 +92,16 @@ impl<'a> Request<'a> {
     pub fn send(self) -> Resp {
         let method = self.method;
         let path = self.path.clone();
+        let tenant = self
+            .headers
+            .iter()
+            .find(|(name, _)| name.eq_ignore_ascii_case("X-Tenant-ID"))
+            .map(|(_, value)| value.clone());
         let (server, headers, body) = self.encode();
         let raw = server.exchange_parts([headers, body]);
         assert!(
             !raw.is_empty(),
-            "no response to {method} {path}; recent server events: {:?}",
+            "no response to {method} {path}; tenant: {tenant:?}; recent server events: {:?}",
             server
                 .log_lines()
                 .into_iter()
@@ -308,8 +313,16 @@ impl Server {
     }
 
     fn exchange_parts(&self, parts: impl IntoIterator<Item = impl AsRef<[u8]>>) -> Vec<u8> {
-        let Ok(mut stream) = self.try_connect() else {
-            return Vec::new();
+        let start = std::time::Instant::now();
+        let mut stream = match self.try_connect() {
+            Ok(stream) => stream,
+            Err(error) => {
+                eprintln!(
+                    "connection or setup failed after {:?}: {error}",
+                    start.elapsed()
+                );
+                return Vec::new();
+            }
         };
         // The server may answer and close before reading an oversized body.
         let mut request_bytes = 0usize;
@@ -321,14 +334,12 @@ impl Server {
             }
         }
         let mut raw = Vec::new();
-        let start = std::time::Instant::now();
-        if let Err(error) = stream.read_to_end(&mut raw) {
-            if raw.is_empty() {
-                eprintln!(
-                    "response read failed after {:?}: {error}; request bytes: {request_bytes}; write error: {write_error:?}",
-                    start.elapsed(),
-                );
-            }
+        let read_result = stream.read_to_end(&mut raw);
+        if raw.is_empty() {
+            eprintln!(
+                "empty response after {:?}: read result: {read_result:?}; request bytes: {request_bytes}; write error: {write_error:?}",
+                start.elapsed(),
+            );
         }
         raw
     }

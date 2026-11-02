@@ -1,0 +1,49 @@
+{
+  "objective": "Reduce proven filtered lexical/hybrid query scratch requested-byte peak while preserving exact results and rare/hot latency.",
+  "revisions": {
+    "baseline": "ba980ffc16e01981bf1d025debfb83d6e7334aac",
+    "sorted": "5b3b4c61d0adeb39f7373fa19c4da00cfc4a5108",
+    "current": "64af5a4804717562c48922cee1776e1bb0d4cf5b"
+  },
+  "workload": {
+    "rows": 10000,
+    "dimensions": 16,
+    "mutations": 32,
+    "groups": [
+      "initial rare",
+      "initial hot",
+      "updated rare",
+      "updated hot"
+    ],
+    "samples_per_group_per_round": 128,
+    "rounds": 5,
+    "workers": 1,
+    "candidate_limit": 32,
+    "k": 10
+  },
+  "method": [
+    "Profile source allocation stages in an isolated baseline archive before production edits; profiling times are not performance evidence.",
+    "Reuse exact inherited retrieval probe workload, System counting allocator and exhaustive oracle; compare complete ordered payloads across revisions and rounds.",
+    "Freeze candidate source commit before build. Bind source, probe, harness, plan, executable and raw report hashes; no automatic retries.",
+    "Run five alternating process rounds serially only in root-approved quiet window after unrelated builds/tests stop.",
+    "Compare sorted-address and compact-offset owner membership in one frozen three-variant study; alternate and reverse orders across five rounds."
+  ],
+  "acceptance": [
+    "All exhaustive per-query and complete cross-revision ordered-result payload comparisons match, including floating-point scores.",
+    "Rare-query median requested-byte peak decreases in both initial and updated phases; retain cold first-query peaks and persistent scratch limits.",
+    "No sustained >5% p50 or empirical p99 regression in either rare or hot group versus baseline.",
+    "Retain unfavorable observations and failures; no weakening query limits, ownership, text scrub/error handling, or scoring semantics."
+  ],
+  "sustained_regression_rule": "Median current round quantile exceeds baseline median by over 5%, and at least four of five paired rounds are slower; descriptive investigation trigger, not statistical significance.",
+  "execution_budget_seconds": 600,
+  "limits": [
+    "Free local synthetic development only; no paid API/cloud/models.",
+    "Requested-byte accounting excludes allocator internal storage and process RSS. The probe uses one worker; no production or population-tail guarantee.",
+    "Historical timing comparison remains the separate retained study; this study compares current main to one scoped optimization."
+  ],
+  "candidate_designs": {
+    "sorted": "Reuse document-reference Vec storage for sorted exact owner addresses after dropping slot mask.",
+    "current": "Use exact u32 owner-address offsets in existing FastSet, with checked full-width fallback; drop slot mask first."
+  },
+  "selection_rule": "Require correctness and lower rare-query median requested-byte peaks, and no sustained >5% p50/p99 regression in all four groups. Among qualifying candidates prefer the lower rare-query peak; retain all candidate observations even if rejected."
+}

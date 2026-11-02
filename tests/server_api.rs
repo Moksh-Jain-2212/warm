@@ -11,6 +11,103 @@ use std::time::{Duration, Instant};
 use serde_json::{json, Value};
 use server_support::*;
 
+#[test]
+fn durable_retry_replays_after_an_abrupt_server_restart() {
+    let scratch = tempfile::tempdir().unwrap();
+    let data = scratch.path().join("data");
+    let mut server = Server::start_in(&data, &["--no-auth"], &[]);
+    let payload = doc("durable-retry", 1);
+    let first = server
+        .req("POST", "/api/v1/documents")
+        .header("Idempotency-Key", "durable-request")
+        .json(&payload)
+        .send();
+    assert_eq!(first.status, 200, "{}", first.text());
+    server.child.kill().unwrap();
+    server.child.wait().unwrap();
+    drop(server);
+    let server = Server::start_in(&data, &["--no-auth"], &[]);
+    let replay = server
+        .req("POST", "/api/v1/documents")
+        .header("Idempotency-Key", "durable-request")
+        .json(&payload)
+        .send();
+    assert_eq!(replay.status, first.status);
+    assert_eq!(replay.body, first.body);
+    assert_eq!(replay.header("idempotent-replayed"), Some("true"));
+    let changed = server
+        .req("POST", "/api/v1/documents")
+        .header("Idempotency-Key", "durable-request")
+        .json(&doc("different", 2))
+        .send();
+    assert_eq!(changed.status, 422);
+    assert_eq!(changed.json()["code"], "idempotency_key_reused");
+    assert_eq!(
+        server.req("GET", "/api/v1/stats").send().json()["documents"],
+        1
+    );
+}
+
+#[test]
+fn durable_read_receipts_are_scrubbed_by_forget_and_document_deletion() {
+    for removal in ["forget", "delete", "purge"] {
+        let scratch = tempfile::tempdir().unwrap();
+        let data = scratch.path().join("data");
+        let mut server = Server::start_in(&data, &["--no-auth"], &[]);
+        let secret = "unique retained receipt text 89c4f1";
+        let remembered = server
+            .req("POST", "/api/v1/memory/remember")
+            .json(&json!({"id":"private", "text":secret}))
+            .send();
+        assert_eq!(remembered.status, 200, "{}", remembered.text());
+        let get = || {
+            server
+                .req("POST", "/api/v1/memory/get")
+                .header("Idempotency-Key", "private-read")
+                .json(&json!({"id":"private"}))
+                .send()
+        };
+        let original = get();
+        assert_eq!(original.status, 200, "{}", original.text());
+        assert!(original.text().contains(secret));
+        assert_eq!(get().header("idempotent-replayed"), Some("true"));
+        let removed = if removal == "forget" {
+            server
+                .req("POST", "/api/v1/memory/forget")
+                .header("Idempotency-Key", "forget-request")
+                .json(&json!({"scope":{"kind":"ids", "ids":["private"]}, "purge":true}))
+                .send()
+        } else {
+            server
+                .req(
+                    "DELETE",
+                    if removal == "purge" {
+                        "/api/v1/documents/private?purge=true"
+                    } else {
+                        "/api/v1/documents/private"
+                    },
+                )
+                .send()
+        };
+        assert_eq!(removed.status, 200, "{removal}: {}", removed.text());
+        assert_eq!(get().json()["code"], "idempotency_reconciliation_required");
+        for entry in std::fs::read_dir(data.join("http-retries")).unwrap() {
+            let bytes = std::fs::read(entry.unwrap().path()).unwrap();
+            assert!(!String::from_utf8_lossy(&bytes).contains(secret));
+        }
+        assert!(server.stop());
+        drop(server);
+        let server = Server::start_in(&data, &["--no-auth"], &[]);
+        let retry = server
+            .req("POST", "/api/v1/memory/get")
+            .header("Idempotency-Key", "private-read")
+            .json(&json!({"id":"private"}))
+            .send();
+        assert_eq!(retry.status, 409);
+        assert_eq!(retry.json()["code"], "idempotency_reconciliation_required");
+    }
+}
+
 fn wait_until(what: &str, mut ok: impl FnMut() -> bool) {
     let deadline = Instant::now() + Duration::from_secs(10);
     while !ok() {
@@ -559,8 +656,6 @@ fn idempotency_keys_replay_conflict_and_scope_to_the_tenant() {
         .send();
     assert_eq!(first.status, 200);
     assert!(first.header("idempotent-replayed").is_none());
-    // Remove a document, then replay: the recorded response comes back without re-running.
-    assert_eq!(s.req("DELETE", "/api/v1/documents/a").send().status, 200);
     let replay = s
         .req("POST", "/api/v1/documents/batch")
         .header("Idempotency-Key", "k-1")
@@ -569,10 +664,22 @@ fn idempotency_keys_replay_conflict_and_scope_to_the_tenant() {
     assert_eq!(replay.status, 200);
     assert_eq!(replay.header("idempotent-replayed"), Some("true"));
     assert_eq!(replay.json(), first.json());
+    assert_eq!(s.req("DELETE", "/api/v1/documents/a").send().status, 200);
+    let invalidated = s
+        .req("POST", "/api/v1/documents/batch")
+        .header("Idempotency-Key", "k-1")
+        .json(&batch)
+        .send();
+    assert_eq!(invalidated.status, 409);
+    assert_eq!(
+        invalidated.json()["code"],
+        "idempotency_reconciliation_required"
+    );
+    assert_eq!(invalidated.header("idempotent-replayed"), None);
     assert_eq!(
         s.req("GET", "/api/v1/documents").send().json()["count"],
         1,
-        "replay did not store again"
+        "the protected key did not recreate the deleted document"
     );
     // Same key, different body.
     let reused = s
@@ -641,9 +748,18 @@ fn idempotency_capacity_protects_completed_mutations_from_reexecution() {
         .header("Idempotency-Key", "protected")
         .json(&original)
         .send();
-    assert_eq!(replay.body, first.body);
-    assert_eq!(replay.header("idempotent-replayed"), Some("true"));
+    assert_eq!(replay.status, 409);
+    assert_eq!(replay.json()["code"], "idempotency_reconciliation_required");
+    assert_eq!(replay.header("idempotent-replayed"), None);
     assert_eq!(s.req("GET", "/api/v1/documents").send().json()["count"], 0);
+    assert_eq!(
+        s.req("POST", "/api/v1/documents")
+            .header("Idempotency-Key", "new")
+            .json(&doc("not-written", 2))
+            .send()
+            .status,
+        503
+    );
 }
 
 #[test]

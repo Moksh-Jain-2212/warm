@@ -1,0 +1,18 @@
+diff --git a/src/core/documents/vector_index.rs b/src/core/documents/vector_index.rs
+index 0b944faf..22e2d823 100644
+--- a/src/core/documents/vector_index.rs
++++ b/src/core/documents/vector_index.rs
+@@ -33,9 +33,10 @@
+ //!   of the dense index; overflow, a coverage gap or a different store takes the complete
+ //!   generic exact path. Every captured row is scored outside the lock, retaining the best
+ //!   `k` eligible base rows before merging bounded delta chunks. Graph queries retain their
+-//!   approximate candidate contract and validate owners against the live store. Exact
+-//!   capture holds a bit per snapshot row and at most the dense index's delta document/chunk
+-//!   limits. When fewer than `k` hits survive, the caller takes the generic exact path.
++//!   approximate candidate contract and validate owners against the live store; their delta
++//!   discovery still scans the live collection and scores uncovered chunks under its read
++//!   lock. Exact capture holds a bit per snapshot row and at most the dense index's delta
++//!   document/chunk limits. When fewer than `k` hits survive, the caller takes the generic exact path.
+ //!   `rebuild_recommended` asks maintenance for a fresh capture
+ //!   after [`REBUILD_AFTER_MUTATIONS`] mutations, so the stale window is bounded by the
+ //!   maintenance interval.

@@ -1,0 +1,81 @@
+{
+  "inspected_at": "2026-11-02T03:00:31.979015+00:00",
+  "scope": "Read-only code generation diagnostic of original 64-sample binaries, not timing evidence or a causal attribution",
+  "objdump": "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-objdump",
+  "symbol": "__RNvNtNtNtCs4FgopENrE6B_17writerslogic_warm4core9documents12vector_index20rank_vector_snapshot",
+  "variants": {
+    "baseline": {
+      "binary_sha256": "93ea04ce31960cb7cb711e7da65c490a2bb2a7bb9eae362a785da6c4a2fc5a09",
+      "command": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-objdump",
+        "-d",
+        "--no-show-raw-insn",
+        "--disassemble-symbols=__RNvNtNtNtCs4FgopENrE6B_17writerslogic_warm4core9documents12vector_index20rank_vector_snapshot",
+        "/Volumes/A/warm-vector-contention/target/vector-contention/baseline-probe"
+      ],
+      "log_gzip_sha256": "d01440868714812230aaaadc572d39e18cf00a323f3c9b8c8078e6af0fc50845",
+      "first_instructions": [
+        "00000001001f88b0 <__RNvNtNtNtCs4FgopENrE6B_17writerslogic_warm4core9documents12vector_index20rank_vector_snapshot>:",
+        "1001f88b0:     \tsub\tsp, sp, #0x1d0",
+        "1001f88b4:     \tstp\td9, d8, [sp, #0x160]",
+        "1001f88b8:     \tstp\tx28, x27, [sp, #0x170]",
+        "1001f88bc:     \tstp\tx26, x25, [sp, #0x180]",
+        "1001f88c0:     \tstp\tx24, x23, [sp, #0x190]",
+        "1001f88c4:     \tstp\tx22, x21, [sp, #0x1a0]",
+        "1001f88c8:     \tstp\tx20, x19, [sp, #0x1b0]",
+        "1001f88cc:     \tstp\tx29, x30, [sp, #0x1c0]",
+        "1001f88d0:     \tadd\tx29, sp, #0x1c0",
+        "1001f88d4:     \tmov\tx23, x3",
+        "1001f88d8:     \tstr\tx2, [sp, #0x50]",
+        "1001f88dc:     \tmov\tx28, x0",
+        "1001f88e0:     \tmov\tx19, x8",
+        "1001f88e4:     \tldr\tx8, [x0, #0x388]",
+        "1001f88e8:     \tcmp\tx3, x8",
+        "1001f88ec:     \tb.ne\t0x1001f96b0 <__RNvNtNtNtCs4FgopENrE6B_17writerslogic_warm4core9documents12vector_index20rank_vector_snapshot+0xe00>",
+        "1001f88f0:     \tcmp\tx5, x23",
+        "1001f88f4:     \tb.ne\t0x1001f96ec <__RNvNtNtNtCs4FgopENrE6B_17writerslogic_warm4core9documents12vector_index20rank_vector_snapshot+0xe3c>",
+        "1001f88f8:     \tsub\tx8, x6, #0x3e9",
+        "1001f88fc:     \tcmn\tx8, #0x3e8",
+        "1001f8900:     \tb.hs\t0x1001f8924 <__RNvNtNtNtCs4FgopENrE6B_17writerslogic_warm4core9documents12vector_index20rank_vector_snapshot+0x74>"
+      ],
+      "observed_stack_frame_bytes": 464
+    },
+    "current": {
+      "binary_sha256": "8beac2df875d0f916c6827d37e2153775f22ebefaa5a7ceaa678177725e868ad",
+      "command": [
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/llvm-objdump",
+        "-d",
+        "--no-show-raw-insn",
+        "--disassemble-symbols=__RNvNtNtNtCs4FgopENrE6B_17writerslogic_warm4core9documents12vector_index20rank_vector_snapshot",
+        "/Volumes/A/warm-vector-contention/target/vector-contention/current-probe"
+      ],
+      "log_gzip_sha256": "57e89f95d60d9527ae6230c62d1b33326240828fa6a7a9d1e28270a564aae7a4",
+      "first_instructions": [
+        "00000001001fffa8 <__RNvNtNtNtCs4FgopENrE6B_17writerslogic_warm4core9documents12vector_index20rank_vector_snapshot>:",
+        "1001fffa8:     \tstp\td9, d8, [sp, #-0x70]!",
+        "1001fffac:     \tstp\tx28, x27, [sp, #0x10]",
+        "1001fffb0:     \tstp\tx26, x25, [sp, #0x20]",
+        "1001fffb4:     \tstp\tx24, x23, [sp, #0x30]",
+        "1001fffb8:     \tstp\tx22, x21, [sp, #0x40]",
+        "1001fffbc:     \tstp\tx20, x19, [sp, #0x50]",
+        "1001fffc0:     \tstp\tx29, x30, [sp, #0x60]",
+        "1001fffc4:     \tadd\tx29, sp, #0x60",
+        "1001fffc8:     \tsub\tsp, sp, #0x190",
+        "1001fffcc:     \tmov\tx22, x3",
+        "1001fffd0:     \tmov\tx24, x0",
+        "1001fffd4:     \tmov\tx19, x8",
+        "1001fffd8:     \tldr\tx8, [x0, #0x388]",
+        "1001fffdc:     \tcmp\tx3, x8",
+        "1001fffe0:     \tb.ne\t0x100201048 <__RNvNtNtNtCs4FgopENrE6B_17writerslogic_warm4core9documents12vector_index20rank_vector_snapshot+0x10a0>",
+        "1001fffe4:     \tcmp\tx5, x22",
+        "1001fffe8:     \tb.ne\t0x100201084 <__RNvNtNtNtCs4FgopENrE6B_17writerslogic_warm4core9documents12vector_index20rank_vector_snapshot+0x10dc>",
+        "1001fffec:     \tsub\tx8, x6, #0x3e9",
+        "1001ffff0:     \tcmn\tx8, #0x3e8",
+        "1001ffff4:     \tb.hs\t0x100200018 <__RNvNtNtNtCs4FgopENrE6B_17writerslogic_warm4core9documents12vector_index20rank_vector_snapshot+0x70>",
+        "1001ffff8:     \tadrp\tx8, 0x1007c9000 <__RNvXs8_NtNtNtCsjIpoRzUjyHQ_4core3fmt3num3impmNtB9_7Display3fmt+0x58>"
+      ],
+      "observed_stack_frame_bytes": 512
+    }
+  },
+  "interpretation": "The original candidate reserves 48 additional dispatch stack bytes despite unchanged fresh-branch source. This suggests a bounded codegen-isolation experiment, not proof of a latency cause or runtime speedup. No timings were run during inspection."
+}

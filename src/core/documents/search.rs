@@ -73,6 +73,20 @@ struct CapturedPosting {
     frequency: u32,
 }
 
+struct EligibleOwners(Vec<usize>);
+
+impl EligibleOwners {
+    fn new(mut owners: Vec<usize>) -> Self {
+        owners.sort_unstable();
+        owners.dedup();
+        Self(owners)
+    }
+
+    fn contains(&self, owner: &usize) -> bool {
+        self.0.binary_search(owner).is_ok()
+    }
+}
+
 /// Slot to captured-chunk position: one `u32` per store slot while that table is small enough
 /// to fill per query, a hash map beyond.
 enum SlotPositions {
@@ -116,7 +130,7 @@ struct CapturedQuery {
     words: usize,
     use_postings: bool,
     dense: Option<Arc<DenseIndex>>,
-    eligible: Option<FastSet<usize>>,
+    eligible: Option<EligibleOwners>,
     excluded_owners: FastSet<usize>,
     dfs: Option<[BTreeMap<String, usize>; 2]>,
     /// The store's text segment, read for result text after the store lock is released (under
@@ -906,15 +920,6 @@ fn capture_planned_query(
                 }
                 slots
             });
-        if slots.is_some() && dense.is_some() && documents.len() <= DENSE_SLOT_LIMIT {
-            // The tree pins its owners, so current-owner membership also excludes replaced rows.
-            eligible = Some(
-                documents
-                    .iter()
-                    .map(|document| Arc::as_ptr(document) as usize)
-                    .collect(),
-            );
-        }
         let words = documents
             .iter()
             .flat_map(|document| &document.chunks)
@@ -944,20 +949,32 @@ fn capture_planned_query(
                 .collect()
         });
         let mut ranked = Vec::new();
-        if let Some(slots) = slots.as_ref().filter(|_| prepared.lexical_weight > 0.0) {
-            let source = FilteredLexical {
-                store,
-                slots,
-                dfs: &dfs,
-                count,
-                words,
-                identity: super::index::StoreIdentity::default(),
-            };
-            ranked = LEXICAL_SCRATCH
-                .with(|scratch| scratch.borrow_mut().rank(&source, &prepared))
-                .into_iter()
-                .map(|(score, slot)| (score, slot as usize))
-                .collect();
+        if let Some(slots) = slots {
+            if prepared.lexical_weight > 0.0 {
+                let source = FilteredLexical {
+                    store,
+                    slots: &slots,
+                    dfs: &dfs,
+                    count,
+                    words,
+                    identity: super::index::StoreIdentity::default(),
+                };
+                ranked = LEXICAL_SCRATCH
+                    .with(|scratch| scratch.borrow_mut().rank(&source, &prepared))
+                    .into_iter()
+                    .map(|(score, slot)| (score, slot as usize))
+                    .collect();
+            }
+            drop(slots);
+            if dense.is_some() && documents.len() <= DENSE_SLOT_LIMIT {
+                // The tree pins its owners, so current-owner membership also excludes replaced rows.
+                eligible = Some(EligibleOwners::new(
+                    documents
+                        .into_iter()
+                        .map(|document| Arc::as_ptr(document) as usize)
+                        .collect(),
+                ));
+            }
         } else if prepared.lexical_weight > 0.0 {
             let idfs: [Vec<_>; 2] = std::array::from_fn(|form| {
                 dfs[form]
@@ -1379,6 +1396,34 @@ mod tests {
     use crate::core::sync::RwLock;
     use serde_json::json;
     use std::sync::Barrier;
+
+    #[test]
+    fn eligible_owner_membership_preserves_wide_addresses_and_exact_boundaries() {
+        let mut ranges = vec![vec![], vec![0], vec![usize::MAX], vec![0, usize::MAX]];
+        for width in [u32::MAX as usize - 1, u32::MAX as usize] {
+            ranges.push(vec![0, width / 2, width, width]);
+            ranges.push(vec![usize::MAX - width, usize::MAX]);
+        }
+        if let Some(width) = (u32::MAX as usize).checked_add(1) {
+            ranges.push(vec![0, width]);
+            ranges.push(vec![usize::MAX - width, usize::MAX]);
+        }
+        for addresses in ranges {
+            let owners = EligibleOwners::new(addresses.clone());
+            for address in addresses.iter().copied().chain([0, 1, usize::MAX]) {
+                for probe in [
+                    address.checked_sub(1),
+                    Some(address),
+                    address.checked_add(1),
+                ]
+                .into_iter()
+                .flatten()
+                {
+                    assert_eq!(owners.contains(&probe), addresses.contains(&probe));
+                }
+            }
+        }
+    }
 
     #[test]
     fn planned_filtered_lexical_and_hybrid_match_oracle_under_term_skew() {

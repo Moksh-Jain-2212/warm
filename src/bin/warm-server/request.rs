@@ -208,28 +208,39 @@ pub async fn json_write(
     let (method, path) = (req.method().to_string(), req.uri().path().to_string());
     let permit = acquire(&state).await?;
     let bytes = read_body(&state, req.into_body()).await?;
-    let guard = match key {
-        None => None,
-        Some(key) => {
-            match state
-                .idem
-                .begin(&tenant, &key, fingerprint(&method, &path, &tenant, &bytes))?
-            {
+    let worker = state.clone();
+    let (result, replayed) = blocking(permit, move || {
+        let guard = match key {
+            None => None,
+            Some(key) => match worker.idem.begin(
+                &tenant,
+                &key,
+                fingerprint(&method, &path, &tenant, &bytes),
+            )? {
                 Begin::Replay(stored) => {
-                    state
+                    worker
                         .metrics
                         .idempotent_replays
                         .fetch_add(1, Ordering::Relaxed);
-                    return Ok(replay(&stored));
+                    return Ok((stored, true));
                 }
                 Begin::Proceed(guard) => Some(guard),
-            }
-        }
-    };
-    let worker = state.clone();
-    let result = blocking(permit, move || {
+            },
+        };
+        let erasure = if matches!(
+            path.as_str(),
+            "/api/v1/memory/forget"
+                | "/api/v1/memory/applyForgetting"
+                | "/api/v1/memory/consolidate"
+        ) {
+            worker.idem.erase(&tenant, guard.as_ref())?
+        } else {
+            None
+        };
         let result = work(&worker, &tenant, bytes)
             .map(|(status, body)| StoredResponse::new(status, &body, false));
+        #[cfg(test)]
+        crate::limits::crash_point("after-work");
         if let Some(guard) = guard {
             guard.complete(&match &result {
                 Ok(stored) => stored.clone(),
@@ -238,12 +249,19 @@ pub async fn json_write(
                     &e.problem(),
                     matches!(e.code, "mutation_committed" | "mutation_uncertain"),
                 ),
-            });
+            })?;
         }
-        result
+        if let Some(erasure) = erasure {
+            erasure.finish()?;
+        }
+        result.map(|stored| (stored, false))
     })
     .await?;
-    Ok(stored_response(&result))
+    Ok(if replayed {
+        replay(&result)
+    } else {
+        stored_response(&result)
+    })
 }
 
 #[cfg(test)]

@@ -198,6 +198,151 @@ fn stale_exact_vector_snapshot_survives_replacement_maintenance_and_reopen() -> 
 }
 
 #[test]
+fn vector_change_tracking_survives_canonical_compaction_and_restart() -> Result<()> {
+    let directory = tempfile::tempdir()?;
+    let path = directory.path().display().to_string();
+    let options = documents::VectorQueryOptions {
+        mode: documents::VectorIndexMode::Exact,
+        ..Default::default()
+    };
+    let core = WarmCore::new(1024, Some(path.clone()), Some(super::fixture_config(2)))?;
+    core.memorize_document(input("a", "old", "old", "g")?)?;
+    core.memorize_document(input("b", "old", "old", "g")?)?;
+    assert!(core.rebuild_vector_index(usize::MAX)?);
+    let old = core.vector_index.get().unwrap();
+    core.delete_document("a")?;
+    core.memorize_document(input("a", "new", "replacement", "g")?)?;
+    core.compact_scrubbing()?;
+    assert!(documents::rank_vector_snapshot(
+        &old,
+        &core.documents,
+        &[1.0, 0.0],
+        &[1.0, 0.0],
+        1,
+        &options,
+    )?
+    .is_none());
+    core.memorize_document(input("a", "latest", "latest", "g")?)?;
+    let result = core.search_vectors(&[1.0, 0.0], 1, &options)?;
+    assert_eq!(
+        (result[0].document_id.as_str(), result[0].version.as_str()),
+        ("a", "latest")
+    );
+    drop(old);
+    drop(core);
+    let reopened = WarmCore::new(1024, Some(path), Some(super::fixture_config(2)))?;
+    assert!(reopened.rebuild_vector_index(usize::MAX)?);
+    reopened.delete_document("a")?;
+    assert_eq!(
+        reopened.search_vectors(&[1.0, 0.0], 1, &options)?[0].document_id,
+        "b"
+    );
+    Ok(())
+}
+
+#[test]
+fn stale_exact_vector_capture_rejects_scrubbed_base_and_delta_text() -> Result<()> {
+    for replaced in ["base", "delta"] {
+        let directory = tempfile::tempdir()?;
+        let core = WarmCore::new(
+            1024,
+            Some(directory.path().display().to_string()),
+            Some(super::fixture_config(2)),
+        )?;
+        core.memorize_document(input("base", "old", "base old", "g")?)?;
+        core.memorize_document(input("delta", "original", "delta original", "g")?)?;
+        assert!(core.rebuild_vector_index(usize::MAX)?);
+        core.memorize_document(input("delta", "old", "delta old", "g")?)?;
+        let snapshot = core.vector_index.get().expect("published snapshot");
+        let options = documents::VectorQueryOptions {
+            mode: documents::VectorIndexMode::Exact,
+            ..Default::default()
+        };
+        let ranked = documents::rank_vector_snapshot(
+            &snapshot,
+            &core.documents,
+            &[1.0, 0.0],
+            &[1.0, 0.0],
+            2,
+            &options,
+        )?
+        .expect("bounded stale capture");
+        core.memorize_document(input(replaced, "new", "replacement new", "g")?)?;
+        core.compact()?;
+        assert!(documents::read_vector_hits(ranked, &core.documents.read())?.is_none());
+        let current = core.search_vectors(&[1.0, 0.0], 2, &options)?;
+        assert_eq!(current.len(), 2);
+        let replacement = current
+            .iter()
+            .find(|hit| hit.document_id == replaced)
+            .unwrap();
+        assert_eq!(replacement.version, "new");
+        assert_eq!(replacement.text.as_deref(), Some("replacement new"));
+    }
+    Ok(())
+}
+
+#[test]
+fn stale_exact_vector_delta_overflow_uses_the_complete_public_fallback() -> Result<()> {
+    for (documents, chunks) in [(129, 1), (1, 1025)] {
+        let directory = tempfile::tempdir()?;
+        let core = WarmCore::new(
+            1024,
+            Some(directory.path().display().to_string()),
+            Some(super::fixture_config(2)),
+        )?;
+        let ingest = documents::IngestOptions {
+            encode: documents::EncodeMode::Lexical,
+            ..Default::default()
+        };
+        let mut base = input("base", "1", "base", "g")?;
+        base.embeddings = Some(vec![vec![0.0, 1.0]]);
+        core.memorize_document_with(base, &ingest)?;
+        assert!(core.rebuild_vector_index(usize::MAX)?);
+        for document in 0..documents {
+            let mut delta = input(
+                &format!("delta{document:03}"),
+                "1",
+                &vec!["delta"; chunks].join(" "),
+                "g",
+            )?;
+            delta.chunk_words = Some(1);
+            delta.overlap_words = Some(0);
+            delta.embeddings = Some(vec![vec![1.0, 0.0]; chunks]);
+            core.memorize_document_with(delta, &ingest)?;
+        }
+        let actual = core.search_vectors(
+            &[1.0, 0.0],
+            10,
+            &documents::VectorQueryOptions {
+                mode: documents::VectorIndexMode::Exact,
+                ..Default::default()
+            },
+        )?;
+        let expected = core.search_documents(
+            "",
+            &SearchOptions {
+                k: Some(10),
+                embedding: Some(vec![1.0, 0.0]),
+                lexical_weight: Some(0.0),
+                semantic_weight: Some(1.0),
+                min_semantic_score: Some(-1.0),
+                ..Default::default()
+            },
+        )?;
+        let signature = |hits: &[documents::DocumentResult]| {
+            hits.iter()
+                .map(|hit| (hit.document_id.clone(), hit.id.clone(), hit.semantic_score))
+                .collect::<Vec<_>>()
+        };
+        assert_eq!(signature(&actual), signature(&expected));
+        assert_eq!(actual.len(), 10);
+        assert!(actual.iter().all(|hit| hit.semantic_score == Some(1.0)));
+    }
+    Ok(())
+}
+
+#[test]
 fn stale_document_training_cannot_publish_after_a_durable_replacement() -> Result<()> {
     let directory = tempfile::tempdir()?;
     let config = super::fixture_config(2);

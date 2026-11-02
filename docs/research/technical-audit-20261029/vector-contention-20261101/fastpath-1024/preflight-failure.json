@@ -1,0 +1,22 @@
+{
+  "recorded_at": "2026-11-02T03:17:23.305567+00:00",
+  "status": "blocked_before_measurement",
+  "candidate": "d7f5982f4612a16b78071d013ee858c64447a133",
+  "candidate_vector_source_sha256": "b7ada58a05e3fb2e6a884cf60ff264246386f6a839ea5442de744af4a046086b",
+  "attempts": 1,
+  "timing_processes_started": 0,
+  "timing_samples_collected": 0,
+  "automatic_retries": 0,
+  "command_exit_code": 1,
+  "error": "Host preflight failed; no timing samples were collected",
+  "external_capacity_percent": [
+    46.63,
+    47.45
+  ],
+  "frozen_capacity_limit_percent": 20,
+  "plan_sha256": "3f6943dbc0f9f7ba0b1a609b96e25030ace7eae7099272a18ec2099793821cfa",
+  "host_observations_sha256": "f52855befacbad609c185c347a05e1d08d2463eb4b6b6102f6468ce260820a0a",
+  "performance_qualified": false,
+  "quiet_grant": "Root coordinator: integrated d7f5982f readiness gate complete with 1051 tests, 12 existing diagnostic ignores, strict scoped Clippy and repository format passing; no root builds or tests running. Timing granted after build, hash and codegen checks, only if both fixed external-load preflights qualify. No other WARM builds during this run. Grant recorded after 2026-11-02T03:12Z; no retries or exclusions.",
+  "interpretation": "Integrated candidate correctness and code-generation checks are separate from performance qualification. Both fixed shared-host preflights failed; no benchmark or brute-force-oracle samples ran. Original failed latency result and blocked unchanged-source confirmation remain retained."
+}

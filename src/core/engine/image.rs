@@ -18,7 +18,7 @@ use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
-use crate::core::sync::{Mutex, RwLock};
+use crate::core::sync::RwLock;
 use anyhow::{bail, ensure, Context, Result};
 
 use super::WarmCore;
@@ -48,7 +48,6 @@ pub(super) struct ImageState {
     /// The checkpoint the store is served from while it is not rebuilt (the store holds it
     /// too; this is the lock-free test).
     serving: RwLock<Option<Arc<ServingImage>>>,
-    hydrating: Mutex<()>,
     /// Whether a mutation other than a document write, encoding or delete was applied: a
     /// checkpoint holds document state only.
     pub(super) other_state: AtomicBool,
@@ -119,12 +118,13 @@ impl WarmCore {
         if self.image.serving.read().is_none() {
             return Ok(());
         }
-        let _hydrating = self.image.hydrating.lock();
+        let transaction = self.mutation_gate.begin_write();
         if self.image.serving.read().is_none() {
             return Ok(());
         }
-        let mut documents = self.documents.write();
-        let (image, dead, written) = documents
+        let (image, dead, written) = self
+            .documents
+            .read()
             .overlay()
             .context("store served from a checkpoint without it")?;
         // The dead documents' postings are left out of the rebuilt lists rather than removed
@@ -134,7 +134,11 @@ impl WarmCore {
             store.remove_unindexed_scrubbed(id)?;
         }
         store.insert_batch(written)?;
-        *documents = store;
+        if let Some(segment) = store.text_segment() {
+            segment.drain_scrubs()?;
+        }
+        let _publication = transaction.publish();
+        *self.documents.write() = store;
         *self.image.serving.write() = None;
         Ok(())
     }

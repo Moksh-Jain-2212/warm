@@ -12,8 +12,9 @@
 //! same rows. Every [`VectorIndex`] maps a query to row ids and the snapshot maps rows back
 //! to documents. Readers share the snapshot through one `Arc`, so a query holds the store's
 //! read lock only to read the generation and the text segment for fresh queries. Stale
-//! exact queries hold it while scanning live base rows and the delta; graph scoring stays
-//! outside the lock before stale-hit validation and the delta pass.
+//! exact queries derive live-row eligibility from a bounded changed-ID ledger and binary
+//! ranges in the ID-ordered rows, then score captured immutable owners after releasing it. Graph scoring stays outside
+//! the lock before stale-hit validation and the delta pass.
 //!
 //! Data layout: `rows[i]` owns the document of row `i` and the chunk index inside it;
 //! `exact.rows[i]` is that chunk's embedding handle, l2-normalised `f32` values rounded from
@@ -27,17 +28,16 @@
 //! (`index.rs`), and a snapshot records the generation it was captured at.
 //! - current (`store.generation == snapshot.generation`): the rows are the live store, hits
 //!   are returned as found.
-//! - stale: every hit is validated by identity against the live store under its read lock.
-//!   A deleted or replaced document's `Arc` is no longer the one in `store.documents`, so
-//!   its rows drop out (the tombstone). Exact-mode stale queries scan every captured row but
-//!   keep only the best `k` still-live base rows before merging uncovered live documents; the
-//!   merge is complete because no base row outside that bounded set can outrank all kept base
-//!   rows. Graph queries keep their approximate candidate contract. Documents the snapshot
-//!   does not cover (inserted or replaced since the capture) are scored in a delta pass over
-//!   the live documents: one walk over `store.documents` with a hash probe per document plus
-//!   a dot product per uncovered chunk. That pass is bounded by the store size and never
-//!   costs more than the generic exact path; when fewer than `k` hits survive, the caller
-//!   falls back to that path. `rebuild_recommended` asks maintenance for a fresh capture
+//! - stale: exact captures invalidate the row ranges of changed IDs and capture their live
+//!   owners. The generation-covered ledger retains IDs, not deleted payloads, independently
+//!   of the dense index; overflow, a coverage gap or a different store takes the complete
+//!   generic exact path. Every captured row is scored outside the lock, retaining the best
+//!   `k` eligible base rows before merging bounded delta chunks. Graph queries retain their
+//!   approximate candidate contract and validate owners against the live store; their delta
+//!   discovery still scans the live collection and scores uncovered chunks under its read
+//!   lock. Exact capture holds a bit per snapshot row and at most the dense index's delta
+//!   document/chunk limits. When fewer than `k` hits survive, the caller takes the generic exact path.
+//!   `rebuild_recommended` asks maintenance for a fresh capture
 //!   after [`REBUILD_AFTER_MUTATIONS`] mutations, so the stale window is bounded by the
 //!   maintenance interval.
 //! - third implementation slot: [`VectorIndexKind::Scan`] is reserved for the graph-free
@@ -54,7 +54,8 @@ use crate::core::sync::{Mutex, MutexGuard, RwLock};
 use anyhow::{bail, ensure, Context, Result};
 use serde::{Deserialize, Serialize};
 
-use super::index::{text_scrubbed, try_text_of};
+use super::dense::{MAX_DELTA_CHUNKS, MAX_DELTA_DOCUMENTS};
+use super::index::{text_scrubbed, try_text_of, StoreIdentity};
 use super::{DocumentResult, DocumentStore, Embedding, StoredDocument, TextSegment};
 use crate::core::qgraph::{BuildParams, Graph, VGraph, VSearchParams};
 
@@ -305,6 +306,8 @@ impl ExactScan {
                     .then(self.row.cmp(&other.row))
             }
         }
+        #[cfg(test)]
+        tests::before_canonical_scoring();
         let k = k.min(self.rows.len());
         let mut best = BinaryHeap::<Candidate>::with_capacity(k);
         for (row, values) in self.rows.iter().enumerate() {
@@ -410,6 +413,7 @@ struct RowRef {
 
 /// The embedded chunks of one store generation with the indexes over them.
 pub(crate) struct VectorSnapshot {
+    identity: StoreIdentity,
     generation: u64,
     dim: usize,
     rows: Vec<RowRef>,
@@ -449,6 +453,7 @@ impl VectorSnapshot {
 /// snapshot without any lock. `embeddings[i]` is the handle of `rows[i]`'s chunk embedding,
 /// shared with the store (a reference count, not a copy).
 pub(crate) struct VectorCapture {
+    identity: StoreIdentity,
     generation: u64,
     dim: usize,
     rows: Vec<RowRef>,
@@ -511,7 +516,9 @@ pub(crate) fn capture_vector_rows(
         "store counts {count} embedded chunks but holds {}",
         rows.len()
     );
+    store.vector_changes.write().capture(store.generation);
     Ok(Some(VectorCapture {
+        identity: store.identity,
         generation: store.generation,
         dim,
         rows,
@@ -527,6 +534,7 @@ pub(crate) fn build_vector_snapshot(
     graph_min_rows: usize,
 ) -> Result<VectorSnapshot> {
     let VectorCapture {
+        identity,
         generation,
         dim,
         rows,
@@ -574,6 +582,7 @@ pub(crate) fn build_vector_snapshot(
         None
     };
     Ok(VectorSnapshot {
+        identity,
         generation,
         dim,
         rows,
@@ -605,14 +614,16 @@ pub(crate) fn vector_index_status(
             rebuild_recommended: store.embedded_count() >= SNAPSHOT_MIN_ROWS,
         },
         Some(snapshot) => {
-            let stale = staleness(store.generation, snapshot.generation);
+            let same_store = snapshot.identity == store.identity;
+            let stale =
+                staleness(store.generation, snapshot.generation).max(u64::from(!same_store));
             VectorIndexStatus {
                 rows: snapshot.rows(),
                 generation: snapshot.generation,
                 current: stale == 0,
                 stale_mutations: stale,
                 graph: snapshot.has_graph(),
-                rebuild_recommended: stale >= REBUILD_AFTER_MUTATIONS,
+                rebuild_recommended: !same_store || stale >= REBUILD_AFTER_MUTATIONS,
             }
         }
     }
@@ -652,9 +663,9 @@ fn to_result(hit: &Hit, segment: Option<&TextSegment>) -> Result<DocumentResult>
 }
 
 /// Answers an unfiltered vector query from the snapshot. `query` is l2-normalised. `None`
-/// means the snapshot is too stale to answer this query (fewer than `k` hits survived
-/// validation, or a hit's text was scrubbed before it was read); the caller takes the
-/// generic exact path.
+/// means the snapshot is too stale to answer this query (the exact delta exceeds its
+/// capture limits, fewer than `k` hits survived validation, or a hit's text was scrubbed
+/// before it was read); the caller takes the generic exact path.
 pub(crate) fn search_vector_snapshot(
     snapshot: &VectorSnapshot,
     store: &RwLock<DocumentStore>,
@@ -676,9 +687,83 @@ pub(crate) struct RankedVectorHits {
     segment: Option<Arc<TextSegment>>,
 }
 
+struct StaleExactCapture {
+    live_rows: Vec<u64>,
+    delta: Vec<Arc<StoredDocument>>,
+    segment: Option<Arc<TextSegment>>,
+}
+
+fn capture_stale_exact(
+    snapshot: &VectorSnapshot,
+    store: &DocumentStore,
+) -> Result<Option<StaleExactCapture>> {
+    if snapshot.identity != store.identity {
+        return Ok(None);
+    }
+    let changes = store.vector_changes.read();
+    let Some(changes) = changes.since(snapshot.generation, store.generation) else {
+        return Ok(None);
+    };
+    let mut live_rows = Vec::new();
+    let words = snapshot.rows.len().div_ceil(64);
+    live_rows
+        .try_reserve_exact(words)
+        .context("cannot allocate vector snapshot eligibility")?;
+    live_rows.resize(words, u64::MAX);
+    let mut delta = Vec::new();
+    delta
+        .try_reserve_exact(MAX_DELTA_DOCUMENTS.min(store.documents.len()))
+        .context("cannot allocate vector snapshot delta owners")?;
+    let mut chunks = 0;
+    for id in changes {
+        let start = snapshot
+            .rows
+            .partition_point(|row| row.document.id.as_str() < id);
+        let end =
+            start + snapshot.rows[start..].partition_point(|row| row.document.id.as_str() == id);
+        if start < end {
+            let first = start / 64;
+            let last = (end - 1) / 64;
+            let first_mask = u64::MAX << (start % 64);
+            let last_mask = u64::MAX >> (63 - (end - 1) % 64);
+            if first == last {
+                live_rows[first] &= !(first_mask & last_mask);
+            } else {
+                live_rows[first] &= !first_mask;
+                live_rows[first + 1..last].fill(0);
+                live_rows[last] &= !last_mask;
+            }
+        }
+        let Some(document) = store.get(id) else {
+            continue;
+        };
+        let before = chunks;
+        for chunk in &document.chunks {
+            if chunk
+                .embedding
+                .as_ref()
+                .is_some_and(|embedding| embedding.len() == snapshot.dim)
+            {
+                chunks += 1;
+                if chunks > MAX_DELTA_CHUNKS {
+                    return Ok(None);
+                }
+            }
+        }
+        if chunks != before {
+            delta.push(Arc::clone(document));
+        }
+    }
+    Ok(Some(StaleExactCapture {
+        live_rows,
+        delta,
+        segment: store.text_segment(),
+    }))
+}
+
 /// The hits with their text, or `None` when the text of one was scrubbed since the ranking
-/// (its document replaced or deleted). `_store` is the store's read guard: a scrub happens
-/// under its write lock, so a read never overlaps one.
+/// (its document replaced or deleted). `_store` is the store's read guard: logical hiding
+/// is published under its write lock before physical erasure, preventing reads of hidden text.
 pub(crate) fn read_vector_hits(
     ranked: RankedVectorHits,
     _store: &DocumentStore,
@@ -728,12 +813,25 @@ pub(crate) fn rank_vector_snapshot(
     let index = snapshot.index(options.mode)?;
     let (generation, segment) = {
         let store = store.read();
+        if snapshot.identity != store.identity {
+            return Ok(None);
+        }
         (store.generation, store.text_segment())
     };
     let stale = staleness(generation, snapshot.generation);
     let exact_index = index.kind() == VectorIndexKind::Exact;
     let extra = usize::try_from(stale).unwrap_or(usize::MAX).min(4 * k);
     let fetch = (k + extra + 8).min(snapshot.rows());
+    if stale != 0 && exact_index {
+        return rank_stale_exact_snapshot(
+            snapshot,
+            store,
+            exact_query,
+            k,
+            fetch,
+            options.min_score,
+        );
+    }
     let graph_hits = if exact_index {
         Vec::new()
     } else {
@@ -761,37 +859,17 @@ pub(crate) fn rank_vector_snapshot(
         }
     } else {
         let store = store.read();
-        if exact_index {
-            let hits = snapshot.exact.search_canonical(exact_query, k, |row| {
-                let captured = &snapshot.rows[row].document;
-                store
-                    .get(&captured.id)
-                    .is_some_and(|live| Arc::ptr_eq(live, captured))
-            });
-            for (row, score) in hits {
-                let row = &snapshot.rows[row as usize];
+        for (row, score) in graph_hits {
+            let row = &snapshot.rows[row as usize];
+            let live = store
+                .get(&row.document.id)
+                .is_some_and(|live| Arc::ptr_eq(live, &row.document));
+            if live {
                 found.push(Hit {
                     document: Arc::clone(&row.document),
                     chunk: row.chunk,
-                    score,
+                    score: f64::from(score),
                 });
-            }
-        } else {
-            for (row, score) in graph_hits
-                .into_iter()
-                .map(|(row, score)| (row, f64::from(score)))
-            {
-                let row = &snapshot.rows[row as usize];
-                let live = store
-                    .get(&row.document.id)
-                    .is_some_and(|live| Arc::ptr_eq(live, &row.document));
-                if live {
-                    found.push(Hit {
-                        document: Arc::clone(&row.document),
-                        chunk: row.chunk,
-                        score,
-                    });
-                }
             }
         }
         for document in store.documents.values() {
@@ -817,6 +895,79 @@ pub(crate) fn rank_vector_snapshot(
             return Ok(None);
         }
     }
+    Ok(Some(finish_vector_hits(
+        found,
+        segment,
+        exact_query,
+        k,
+        options.min_score,
+    )))
+}
+
+#[inline(never)]
+fn rank_stale_exact_snapshot(
+    snapshot: &VectorSnapshot,
+    store: &RwLock<DocumentStore>,
+    exact_query: &[f64],
+    k: usize,
+    fetch: usize,
+    min_score: f64,
+) -> Result<Option<RankedVectorHits>> {
+    let captured = {
+        let store = store.read();
+        capture_stale_exact(snapshot, &store)?
+    };
+    let Some(captured) = captured else {
+        return Ok(None);
+    };
+    let segment = captured.segment;
+    let mut found = Vec::with_capacity(fetch);
+    let hits = snapshot.exact.search_canonical(exact_query, k, |row| {
+        captured.live_rows[row / 64] & (1 << (row % 64)) != 0
+    });
+    for (row, score) in hits {
+        let row = &snapshot.rows[row as usize];
+        found.push(Hit {
+            document: Arc::clone(&row.document),
+            chunk: row.chunk,
+            score,
+        });
+    }
+    for document in &captured.delta {
+        for (chunk, stored) in document.chunks.iter().enumerate() {
+            if stored
+                .embedding
+                .as_ref()
+                .is_some_and(|embedding| embedding.len() == snapshot.dim)
+            {
+                found.push(Hit {
+                    document: Arc::clone(document),
+                    chunk: u32::try_from(chunk).context("chunk index over u32")?,
+                    score: 0.0,
+                });
+            }
+        }
+    }
+    if found.len() < k.min(snapshot.rows()) {
+        return Ok(None);
+    }
+
+    Ok(Some(finish_vector_hits(
+        found,
+        segment,
+        exact_query,
+        k,
+        min_score,
+    )))
+}
+
+fn finish_vector_hits(
+    mut found: Vec<Hit>,
+    segment: Option<Arc<TextSegment>>,
+    exact_query: &[f64],
+    k: usize,
+    min_score: f64,
+) -> RankedVectorHits {
     for hit in &mut found {
         if let Some(embedding) = hit
             .document
@@ -828,12 +979,12 @@ pub(crate) fn rank_vector_snapshot(
         }
     }
     found.sort_by(compare_hits);
-    found.retain(|hit| hit.score >= options.min_score);
+    found.retain(|hit| hit.score >= min_score);
     found.truncate(k);
-    Ok(Some(RankedVectorHits {
+    RankedVectorHits {
         hits: found,
         segment,
-    }))
+    }
 }
 
 /// The engine's published snapshot and the build lock.
@@ -873,6 +1024,19 @@ mod tests {
     use crate::core::documents::{prepare, DocumentInput};
     use crate::core::encoding::TextEncoder;
     use serde_json::json;
+    use std::cell::RefCell;
+    use std::sync::{atomic::AtomicBool, atomic::Ordering as AtomicOrdering, mpsc};
+    use std::time::Duration;
+
+    thread_local! {
+        static CANONICAL_HOOK: RefCell<Option<Box<dyn FnOnce()>>> = const { RefCell::new(None) };
+    }
+
+    pub(super) fn before_canonical_scoring() {
+        if let Some(hook) = CANONICAL_HOOK.with(|slot| slot.borrow_mut().take()) {
+            hook();
+        }
+    }
 
     fn matrix(rows: &[[f32; 4]]) -> ExactScan {
         let rows: Vec<Embedding> = rows
@@ -1087,6 +1251,472 @@ mod tests {
                         );
                     }
                 }
+            }
+        }
+    }
+
+    #[test]
+    fn stale_exact_scoring_allows_writes_and_retains_a_coherent_ordered_capture() {
+        let mut initial = DocumentStore::default();
+        for row in 0..65 {
+            put_vector(
+                &mut initial,
+                &format!("d{row:03}"),
+                "base",
+                vec![vec![1.0, row as f64 / 100.0]],
+            );
+        }
+        let snapshot = build_vector_snapshot(
+            capture_vector_rows(&initial, 2).unwrap().unwrap(),
+            usize::MAX,
+        )
+        .unwrap();
+        put_vector(&mut initial, "d000", "before", vec![vec![0.8, 0.6]]);
+        delete_vector(&mut initial, "d064");
+        put_vector(&mut initial, "inserted", "before", vec![vec![1.0, 0.0]]);
+        let expected = live_scan_results(&initial, &[1.0, 0.0], 65, -1.0);
+        let store = Arc::new(RwLock::new(initial));
+        let (score_tx, score_rx) = mpsc::channel();
+        let (done_tx, done_rx) = mpsc::channel();
+        let writer_store = Arc::clone(&store);
+        let writer = std::thread::spawn(move || {
+            score_rx.recv_timeout(Duration::from_secs(5)).unwrap();
+            let mut live = writer_store.write();
+            put_vector(&mut live, "d000", "after", vec![vec![0.0, 1.0]]);
+            delete_vector(&mut live, "d001");
+            put_vector(&mut live, "inserted", "after", vec![vec![0.0, 1.0]]);
+            put_vector(&mut live, "new-winner", "after", vec![vec![1.0, 0.0]]);
+            drop(live);
+            done_tx.send(()).unwrap();
+        });
+        let progressed = Arc::new(AtomicBool::new(false));
+        let observed = Arc::clone(&progressed);
+        CANONICAL_HOOK.with(|slot| {
+            *slot.borrow_mut() = Some(Box::new(move || {
+                score_tx.send(()).unwrap();
+                observed.store(
+                    done_rx.recv_timeout(Duration::from_secs(5)).is_ok(),
+                    AtomicOrdering::SeqCst,
+                );
+            }));
+        });
+        let actual = snapshot_results(&snapshot, &store, &[1.0, 0.0], 65, -1.0);
+        writer.join().unwrap();
+        assert!(
+            progressed.load(AtomicOrdering::SeqCst),
+            "writer blocked during scoring"
+        );
+        assert_eq!(actual, expected);
+        assert_ne!(
+            actual,
+            live_scan_results(&store.read(), &[1.0, 0.0], 65, -1.0)
+        );
+    }
+
+    #[test]
+    fn stale_exact_capture_preserves_live_rows_across_bitmap_boundaries() {
+        for rows in [63, 64, 65, 127, 128, 129] {
+            let mut store = DocumentStore::default();
+            for row in 0..rows {
+                put_vector(
+                    &mut store,
+                    &format!("d{row:03}"),
+                    "tie",
+                    vec![vec![1.0, 0.0]],
+                );
+            }
+            let snapshot =
+                build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), usize::MAX)
+                    .unwrap();
+            put_vector(&mut store, "d000", "replacement", vec![vec![0.0, 1.0]]);
+            delete_vector(&mut store, &format!("d{:03}", rows - 1));
+            put_vector(&mut store, "new", "new", vec![vec![1.0, 0.0]]);
+            let store = RwLock::new(store);
+            for k in [1, rows] {
+                for minimum in [-1.0, 0.5] {
+                    assert_eq!(
+                        snapshot_results(&snapshot, &store, &[1.0, 0.0], k, minimum),
+                        live_scan_results(&store.read(), &[1.0, 0.0], k, minimum),
+                        "rows={rows} k={k} min={minimum}"
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn stale_exact_capture_bounds_delta_documents_and_chunks_without_truncating() {
+        for (documents, chunks, accepted) in [
+            (MAX_DELTA_DOCUMENTS - 1, 1, true),
+            (MAX_DELTA_DOCUMENTS, 1, true),
+            (MAX_DELTA_DOCUMENTS + 1, 1, false),
+            (1, MAX_DELTA_CHUNKS - 1, true),
+            (1, MAX_DELTA_CHUNKS, true),
+            (1, MAX_DELTA_CHUNKS + 1, false),
+        ] {
+            let mut store = DocumentStore::default();
+            put_vector(&mut store, "base", "base", vec![vec![0.0, 1.0]]);
+            let snapshot =
+                build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), usize::MAX)
+                    .unwrap();
+            for document in 0..documents {
+                put_vector(
+                    &mut store,
+                    &format!("delta{document:03}"),
+                    &vec!["delta"; chunks].join(" "),
+                    vec![vec![1.0, 0.0]; chunks],
+                );
+            }
+            let expected = live_scan_results(&store, &[1.0, 0.0], 10, -1.0);
+            let store = RwLock::new(store);
+            let capture = capture_stale_exact(&snapshot, &store.read()).unwrap();
+            assert_eq!(
+                capture.is_some(),
+                accepted,
+                "documents={documents} chunks={chunks}"
+            );
+            let ranked = search_vector_snapshot(
+                &snapshot,
+                &store,
+                &[1.0, 0.0],
+                &[1.0, 0.0],
+                10,
+                &VectorQueryOptions {
+                    mode: VectorIndexMode::Exact,
+                    ..Default::default()
+                },
+            )
+            .unwrap();
+            assert_eq!(ranked.is_some(), accepted);
+            let results = ranked.unwrap_or_else(|| {
+                super::super::search(
+                    &store.read(),
+                    "",
+                    &super::super::SearchOptions {
+                        k: Some(10),
+                        embedding: Some(vec![1.0, 0.0]),
+                        lexical_weight: Some(0.0),
+                        semantic_weight: Some(1.0),
+                        min_semantic_score: Some(-1.0),
+                        ..Default::default()
+                    },
+                    Some(2),
+                )
+                .unwrap()
+            });
+            let actual: Vec<_> = results
+                .into_iter()
+                .map(|hit| (hit.document_id, hit.id, hit.semantic_score.unwrap()))
+                .collect();
+            assert_eq!(actual, expected, "documents={documents} chunks={chunks}");
+        }
+    }
+
+    #[test]
+    fn tracked_vector_changes_deduplicate_updates_and_delete_reinsert() {
+        let mut store = DocumentStore::default();
+        put_vector(&mut store, "base", "base", vec![vec![1.0, 0.0]]);
+        put_vector(&mut store, "stable", "stable", vec![vec![0.8, 0.6]]);
+        let snapshot =
+            build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), usize::MAX)
+                .unwrap();
+        let store = RwLock::new(store);
+        for revision in 0..MAX_DELTA_DOCUMENTS + 1 {
+            {
+                let mut live = store.write();
+                delete_vector(&mut live, "base");
+                put_vector(
+                    &mut live,
+                    "base",
+                    "new",
+                    vec![vec![1.0, revision as f64 / 100.0]],
+                );
+            }
+            assert_eq!(
+                snapshot_results(&snapshot, &store, &[1.0, 0.0], 1, -1.0),
+                live_scan_results(&store.read(), &[1.0, 0.0], 1, -1.0),
+            );
+        }
+        let mut live = store.write();
+        put_vector(&mut live, "temporary", "sensitive", vec![vec![1.0, 0.0]]);
+        let removed = Arc::downgrade(&live.documents["temporary"]);
+        delete_vector(&mut live, "temporary");
+        assert!(
+            removed.upgrade().is_none(),
+            "ledger retained deleted payload"
+        );
+    }
+
+    #[test]
+    fn tracked_vector_changes_bound_id_bytes_and_recover_after_a_new_capture() {
+        use super::super::dense::MAX_DELTA_ID_BYTES;
+        for bytes in [
+            MAX_DELTA_ID_BYTES - 1,
+            MAX_DELTA_ID_BYTES,
+            MAX_DELTA_ID_BYTES + 1,
+        ] {
+            let mut store = DocumentStore::default();
+            put_vector(&mut store, "base", "base", vec![vec![0.0, 1.0]]);
+            let snapshot =
+                build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), usize::MAX)
+                    .unwrap();
+            let mut ids = Vec::new();
+            for item in 0..17 {
+                let size = match item {
+                    0..15 => 4096,
+                    15 => 2048,
+                    _ => bytes - 15 * 4096 - 2048,
+                };
+                let prefix = format!("delta{item:02}");
+                let id = prefix.clone() + &"x".repeat(size - prefix.len());
+                put_vector(&mut store, &id, "delta", vec![vec![1.0, 0.0]]);
+                ids.push(id);
+            }
+            let store = RwLock::new(store);
+            assert_eq!(
+                capture_stale_exact(&snapshot, &store.read())
+                    .unwrap()
+                    .is_some(),
+                bytes <= MAX_DELTA_ID_BYTES,
+                "id bytes {bytes}"
+            );
+            if bytes <= MAX_DELTA_ID_BYTES {
+                assert_eq!(
+                    snapshot_results(&snapshot, &store, &[1.0, 0.0], 1, -1.0),
+                    live_scan_results(&store.read(), &[1.0, 0.0], 1, -1.0),
+                );
+            }
+            let rebuilt = build_vector_snapshot(
+                capture_vector_rows(&store.read(), 2).unwrap().unwrap(),
+                usize::MAX,
+            )
+            .unwrap();
+            delete_vector(&mut store.write(), &ids[0]);
+            assert_eq!(
+                snapshot_results(&rebuilt, &store, &[1.0, 0.0], 1, -1.0),
+                live_scan_results(&store.read(), &[1.0, 0.0], 1, -1.0),
+            );
+        }
+    }
+
+    #[test]
+    fn tracked_vector_changes_cover_independent_snapshots_and_dense_lifecycles() {
+        use super::super::dense::{build_dense_index, capture_dense_index, publish_dense_index};
+        let mut store = DocumentStore::default();
+        for id in 0..=MAX_DELTA_DOCUMENTS {
+            put_vector(
+                &mut store,
+                &format!("d{id:03}"),
+                "base",
+                vec![vec![1.0, 0.0]],
+            );
+        }
+        let first =
+            build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), usize::MAX)
+                .unwrap();
+        put_vector(&mut store, "d000", "changed", vec![vec![0.0, 1.0]]);
+        let capture = capture_vector_rows(&store, 2).unwrap().unwrap();
+        put_vector(&mut store, "d000", "changed again", vec![vec![0.8, 0.6]; 2]);
+        let second = build_vector_snapshot(capture, usize::MAX).unwrap();
+        let trained = build_dense_index(capture_dense_index(&store, 2).unwrap().unwrap())
+            .unwrap()
+            .unwrap();
+        assert!(publish_dense_index(&mut store, &trained));
+        put_vector(&mut store, "d001", "changed", vec![vec![0.0, 1.0]]);
+        store.discard_stale_dense_index();
+        assert!(store.dense_index.is_none());
+        let store = RwLock::new(store);
+        for snapshot in [&first, &second] {
+            assert_eq!(
+                snapshot_results(snapshot, &store, &[1.0, 0.0], 10, -1.0),
+                live_scan_results(&store.read(), &[1.0, 0.0], 10, -1.0),
+            );
+        }
+        {
+            let mut live = store.write();
+            for id in 2..MAX_DELTA_DOCUMENTS {
+                put_vector(
+                    &mut live,
+                    &format!("d{id:03}"),
+                    "changed",
+                    vec![vec![0.0, 1.0]],
+                );
+            }
+        }
+        let newest = build_vector_snapshot(
+            capture_vector_rows(&store.read(), 2).unwrap().unwrap(),
+            usize::MAX,
+        )
+        .unwrap();
+        put_vector(&mut store.write(), "d128", "latest", vec![vec![1.0, 0.0]]);
+        assert!(capture_stale_exact(&first, &store.read())
+            .unwrap()
+            .is_none());
+        assert!(capture_stale_exact(&second, &store.read())
+            .unwrap()
+            .is_none());
+        assert_eq!(
+            snapshot_results(&newest, &store, &[1.0, 0.0], 10, -1.0),
+            live_scan_results(&store.read(), &[1.0, 0.0], 10, -1.0),
+        );
+    }
+
+    #[test]
+    fn tracked_vector_changes_reject_identity_aliases_and_generation_gaps() {
+        let mut original = DocumentStore::default();
+        put_vector(&mut original, "old", "old", vec![vec![1.0, 0.0]]);
+        let snapshot = build_vector_snapshot(
+            capture_vector_rows(&original, 2).unwrap().unwrap(),
+            usize::MAX,
+        )
+        .unwrap();
+        let mut other = DocumentStore::default();
+        put_vector(&mut other, "new", "new", vec![vec![0.0, 1.0]]);
+        assert_eq!(original.generation, other.generation);
+        let status = vector_index_status(Some(&snapshot), &other);
+        assert!(!status.current && status.rebuild_recommended);
+        assert!(rank_vector_snapshot(
+            &snapshot,
+            &RwLock::new(other),
+            &[1.0, 0.0],
+            &[1.0, 0.0],
+            1,
+            &VectorQueryOptions::default(),
+        )
+        .unwrap()
+        .is_none());
+        original.generation += 1;
+        assert!(capture_stale_exact(&snapshot, &original).unwrap().is_none());
+        put_vector(&mut original, "old", "after gap", vec![vec![0.0, 1.0]; 2]);
+        assert!(capture_stale_exact(&snapshot, &original).unwrap().is_none());
+        let rebuilt = build_vector_snapshot(
+            capture_vector_rows(&original, 2).unwrap().unwrap(),
+            usize::MAX,
+        )
+        .unwrap();
+        put_vector(&mut original, "new", "new", vec![vec![1.0, 0.0]]);
+        let store = RwLock::new(original);
+        assert_eq!(
+            snapshot_results(&rebuilt, &store, &[1.0, 0.0], 1, -1.0),
+            live_scan_results(&store.read(), &[1.0, 0.0], 1, -1.0),
+        );
+    }
+
+    #[test]
+    fn tracked_vector_changes_cover_batched_publication_and_replacements() {
+        for count in [
+            MAX_DELTA_DOCUMENTS - 1,
+            MAX_DELTA_DOCUMENTS,
+            MAX_DELTA_DOCUMENTS + 1,
+        ] {
+            let mut store = DocumentStore::default();
+            put_vector(&mut store, "base", "base", vec![vec![0.0, 1.0]]);
+            let snapshot =
+                build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), usize::MAX)
+                    .unwrap();
+            let batch = (0..count)
+                .map(|id| {
+                    Arc::new(
+                        prepare(
+                            vector_input(&format!("d{id:03}"), "batch", vec![vec![1.0, 0.0]]),
+                            1024,
+                            Some(2),
+                            TextEncoder::default(),
+                        )
+                        .unwrap(),
+                    )
+                })
+                .collect();
+            store.insert_batch(batch).unwrap();
+            let store = RwLock::new(store);
+            assert_eq!(
+                capture_stale_exact(&snapshot, &store.read())
+                    .unwrap()
+                    .is_some(),
+                count <= MAX_DELTA_DOCUMENTS,
+            );
+            if count <= MAX_DELTA_DOCUMENTS {
+                let batch = [
+                    vector_input("d000", "changed length", vec![vec![0.0, 1.0]; 2]),
+                    vector_input("d001", "changed", vec![vec![0.0, 1.0]]),
+                    vector_input("d000", "last", vec![vec![0.8, 0.6]]),
+                ]
+                .into_iter()
+                .map(|input| {
+                    Arc::new(prepare(input, 1024, Some(2), TextEncoder::default()).unwrap())
+                })
+                .collect();
+                store.write().insert_batch(batch).unwrap();
+                assert_eq!(
+                    snapshot_results(&snapshot, &store, &[1.0, 0.0], 10, -1.0),
+                    live_scan_results(&store.read(), &[1.0, 0.0], 10, -1.0),
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn tracked_vector_changes_fall_back_after_slot_rebuilding() {
+        let mut store = DocumentStore::default();
+        for id in 0..1026 {
+            put_vector(
+                &mut store,
+                &format!("d{id:04}"),
+                "base",
+                vec![vec![1.0, 0.0]],
+            );
+        }
+        let snapshot =
+            build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), usize::MAX)
+                .unwrap();
+        for id in 0..514 {
+            delete_vector(&mut store, &format!("d{id:04}"));
+        }
+        assert_ne!(snapshot.identity, store.identity, "slots were not rebuilt");
+        assert!(capture_stale_exact(&snapshot, &store).unwrap().is_none());
+        let rebuilt =
+            build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), usize::MAX)
+                .unwrap();
+        put_vector(&mut store, "d0514", "changed", vec![vec![0.0, 1.0]]);
+        let store = RwLock::new(store);
+        assert_eq!(
+            snapshot_results(&rebuilt, &store, &[1.0, 0.0], 10, -1.0),
+            live_scan_results(&store.read(), &[1.0, 0.0], 10, -1.0),
+        );
+    }
+
+    #[test]
+    fn tracked_vector_changes_clear_complete_document_row_ranges() {
+        for prefix in [0, 1, 63, 64, 65] {
+            for replaced in [1, 2, 63, 64, 65, 127, 128, 129] {
+                let mut store = DocumentStore::default();
+                if prefix != 0 {
+                    put_vector(
+                        &mut store,
+                        "a-prefix",
+                        &vec!["prefix"; prefix].join(" "),
+                        vec![vec![0.0, 1.0]; prefix],
+                    );
+                }
+                put_vector(
+                    &mut store,
+                    "b-replaced",
+                    &vec!["obsolete"; replaced].join(" "),
+                    vec![vec![1.0, 0.0]; replaced],
+                );
+                put_vector(&mut store, "c-stable", "stable", vec![vec![0.8, 0.6]]);
+                let snapshot = build_vector_snapshot(
+                    capture_vector_rows(&store, 2).unwrap().unwrap(),
+                    usize::MAX,
+                )
+                .unwrap();
+                put_vector(&mut store, "b-replaced", "new", vec![vec![0.0, 1.0]]);
+                let store = RwLock::new(store);
+                assert_eq!(
+                    snapshot_results(&snapshot, &store, &[1.0, 0.0], 1, -1.0),
+                    live_scan_results(&store.read(), &[1.0, 0.0], 1, -1.0),
+                    "prefix={prefix}, replaced={replaced}"
+                );
             }
         }
     }
