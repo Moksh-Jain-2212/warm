@@ -72,7 +72,7 @@ development, not held-out production proof; 100K numeric results do not imply
 
 Reuse the native and adapter regression suites rather than duplicate their unit
 coverage. Add a small independent real-Vectra round-trip fixture covering original
-vector bits (including signed zero), full metadata versus indexed filter view,
+vector bits at the received-input boundary (including signed zero), full metadata versus indexed filter view,
 external metadata loading, mixed/repeated-ID atomic batches, insert conflict,
 cancel, delete-missing, paging/revision consistency and restart. Compare the pinned
 ItemSelector outputs, including numeric/string `$in`/`$nin`, null/missing, nested
@@ -80,8 +80,11 @@ logical operators and empty eligibility. Verify zero/nonfinite/wrong-width vecto
 are rejected according to the documented WARM contract; unsupported Vectra inputs
 are compatibility limits, not silently coerced or dropped records.
 
-Import from a read-only source into a fresh owned destination. Validate every ID,
-vector bit and metadata value after paging and after a separate-process reopen.
+Import from a read-only source into a fresh owned destination. Vectra JSON persistence
+may canonicalize -0 to +0: record source-side loss separately and require WARM to
+preserve the values actually received, not a stronger guarantee from the source.
+A direct WARM -0 fixture checks its own bit-preservation contract. Validate every ID,
+received vector bit and metadata value after paging and after a separate-process reopen.
 Report partial-import quarantine and no-resume semantics. Test limits using the
 existing boundary fixtures; do not benchmark a failed or truncated import.
 
@@ -99,8 +102,11 @@ existing boundary fixtures; do not benchmark a failed or truncated import.
    10K/100K GloVe and the full SciFact corpus.
 3. **Real-text hybrid:** use separate document stores. Vectra `LocalIndex` receives
    the original vector and an explicit text reader backed by the original source;
-   validate every documentId/startPos/endPos mapping. Freeze the reader/cache policy,
-   include its I/O and memory cost, and do not preload only one engine. WARM receives the same text
+   validate every documentId/startPos/endPos mapping. The Vectra ranking reader performs
+   an uncached filesystem read per requested document, matching its default lifecycle.
+   Both workers retain the same canonical text map for validation/common packing only;
+   ranking cannot read that map. Include the map in baseline RSS and reader I/O in
+   ranking time. Do not preload only one engine. WARM receives the same text
    and vector as one chunk (`chunk_words=4096`, overlap 0; maximum source 1541 words).
    This measures each engine's document policy, not vector-record migration.
 
