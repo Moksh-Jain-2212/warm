@@ -16,15 +16,26 @@ pub struct Embedder {
     dim: usize,
     batch: usize,
     query_task: EmbeddingQueryTask,
-    spaces: [crate::core::EmbeddingSpace; 2],
+    spaces: [crate::core::EmbeddingSpace; 3],
 }
 
-/// Query instruction; document embeddings are identical for both tasks.
+/// Query instruction; document embeddings are identical for every task.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum EmbeddingQueryTask {
     #[default]
     UserMessages,
     Conversation,
+    Documents,
+}
+
+impl EmbeddingQueryTask {
+    fn prompt(self, query: &str) -> String {
+        match self {
+            Self::UserMessages => prompts::embed_query(query),
+            Self::Conversation => prompts::conversation_embed_query(query),
+            Self::Documents => prompts::document_embed_query(query),
+        }
+    }
 }
 
 const MAX_TOKENS: usize = 2048;
@@ -46,7 +57,7 @@ impl Embedder {
             .map_err(|e| anyhow::anyhow!("tokenizer truncation: {e}"))?;
         tokenizer.with_padding(None);
         let dim = l.config.hidden_size;
-        let space = |instruction: String| {
+        let space = |task: EmbeddingQueryTask| {
             crate::core::EmbeddingSpace::effective(
                 l.model_name.clone(),
                 dim,
@@ -56,14 +67,15 @@ impl Embedder {
                     &source.revision,
                     &l.identity,
                     MAX_TOKENS,
-                    instruction,
+                    task.prompt(""),
                     format!("{:?}", super::dtype_for(device, false)),
                 ),
             )
         };
         let spaces = [
-            space(prompts::embed_query(""))?,
-            space(prompts::conversation_embed_query(""))?,
+            space(EmbeddingQueryTask::UserMessages)?,
+            space(EmbeddingQueryTask::Conversation)?,
+            space(EmbeddingQueryTask::Documents)?,
         ];
         Ok(Self {
             spaces,
@@ -92,6 +104,7 @@ impl Embedder {
         self.spaces[match self.query_task {
             EmbeddingQueryTask::UserMessages => 0,
             EmbeddingQueryTask::Conversation => 1,
+            EmbeddingQueryTask::Documents => 2,
         }]
         .clone()
     }
@@ -108,10 +121,7 @@ impl Embedder {
             .map(|t| {
                 let t = t.as_ref();
                 if is_query {
-                    let query = match self.query_task {
-                        EmbeddingQueryTask::UserMessages => prompts::embed_query(t),
-                        EmbeddingQueryTask::Conversation => prompts::conversation_embed_query(t),
-                    };
+                    let query = self.query_task.prompt(t);
                     encode(&self.tokenizer, &query, true)
                 } else {
                     encode(&self.tokenizer, t, true)
@@ -152,6 +162,13 @@ mod tests {
             &(seed, "conversation"),
         )
         .unwrap();
+        let documents = crate::core::EmbeddingSpace::effective(
+            "tiny-qwen".into(),
+            32,
+            "l2",
+            &(seed, "documents"),
+        )
+        .unwrap();
         Embedder {
             model: super::super::qwen3::testing::tiny(seed, true),
             tokenizer: tokenizers::Tokenizer::new(
@@ -161,7 +178,7 @@ mod tests {
             dim: 32,
             batch: 1,
             query_task: EmbeddingQueryTask::UserMessages,
-            spaces: [space, conversation],
+            spaces: [space, conversation, documents],
         }
     }
 
@@ -186,13 +203,52 @@ mod tests {
         });
         assert!(core.set_model_stages(Some(incompatible)).is_err());
         assert!(Arc::ptr_eq(&core.model_stages().unwrap(), &original));
-        let mut task_changed = tiny(1);
-        task_changed.set_query_task(EmbeddingQueryTask::Conversation);
-        assert!(core
-            .set_model_stages(Some(Arc::new(crate::core::models::ModelStages {
-                embedder: Some(task_changed),
-                ..Default::default()
-            })))
-            .is_err());
+        for task in [
+            EmbeddingQueryTask::Conversation,
+            EmbeddingQueryTask::Documents,
+        ] {
+            let mut task_changed = tiny(1);
+            task_changed.set_query_task(task);
+            assert!(core
+                .set_model_stages(Some(Arc::new(crate::core::models::ModelStages {
+                    embedder: Some(task_changed),
+                    ..Default::default()
+                })))
+                .is_err());
+            assert!(Arc::ptr_eq(&core.model_stages().unwrap(), &original));
+        }
+    }
+
+    #[test]
+    fn document_task_changes_queries_without_changing_passage_vectors() {
+        let mut embedder = tiny(7);
+        let model = tokenizers::models::wordlevel::WordLevel::builder()
+            .vocab(
+                ["[UNK]", "Instruct", "Query", "web", "earlier", "q"]
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, token)| (token.to_owned(), i as u32))
+                    .collect(),
+            )
+            .unk_token("[UNK]".into())
+            .build()
+            .unwrap();
+        embedder.tokenizer = tokenizers::Tokenizer::new(model);
+        embedder
+            .tokenizer
+            .with_pre_tokenizer(Some(tokenizers::pre_tokenizers::whitespace::Whitespace));
+        let passages = embedder.embed(&["q"], false).unwrap();
+        let user_queries = embedder.embed(&["q"], true).unwrap();
+        let user_space = embedder.space();
+        embedder.set_query_task(EmbeddingQueryTask::Documents);
+        let document_queries = embedder.embed(&["q"], true).unwrap();
+        assert_eq!(embedder.embed(&["q"], false).unwrap(), passages);
+        assert_ne!(document_queries, user_queries);
+        assert_ne!(embedder.space(), user_space);
+        let norm: f32 = document_queries[0].iter().map(|v| v * v).sum();
+        assert!((norm - 1.0).abs() < 1e-5);
+        embedder.set_query_task(EmbeddingQueryTask::UserMessages);
+        assert_eq!(embedder.embed(&["q"], true).unwrap(), user_queries);
+        assert_eq!(embedder.space(), user_space);
     }
 }

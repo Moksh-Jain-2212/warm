@@ -1,0 +1,45 @@
+{
+  "base": "b3c23b837a40b0b8cd5d60a222f63a07b1e0fdf7",
+  "purpose": "Select the Qwen reference document-retrieval query task explicitly for fresh native evaluation without silently applying conversation-specific instructions to SciFact.",
+  "behavior": "Documents task changes only query prompting and effective embedding space; default UserMessages, Conversation instructions, passage inputs, model width and 2048-token cap are preserved.",
+  "source_sha256": {
+    "src/core/models/embed.rs": "e17a390a6894d0db2b8708461cf9bfacdf10628480e477ddcfb180f5bb93498a",
+    "src/core/models/prompts.rs": "82871bf231fcb26a2b9a090a8c10b406c28060c67d490112eefd8409515180b0"
+  },
+  "validation": [
+    {
+      "command": "CARGO_TARGET_DIR=/Volumes/A/holographic-memory/target/readiness-build CARGO_BUILD_JOBS=2 cargo +1.99.0 test --locked --features local-models --lib core::models::",
+      "exit_code": 0,
+      "passed": 31,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "command": "CARGO_TARGET_DIR=/Volumes/A/holographic-memory/target/readiness-build CARGO_BUILD_JOBS=2 cargo +1.99.0 clippy --locked --features local-models --lib --tests -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo +1.99.0 fmt -- --check",
+      "exit_code": 0
+    }
+  ],
+  "regression_coverage": [
+    "Synthetic Qwen forward passes prove passage vectors stay identical while query vectors change under Documents and return exactly to the original after restoring UserMessages.",
+    "Installing a same-dimensional embedder with another query task is rejected without replacing the active model stages."
+  ],
+  "logs": {
+    "models": {
+      "raw_sha256": "5c0f90889a17bcea86f0b179be432d860c424c153ab2fe37c7c5a5a13f6e12ec",
+      "gzip_sha256": "1a9eaa9254d1d51a0c756793c1e026e665234fc12138fd7da28e4bcaf2f603be"
+    },
+    "clippy": {
+      "raw_sha256": "6b1c53db1c3aefce7296a12230d43a4b15c02e431241754433592afce48158a1",
+      "gzip_sha256": "91232e494d83b32c7edfeb5f3b63fa4838ddab5466945c37dac2958b2414ebf0"
+    },
+    "format": {
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    }
+  },
+  "limits": "No real model inference, corpus generation, retrieval quality or performance measurement is included in this focused validation."
+}

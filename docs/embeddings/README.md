@@ -176,6 +176,15 @@ normalization records `none`. Worker counts and batch sizes do not change the pu
 Candle query tasks and numeric precision are part of its identity. The core and MCP backend
 validate the installed embedder against that identity, including same-dimensional replacements.
 
+The separate `local-models` Qwen3 embedder defaults to the `UserMessages` query task.
+For general document retrieval, select `EmbeddingQueryTask::Documents` with
+`set_query_task` before reading `space()` or installing model stages. It uses the
+[Qwen3 reference retrieval instruction](https://huggingface.co/Qwen/Qwen3-Embedding-0.6B/blob/97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3/README.md).
+Documents remain unprefixed; the query instruction changes the effective embedding
+space, so it cannot silently replace another task in an existing store. The
+`Conversation` task remains the instruction for retrieving both conversation roles.
+All three tasks keep the current 2048-token input cap and full model output width.
+
 Previously created managed-model stores with nominal revisions cannot establish their original
 embedding function. Preserve them with the original binary and configuration; re-embed original
 source documents into a new destination. Rewriting `store.json` to a new fingerprint does not
