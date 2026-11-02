@@ -2306,3 +2306,10 @@ preregistered oracle-recall gate: 9,847/10,000 exact-reference IDs were recovere
 recomputes recall from saved oracle and result IDs and binds both raw files and the
 worker receipt by hash. This is a quality result, not a latency or speed comparison;
 the remaining fixed arms continue without tuning or retry.
+
+At GloVe 100,000 rows, the completed unfiltered `ef=128` query set also fails the
+oracle gate: 9,235/10,000 oracle IDs recovered (mean 0.9235, worst 0.10). The
+[interim receipt](vectra-comparison-20261102/glove-100000-ef128-interim.json)
+recomputes these 1,000 queries against saved oracle IDs and hashes the selected
+rows; the remaining filters and final worker receipt were still in progress. No
+timing or speed comparison follows from this quality result.
