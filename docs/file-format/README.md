@@ -19,7 +19,7 @@ polynomial (the `crc32fast` / zlib CRC).
 | [JOURNAL.md](JOURNAL.md) | arena segments, frame header, LZ4, end marker, torn tail vs corruption, compaction generations |
 | [MUTATIONS.md](MUTATIONS.md) | frame payload: `HMS-TXN-2` and the JSON mutation records, limits, replay |
 | [ENCRYPTION.md](ENCRYPTION.md) | frame envelope, key derivation, text-segment AEAD, what is not encrypted |
-| [CHECKPOINT.md](CHECKPOINT.md) | `documents.ckpt`: the document store in place of the frames before it (schemas 4–6) |
+| [CHECKPOINT.md](CHECKPOINT.md) | `documents.ckpt`: the document store in place of the frames before it (schemas 4–7; lexical documents only) |
 | [CACHES.md](CACHES.md) | `documents.text`, `indices.json`, NSG/IVF files, `shard_meta.json` |
 | [VECTOR-UPDATES.md](VECTOR-UPDATES.md) | persisted vector checkpoints, full-precision rows, update batches and consolidation |
 | [ANCILLARY.md](ANCILLARY.md) | `audit.bin`, `audit.effects.bin`, keys, provenance files, standalone qgraph/IVF files, memory-API stamps |
@@ -36,8 +36,8 @@ Each artefact has its own version; a store is the combination.
 | Artefact | Where | Current | Readable |
 |---|---|---|---|
 | Arena manifest | `vectors_data.bin/format.json` `version` | 4 | 2, 3, 4 (no manifest = 1, read as 2) |
-| Store schema | `store.json` `version` | 6 | 2, 3, 4, 5, 6 |
-| Document checkpoint | `documents.ckpt` magic `HMSCKP\0\x01` (`HMSCKPE\x01` sealed) | 1 | 1, schemas 4–6 |
+| Store schema | `store.json` `version` | 6 by default; 7 with vector records | 2–7 |
+| Document checkpoint | `documents.ckpt` magic `HMSCKP\0\x01` (`HMSCKPE\x01` sealed) | 1 | 1, schemas 4–7 |
 | Journal payload | magic `HMS-TXN-3\0` | 3 | 2, 3 |
 | Text segment | `documents.text` header byte 4 | 2 | cache: any value is discarded and rebuilt |
 | Vector updates | `HMSVUP01`, `HMSVRW01`, `HMSVLG01` | 1 | 1 |
@@ -46,12 +46,17 @@ Each artefact has its own version; a store is the combination.
 The same numbers are constants in `src/core/format/mod.rs`; `tests/format_golden.rs` fails if one
 moves without a golden store for the new value.
 
-The current development writer creates schema 6 stores. Schema 5 added scoped meaning
-maintenance; schema 6 adds durable audit intents and acknowledgements without changing the
-binary journal encoding. Existing schemas 2–5 keep their writer format and audit behavior;
-enabling durable audit delivery requires an explicit `warm-format upgrade` into a new
-destination. Historical audit entries are preserved, but missing historical entries cannot
-be reconstructed.
+New stores use schema 6 by default. Creating a store with `vectorRecords: true`
+(`WarmConfig::vector_records` in Rust) selects schema 7, which adds the explicit native
+vector-record kind described in [MUTATIONS.md](MUTATIONS.md#native-vector-records-schema-7).
+Schema 7 retains schema 6 durable audit intents and acknowledgements; schema 5 added scoped
+meaning maintenance. Existing stores retain their schema on ordinary open. Enabling vector
+records on schemas 2–6 requires `warm-format upgrade` into a new destination: copy, verify,
+then atomically publish the upgraded copy, never an in-place schema change. A schema 7 store
+reopens with its original embedding configuration even when `vectorRecords` is omitted.
+Older readers reject schema 7 before replay. Upgrading also enables durable audit delivery
+for schemas 2–5; historical audit entries are preserved, but missing entries cannot be
+reconstructed.
 
 ## History
 
@@ -68,4 +73,5 @@ be reconstructed.
 
 Golden stores: `v061-*` (real v0.6.1 build), `v1-premanifest`, `rejected-pre-schema` (derived
 from v0.6.1), `v2-marker`, `v3-fixed64` (synthesized with the current writer and a seeded
-manifest), `v4-*`, and `v5-governance`.
+manifest), `v4-*`, `v5-governance`, and the schema 6/7 fixtures listed in
+`tests/golden/MANIFEST.json`.
