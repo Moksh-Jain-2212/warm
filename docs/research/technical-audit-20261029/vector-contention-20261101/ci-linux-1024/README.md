@@ -16,7 +16,10 @@ tail condition. The Linux result does not replace the earlier macOS failure
 or blocked local attempts. The integrated source remains unqualified under
 this experiment's complete acceptance rule.
 
-The complete 41-file export is retained in `hosted-run-41383296700/`; run/job
+The complete 41-file export is retained verbatim as
+`hosted-run-41383296700/evidence.tar.gz`, with a readable `summary.json` and
+`storage.json` alongside it. Large generated JSON/logs remain inside that exact
+compressed archive, rather than expanding the review diff. Run/job
 metadata, the compressed original job log, transport verification and independent
 checks are in `retrieval-41383296700/`. The 1,450,491-byte archive's SHA256 is
 `e5a4e685096c04dfaa6842704d595d467078f933da5dff17f18a74881cc06991`.
@@ -28,11 +31,26 @@ reproduced byte-for-byte and correctly returned exit status 1. Executable hashes
 were checked by the pinned runner driver before measurement; binaries are not
 exported, so local verification does not claim to rehash their bytes.
 
-`decode_joblog.py` reconstructs the archive from the retained compressed log with
-length/SHA256 and safe-member checks. Running `summarize.py` inside the retained
-hosted-run directory recomputes the summary without a benchmark and returns 1
-for this failed qualification. `retrieval-41383296700/verification.json` records
-the exact limits and per-process values for the failed condition.
+`decode_joblog.py` materializes either the exact archive or the retained compressed
+job log after length/SHA256 and safe-member checks. All 41 materialized files were
+checked against the original transport hashes, and the unchanged original
+summarizer reproduced the readable summary byte-for-byte. No benchmark runs during
+reproduction; summary exit status 1 is expected for this failed qualification.
+`retrieval-41383296700/verification.json` records the limits and per-process values.
+
+From the repository root, using a new output directory:
+
+```sh
+vector_evidence=docs/research/technical-audit-20261029/vector-contention-20261101/ci-linux-1024
+uv run --no-project python "$vector_evidence/decode_joblog.py" \
+  "$vector_evidence/hosted-run-41383296700/evidence.tar.gz" \
+  target/vector-evidence-41383296700 target/vector-evidence-41383296700-transport.json \
+  --archive-metadata "$vector_evidence/retrieval-41383296700/transport.json"
+uv run --no-project python target/vector-evidence-41383296700/summarize.py \
+  > target/vector-evidence-41383296700/reproduced-summary.stdout || test "$?" -eq 1
+cmp target/vector-evidence-41383296700/summary.json \
+  "$vector_evidence/hosted-run-41383296700/summary.json"
+```
 
 This is one separately preregistered comparison on a free standard public
 GitHub `ubuntu-24.04` runner. Baseline `ba980ffc16e01981bf1d025debfb83d6e7334aac`

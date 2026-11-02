@@ -93,6 +93,20 @@ def restore(log, destination, metadata):
     opener = gzip.open if log.suffix == ".gz" else open
     with opener(log, "rt", encoding="utf-8", errors="strict") as source:
         payload, header = decode(iter(lambda: source.readline(1024 * 1024 + 1), ""))
+    restore_payload(payload, header, destination, metadata)
+
+
+def restore_archive(path, transport, destination, metadata):
+    header = json.loads(transport.read_text())["archive"]
+    with path.open("rb") as source:
+        payload = source.read(MAX_BYTES + 1)
+    if (len(payload) > MAX_BYTES or len(payload) != header["bytes"]
+            or hashlib.sha256(payload).hexdigest() != header["sha256"]):
+        raise ValueError("Archive length/SHA256 disagrees with retained transport metadata")
+    restore_payload(payload, header, destination, metadata)
+
+
+def restore_payload(payload, header, destination, metadata):
     raw, members = validate_archive(payload, header)
     if destination.exists():
         raise ValueError("Destination already exists; evidence must not be overwritten")
@@ -119,5 +133,9 @@ if __name__ == "__main__":
     parser.add_argument("log", type=Path)
     parser.add_argument("destination", type=Path)
     parser.add_argument("metadata", type=Path)
+    parser.add_argument("--archive-metadata", type=Path)
     arguments = parser.parse_args()
-    restore(arguments.log, arguments.destination, arguments.metadata)
+    if arguments.archive_metadata:
+        restore_archive(arguments.log, arguments.archive_metadata, arguments.destination, arguments.metadata)
+    else:
+        restore(arguments.log, arguments.destination, arguments.metadata)

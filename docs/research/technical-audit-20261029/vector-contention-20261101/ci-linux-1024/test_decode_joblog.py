@@ -2,14 +2,17 @@
 # SPDX-License-Identifier: Apache-2.0
 import base64
 import binascii
+import contextlib
 import gzip
 import hashlib
 import io
 import json
+from pathlib import Path
 import tarfile
+import tempfile
 import unittest
 
-from decode_joblog import decode, validate_archive
+from decode_joblog import decode, restore_archive, validate_archive
 
 
 def fixture(names):
@@ -51,6 +54,21 @@ class DecoderIntegrity(unittest.TestCase):
         header["input_bytes"] = 0
         with self.assertRaises(ValueError):
             validate_archive(payload, header)
+
+    def test_archive_materialization_checks_digest(self):
+        payload, header, _ = fixture(["data"])
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory)
+            archive, metadata = path / "evidence.tar.gz", path / "transport.json"
+            archive.write_bytes(payload + b"corruption")
+            metadata.write_text(json.dumps({"archive": header}))
+            with self.assertRaises(ValueError):
+                restore_archive(archive, metadata, path / "output", path / "verified.json")
+            self.assertFalse((path / "output").exists())
+            archive.write_bytes(payload)
+            with contextlib.redirect_stdout(io.StringIO()):
+                restore_archive(archive, metadata, path / "output", path / "verified.json")
+            self.assertEqual((path / "output/data").read_bytes(), b"x")
 
 
 if __name__ == "__main__":

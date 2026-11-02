@@ -124,5 +124,6 @@
   "job_log_sha256": "17797d60f5a299f0b047815e53f7a41c59d5e9cc7e9fab00561f8dda00cb3f43",
   "job_log_gzip_sha256": "8351738e7ad0515158dd0715b025f94f45aa62e7bab87d3287f9480eca559657",
   "retrieval_note": "Initial gh log download refused terminal escape sequences; downloading the same immutable job log with --allow-escape-sequences to a file succeeded. No job rerun, metric retry or exclusion occurred.",
-  "whitespace_verification": "Source and evidence text checked with git diff --cached --check, excluding verbatim captured hosted-run *.log files. Captured build-current.log has a trailing blank line; its original bytes are deliberately preserved and covered by transport SHA256 rather than reformatted."
+  "whitespace_verification": "Captured raw logs retain their exact original bytes inside hosted-run-41383296700/evidence.tar.gz. The compact storage revision passes git diff --check without captured-log exclusions.",
+  "storage_representation": "The exact 41-file exported gzip tar is canonical; summary.json is also retained as readable text. Original member hashes are in transport.json; archive/materialization/reproduction checks are in hosted-run-41383296700/storage.json."
 }

@@ -1,0 +1,18 @@
+{
+  "stored_at": "2026-11-02T03:58:03.037726+00:00",
+  "representation": "Exact original exported gzip tar, unchanged bytes; readable summary retained alongside it. Full raw files materialize only on demand.",
+  "archive": "evidence.tar.gz",
+  "archive_bytes": 1450491,
+  "archive_sha256": "e5a4e685096c04dfaa6842704d595d467078f933da5dff17f18a74881cc06991",
+  "members": 41,
+  "input_bytes": 5477687,
+  "member_hash_manifest": "../retrieval-41383296700/transport.json",
+  "summary_sha256": "4ff9fe76d8bbef1284ab7f3c95b75e372d45dd03a92f32f20f525d7dc8f1b3e3",
+  "verification": {
+    "all_41_materialized_files_match_original_transport_hashes": true,
+    "original_summary_reproduced_byte_for_byte": true,
+    "summary_exit_code": 1,
+    "new_benchmark_runs": 0
+  },
+  "command": "uv run --no-project python decode_joblog.py hosted-run-41383296700/evidence.tar.gz <new-output-directory> <new-output-metadata.json> --archive-metadata retrieval-41383296700/transport.json; then run <new-output-directory>/summarize.py (expected exit 1)."
+}

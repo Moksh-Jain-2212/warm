@@ -1,5 +1,5 @@
 {
-  "recorded_at": "2026-11-02T03:50:39.860252+00:00",
+  "recorded_at": "2026-11-02T03:59:51.958823+00:00",
   "command": [
     "uv",
     "run",
@@ -15,14 +15,15 @@
     "-v"
   ],
   "observed_exit_code": 0,
-  "tests_passed": 3,
-  "decoder_sha256": "6a8c4fff1806ad9bfe60f5fce5ff1aae3dfbefab3d0bd17d04bf5811417659f1",
-  "tests_sha256": "af6a26ba164664802f5e9098a7ed153977248e45b14da0fd879a8b8e0244dc7f",
+  "tests_passed": 4,
+  "decoder_sha256": "666e8cd15626cc72a6ea98c50cbe470f981a6ed17251536cf4fee81e2b416a3b",
+  "tests_sha256": "250b319b7e5c12e8c93c34a65eba5d11765bae6dd0dd6be67be20a39d85b7bf4",
   "coverage": [
     "roundtrip with timestamp prefixes",
     "corrupt/incomplete/duplicate archive rejection",
     "declared length bound",
     "unsafe absolute/parent/backslash/duplicate and file-directory-collision paths",
-    "archive metadata byte-count mismatch"
+    "archive metadata byte-count mismatch",
+    "direct archive materialization rejects digest/length corruption before writing files"
   ]
 }
