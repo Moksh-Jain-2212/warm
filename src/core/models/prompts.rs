@@ -17,6 +17,8 @@ pub type Facts = Vec<(Option<usize>, String)>;
 
 pub const EMBED_TASK: &str = "Given a question a user asks about their earlier conversations with an AI assistant, retrieve the user messages that contain the information needed to answer it";
 pub const CONVERSATION_EMBED_TASK: &str = "Given a question about earlier conversations between a user and an AI assistant, retrieve the original user or assistant messages containing the information needed to answer it";
+pub const DOCUMENT_EMBED_TASK: &str =
+    "Given a web search query, retrieve relevant passages that answer the query";
 pub const RERANK_TASK: &str = "Given a question a user asks about their earlier conversations with an AI assistant, judge whether the conversation excerpt contains information needed to answer it";
 
 pub const RERANK_PREFIX: &str = "<|im_start|>system\nJudge whether the Document meets the requirements based on the Query and the Instruct provided. Note that the answer can only be \"yes\" or \"no\".<|im_end|>\n<|im_start|>user\n";
@@ -82,6 +84,10 @@ pub fn embed_query(query: &str) -> String {
 
 pub fn conversation_embed_query(query: &str) -> String {
     format!("Instruct: {CONVERSATION_EMBED_TASK}\nQuery:{query}")
+}
+
+pub fn document_embed_query(query: &str) -> String {
+    format!("Instruct: {DOCUMENT_EMBED_TASK}\nQuery:{query}")
 }
 
 pub fn rerank_body(query: &str, document: &str) -> String {
