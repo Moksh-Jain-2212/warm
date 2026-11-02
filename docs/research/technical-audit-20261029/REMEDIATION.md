@@ -2298,3 +2298,11 @@ receipt are in the frozen directory. Its two-hour ceiling includes verification;
 no measurement phase or timing preflight has started. The declared workload is
 large and its completion within the ceiling is not established. Preserve any
 partial result or failure; do not restart or retune the phase.
+
+The completed GloVe 10,000-row full-graph `ef=128` preparation job failed the
+preregistered oracle-recall gate: 9,847/10,000 exact-reference IDs were recovered
+(mean 0.9847, worst query 0.70; required mean at least 0.99 and worst at least
+0.90). The [interim receipt](vectra-comparison-20261102/glove-10000-ef128-interim.json)
+recomputes recall from saved oracle and result IDs and binds both raw files and the
+worker receipt by hash. This is a quality result, not a latency or speed comparison;
+the remaining fixed arms continue without tuning or retry.

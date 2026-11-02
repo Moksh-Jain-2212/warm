@@ -1,0 +1,43 @@
+{
+  "scope": "Completed preparation quality queries; no timing or performance comparison.",
+  "freezeHash": "bdc3c2b02e1b93b48895280da89d434a3fd9570bb09770f96a5b67ceea37d4b6",
+  "dataset": "glove-10000",
+  "filter": "all",
+  "arm": "warm-graph-128",
+  "queries": 1000,
+  "oracleHits": 9847,
+  "meanRecallOracle": 0.9847,
+  "worstRecallOracle": 0.7,
+  "requiredMean": 0.99,
+  "requiredWorst": 0.9,
+  "oracleGatePass": false,
+  "worstQueries": [
+    {
+      "query": 225,
+      "queryId": "query-225",
+      "recall": 0.7,
+      "missed": [
+        5460,
+        1372,
+        8254
+      ]
+    },
+    {
+      "query": 241,
+      "queryId": "query-241",
+      "recall": 0.7,
+      "missed": [
+        9831,
+        9170,
+        6642
+      ]
+    }
+  ],
+  "resultFile": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/results/preparation-0027-glove-10000-warm-quality.ndjson",
+  "resultSha256": "54e1d8e2cf95e5dfb797d60f3decafd8eea5dbbd399a9558efead623327f0290",
+  "oracleFile": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/results/preparation-0020-glove-10000-oracle-oracle.ndjson",
+  "oracleSha256": "a4b91500c62d94d71c6f965dc2ac5f48ce928a6e50df7dec426bbc234391aa94",
+  "workerReceipt": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/receipts/preparation-0027-glove-10000-warm-quality.json",
+  "workerReceiptSha256": "e0b07a726062659769786013af9a1c811ddc0c50ee424aee0a0e3a2b51405633",
+  "note": "Recall independently recomputed from saved graph IDs and corresponding oracle IDs. Matched WARM exact and remaining quality points have not yet been summarized."
+}
