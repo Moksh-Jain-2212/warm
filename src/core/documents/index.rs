@@ -1084,6 +1084,7 @@ impl DocumentStore {
         let Some(old) = self.text.clone() else {
             return Ok(());
         };
+        old.sync()?;
         let staging = canonical_staging_path(path);
         let segment = Arc::new(old.recreate(&staging)?);
         let documents = self
