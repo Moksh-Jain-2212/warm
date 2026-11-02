@@ -44,7 +44,7 @@ def cpu_interval(before, after, excluded):
         raise ValueError("non-positive CPU sampling interval")
     usage = []
     for pid, now in after["processes"].items():
-        if pid in excluded or now["name"] == "ps":
+        if pid in excluded:
             continue
         previous = before["processes"].get(pid)
         delta = now["cpu_seconds"] - (previous["cpu_seconds"] if previous else 0)
@@ -69,6 +69,7 @@ class Monitor:
         self.stop = threading.Event()
         self.lock = threading.Lock()
         self.owned = {os.getpid()}
+        self.interval_owned = set(self.owned)
         self.intervals = []
         self.error = None
         self.thread = threading.Thread(target=self.run, daemon=True)
@@ -80,7 +81,8 @@ class Monitor:
                 stopped = self.stop.wait(5)
                 after = process_sample()
                 with self.lock:
-                    excluded = set(self.owned)
+                    excluded = set(self.interval_owned)
+                    self.interval_owned = set(self.owned)
                 interval = cpu_interval(before, after, excluded)
                 self.intervals.append(interval)
                 with self.output.open("a") as stream:
@@ -94,6 +96,11 @@ class Monitor:
     def add(self, pid):
         with self.lock:
             self.owned.add(pid)
+            self.interval_owned.add(pid)
+
+    def remove(self, pid):
+        with self.lock:
+            self.owned.discard(pid)
 
     def finish(self):
         self.stop.set()
@@ -121,6 +128,9 @@ def execute(args, stage, arm, output, monitor=None, store=None):
                 process.kill()
                 process.wait()
             raise
+        finally:
+            if monitor is not None:
+                monitor.remove(process.pid)
     if returncode:
         raise RuntimeError(f"native stage failed: {stage}/{arm}: exit {returncode}")
 

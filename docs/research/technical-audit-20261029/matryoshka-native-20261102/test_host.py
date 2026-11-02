@@ -15,12 +15,13 @@ class HostTests(unittest.TestCase):
         after = {"monotonic":15,"unix":100,"processes":{
             1:{"cpu_seconds":80,"name":"benchmark"}, 2:{"cpu_seconds":19,"name":"external"},
             3:{"cpu_seconds":1,"name":"new"}, 5:{"cpu_seconds":.1,"name":"ps"}}}
-        result = cpu_interval(before,after,{1})
+        result = cpu_interval(before,after,{1,5})
         self.assertEqual(result["external_capacity_percent_10_cpus"],20)
         self.assertEqual(result["external_core_percent"],200)
         self.assertEqual(result["vanished_pids"],[4])
         self.assertEqual(result["new_pids"],[3,5])
         self.assertEqual(result["top_external"][0]["pid"],2)
+        self.assertGreater(cpu_interval(before,after,{1})["external_capacity_percent_10_cpus"],20)
 
 
 if __name__ == "__main__":

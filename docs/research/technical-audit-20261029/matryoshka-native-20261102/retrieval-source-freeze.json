@@ -10,12 +10,13 @@
     "README.md": "56d29c21ab09c9efc49b85087e87238ab16ddea14162c099a82d6cb4e67d1adf",
     "analyze.py": "fbd536d6eb4b731641bfaec16929cb26a656ccff6ee710d7deb8609bf424e8d8",
     "metrics.py": "ea6e952d8597dc1bb8f53f999907e67041da87a384909f7a3008d59b6e57769c",
-    "run_retrieval.py": "29a089514f83b2084e6f2a4e646270b62c03c5b85715d8b6c9c9aa473faeb20f",
-    "test_host.py": "919f8eb49c8c938216754f39040fadfd4e028ba125a31281411ee2e940eee51e",
+    "run_retrieval.py": "96d2938890e5c7967f5cb50cdd00d7723f9b265900c5bf765923b576a6b89049",
+    "test_host.py": "57fa6f0ee8f5eaad1aeba8d3ba820d189d6f3226a91d2b7358ef2f05b438062a",
     "test_metrics.py": "80d1e86c72bb49a7b87a569e7625a7ef7aaf0dc5d542ed5da28d235fa1f309e2",
     "driver/Cargo.toml": "dbac85060e85b2a5474fe4fce1fc156c774ea3c0f65761272a864c28766e33e6",
     "driver/Cargo.lock": "76185c43bd4b5d4840f17b438425a26bb32250f4f6d03b903abd0c58de937a54",
-    "driver/src/bin/evaluate.rs": "7b680e9119aff4dbdbe2ab822a71c70ff780b4ccc4b364fe64f35cb1ac58f522"
+    "driver/src/bin/evaluate.rs": "7b680e9119aff4dbdbe2ab822a71c70ff780b4ccc4b364fe64f35cb1ac58f522",
+    "validate_generation.py": "f88b547e6f080a96363c457cd33a205e9d0f0331049d388fe6084e9dc5be198f"
   },
   "checks": {
     "native_harness_tests": 3,
@@ -25,5 +26,6 @@
   },
   "process_restart": "mutate and reopen are separate sequential subprocesses; distinct PIDs asserted",
   "timing_boundary": "Only search_vectors_with_report call; no output conversion, validation, RSS sample, embedding, open, build or warmup",
-  "source_verified_before_real_retrieval": true
+  "source_verified_before_real_retrieval": true,
+  "host_monitor_correction": "Before any real-data retrieval or CPU preflight: exclude only declared PIDs; retain completed benchmark PIDs through their final observed interval, then discard. No threshold changes."
 }
