@@ -1,0 +1,85 @@
+{
+  "baseline_pr_head": "b3c23b837a40b0b8cd5d60a222f63a07b1e0fdf7",
+  "failed_ci_job": "https://github.com/writerslogic/warm/actions/runs/41389974233/job/125099066181",
+  "ci_results": {
+    "core_passed": 877,
+    "core_skipped_existing": 14,
+    "service_passed": 185,
+    "service_failed": 10
+  },
+  "receipt_failure_hypothesis": "Nine failures share live or startup receipt erasure. Close both retained source handles before scrub and atomic replacement. Local validation is insufficient to establish Windows resolution.",
+  "transport_failure": "One concurrent snapshot/query test received no response bytes. Existing logs cannot distinguish connect/setup failure from clean EOF; preserve deadlines and assertions and add secret-free diagnostics.",
+  "workflow_change": "Run the unchanged Windows HTTP/MCP step before the unchanged core step for earlier failure feedback.",
+  "source_sha256": {
+    "src/bin/warm-server/limits/durable.rs": "9706b7f664b01a667353eea8a464243a2637e95853a8ba85ef8f9450d9f90511",
+    "tests/server_support/mod.rs": "69c591e7614dc5ecdd340061a1d01822a2dbf8eb2e986f374d60beead6bec85b",
+    ".github/workflows/ci.yml": "12d93e37524b189e470eada60b482c293a8aeee471159eae1636c99636a0a949"
+  },
+  "focused_checks": [
+    {
+      "command": "CARGO_TARGET_DIR=target/readiness-build CARGO_BUILD_JOBS=2 cargo +1.99.0 test --locked --features security,experimental,server,mcp --bin warm-server --test server_api --test server_ops",
+      "exit_code": 0,
+      "passed": 129,
+      "failed": 0,
+      "ignored": 0
+    },
+    {
+      "command": "CARGO_TARGET_DIR=target/readiness-build CARGO_BUILD_JOBS=2 cargo +1.99.0 test --locked --features security,experimental,server,mcp --test server_ops",
+      "exit_code": 0,
+      "passed": 13,
+      "failed": 0,
+      "ignored": 0,
+      "scope": "After transport diagnostic change"
+    },
+    {
+      "command": "CARGO_TARGET_DIR=target/readiness-build CARGO_BUILD_JOBS=2 cargo +1.99.0 clippy --locked --features security,experimental,server,mcp --bin warm-server --test server_api --test server_ops -- -D warnings",
+      "exit_code": 0
+    },
+    {
+      "command": "cargo +1.99.0 fmt -- --check",
+      "exit_code": 0
+    },
+    {
+      "tool": "actionlint-py 1.7.12.25",
+      "scope": ".github/workflows/ci.yml",
+      "exit_code": 0
+    },
+    {
+      "tool": "zizmor 1.31.1 offline",
+      "scope": ".github/workflows/ci.yml",
+      "exit_code": 0
+    }
+  ],
+  "qualified_core_unchanged": "b4fc1ba634e1cca0ae8024f259fa6bcb8ef73954",
+  "limits": "Full exact-head feature/platform CI, including Windows service and core checks, remains required. No physical power-loss guarantee or unrelated performance claim.",
+  "logs": {
+    "windows-retry-ci-failure.log.gz": {
+      "raw_sha256": "0460af0ef6f23d3ee3ac7eda1e4e372ac965c56cc38cfe1e4183947b9e29f1df",
+      "gzip_sha256": "2b42ceebf0198805fa5f24b42ff050049cee551da7a52e580436d0ba3a908585"
+    },
+    "windows-retry-local.log.gz": {
+      "raw_sha256": "221476c84c24feea55da9cd8eb0b7d850fec58776f454641ecf9c7e7fdd782a6",
+      "gzip_sha256": "0ee1fd8ba52f7be006a868ca8d04877aaf585085cb106cc35346ac7f8372700d"
+    },
+    "windows-retry-transport.log.gz": {
+      "raw_sha256": "0c07ed5e4b18d9578fc64ab1d9005b4018954c00e5752468dc844fe95064e001",
+      "gzip_sha256": "907fca9fefe2325c9e9a0d2696c9e2ada24eb0f748e5bb8039cacf888d3ee65b"
+    },
+    "windows-retry-clippy.log.gz": {
+      "raw_sha256": "e6e0d7931bf89c507dfb76e74faa3e8ad66b40527256719a3864dc10bd51d6a2",
+      "gzip_sha256": "bad7a6c1902187f2bdaa4089cf7cc3e006b1deea1257ac1f5c3a6417ba858419"
+    },
+    "windows-retry-format.log.gz": {
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    "windows-retry-actionlint.log.gz": {
+      "raw_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzip_sha256": "9ceffb7310338057cfe71a4ae1e2c98d2c485d81cdef906532a801f457a38d64"
+    },
+    "windows-retry-zizmor.log.gz": {
+      "raw_sha256": "7d66785ab8218b9cbde42183ab2603bd26ad163303978d2ec12563fa1471d81a",
+      "gzip_sha256": "01b0ca42689eed6fa48ccda0d7b8b0bcd05d80b68463d5e728dc31dfae351778"
+    }
+  }
+}

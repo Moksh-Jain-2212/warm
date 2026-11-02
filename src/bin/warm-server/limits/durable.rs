@@ -348,11 +348,15 @@ impl Store {
             let (mut header, offset) = read_header(&mut file)?;
             ensure!(header.key == key, "retry receipt identity mismatch");
             if store.erasing.contains(&crate::auth::hex(&header.tenant)) {
-                scrub(&entry.path(), offset)?;
+                drop(file);
+                scrub(&entry.path(), offset)
+                    .context("scrubbing retained retry response on open")?;
                 header.outcome = Outcome::Unknown;
                 header.status = 0;
                 header.body_len = 0;
-                store.write_receipt(&header, &[])?;
+                store
+                    .write_receipt(&header, &[])
+                    .context("replacing scrubbed retry receipt on open")?;
                 file = open_regular(&entry.path(), false)?;
                 let _ = read_header(&mut file)?;
             }
@@ -617,8 +621,10 @@ impl Store {
         for id in &keys {
             let mut file = open_regular(&self.path(id), false)?;
             let (_, offset) = read_header(&mut file)?;
-            scrub(&self.path(id), offset)?;
-            self.persist(id, Outcome::Unknown, None)?;
+            drop(file);
+            scrub(&self.path(id), offset).context("scrubbing retained retry response")?;
+            self.persist(id, Outcome::Unknown, None)
+                .context("replacing scrubbed retry receipt")?;
         }
         let mut inner = self.cache.inner.lock();
         let mut released = 0;

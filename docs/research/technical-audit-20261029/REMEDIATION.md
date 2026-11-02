@@ -1898,6 +1898,23 @@ and repository formatting pass; see
 The qualified core source and benchmark workloads are unchanged. Full CI, including
 actual fuzz execution, remains required on the revised PR head.
 
+The next head passed hosted fuzz execution but failed the Windows runtime gate:
+877 core tests passed (14 existing platform diagnostics skipped), while 185 of
+195 HTTP/MCP tests passed. Nine failures involve retry receipt erasure or startup
+cleanup. Both paths retained a read handle across atomic receipt replacement;
+they now close it before scrubbing and replacement, then reopen when needed.
+The focused local 129-test gate passes, and the transport diagnostic follow-up
+passes all 13 operations tests. Strict scoped Clippy, formatting and workflow
+lint pass. See [Windows retry validation](recovery-query-completion-20261101/windows-retry-validation.json).
+
+The tenth Windows failure was an empty HTTP response during concurrent snapshot
+and query traffic. The available log cannot distinguish connection/setup failure
+from clean EOF, so the test harness now records these outcomes, elapsed time,
+write errors and the affected tenant without changing assertions or deadlines.
+The Windows workflow runs the same service checks before core checks to expose
+failures sooner. Windows qualification remains pending; no retry-to-pass or
+platform bypass is used. The qualified core and vector benchmark are unchanged.
+
 ## Next authorized phase: changing agent memory and Vectra migration
 
 The user queued this phase after the four recovery/query followups are completed.
