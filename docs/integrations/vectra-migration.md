@@ -70,7 +70,11 @@ In a **later process**, reopen with `await VectraMigrationIndex.open({ path: './
 
 ## Filters and ranking
 
-Filtered queries first scan **all** metadata pages at one revision, then pass the complete eligible ID set to native ranking at that same revision. They do not filter a previously truncated shortlist. `documentIds` intersects that set; `[]` always returns no matches. The adapter retries a clean revision conflict at most twice after the first attempt, restarting the whole scan. An explicit `ifRevision` disables these retries. Other failures propagate immediately. Exceeding an eligibility bound fails; it never truncates the set or substitutes an unfiltered search.
+Scalar equality conjunctions of up to 64 fields use native metadata postings when the loaded addon supports `queryVectraRecords`. Each field may be a string, finite number or boolean, directly or through a sole `$eq` operator. The native path uses the imported filter view, intersects `documentIds`, and ranks every eligible vector exactly at one checked revision. Updates and deletes maintain postings under the document-store write lock; reopening reconstructs them from records. The derived index is limited to 64 MiB of accounted key/value/ID storage and structural charges, excluding allocator overhead. Exceeding that budget switches to exact native scanning; stored records are retained.
+
+Other selectors and older addons use the original complete metadata-page scan. Its eight-entry cache retains complete filter results from one revision, bounded to 100,000 IDs per entry and 2 MiB of UTF-8 keys and IDs in total, excluding JavaScript object overhead. Native equality queries bypass this cache. Unsupported predicates are not partially pushed into the native path, preserving order-sensitive selector behavior.
+
+Both paths check revisions again before returning results and retry a clean conflict at most twice after the first attempt. An explicit `ifRevision` disables these retries. `documentIds: []` returns no matches. Exceeding the eligibility limit fails without truncation or an unfiltered substitute. Returned items retain their complete original metadata and vectors.
 
 Selectors follow the pinned [`ItemSelector`](https://github.com/Stevenic/vectra/blob/dec2dadc3bb158b06ac72fa9097bee729429a271/src/ItemSelector.ts), including its unusual behavior:
 

@@ -194,6 +194,21 @@ test('actual pinned selector and external metadata materialization match the har
   assert.equal(typeof importVectraIndex, 'function')
 })
 
+test('Vectra initial import commits all records together and cancels a duplicate', async t => {
+  const root = await temporary(t)
+  const record = i => ({ id: `item-${i}`, vector: [1, i / 100, .5], metadata: metadata(i) })
+  for (const count of [99, 100, 101]) {
+    const directory = path.join(root, String(count)), index = await provider('vectra', sources, directory, true)
+    await index.prepareAll((function *() { for (let i = 0; i < count; i++) yield record(i) })())
+    const reopened = await provider('vectra', sources, directory)
+    assert.deepEqual(await reopened.all(), Array.from({ length: count }, (_, i) => record(i)))
+  }
+  const directory = path.join(root, 'duplicate'), index = await provider('vectra', sources, directory, true)
+  await assert.rejects(index.prepareAll((function *() { for (let i = 0; i < 101; i++) yield record(i); yield record(0) })()), /already exists/)
+  assert.deepEqual(await index.all(), [])
+  assert.deepEqual(await (await provider('vectra', sources, directory)).all(), [])
+})
+
 test('real Vectra external metadata imports every record and survives a separate-process reopen', { timeout: 120000 }, async t => {
   const root = await temporary(t), sourceDir = path.join(root, 'source'), destination = path.join(root, 'imported')
   const { LocalIndex } = require(path.join(sources.vectraPath, 'lib/index.js')), source = new LocalIndex(sourceDir)
@@ -272,6 +287,7 @@ test('actual engines pass tiny oracle, filter, churn, separate-process reopen an
   for (const engine of ['vectra', 'warm']) {
     const store = path.join(root, engine), arm = ARMS.find(arm => arm.engine === engine && arm.mode === 'exact')
     const prepared = await run({ action: 'prepare', engine, store })
+    assert.equal(prepared.rows.find(row => row.name === 'ingest-acknowledgements').value.batchSize, engine === 'vectra' ? count : 100)
     const validation = prepared.rows.find(row => row.name === 'validate-full-store').value
     assert.equal(validation.sourceZeroCanonicalizations, 0)
     const reopened = await run({ action: 'validate', engine, store })

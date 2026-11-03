@@ -2,6 +2,8 @@ use super::*;
 use serde_json::json;
 use std::sync::Barrier;
 
+mod vectra_filter;
+
 fn config() -> crate::core::WarmConfig {
     crate::core::WarmConfig {
         vector_records: true,

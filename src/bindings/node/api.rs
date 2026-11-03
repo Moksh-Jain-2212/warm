@@ -120,6 +120,40 @@ impl WarmMemorySystem {
         .await
     }
 
+    #[napi(
+        ts_args_type = "vector: number[], k: number, filter: Record<string, string | number | boolean>, options?: VectorRecordQueryOptions",
+        ts_return_type = "Promise<VectorRecordQueryResult>"
+    )]
+    pub async fn query_vectra_records(
+        &self,
+        vector: Vec<f64>,
+        k: f64,
+        filter: serde_json::Value,
+        options: Option<core::vector_records::VectorRecordQueryOptions>,
+    ) -> Result<VectorRecordQueryResultJs> {
+        let core = self.core.clone();
+        run_async(move || {
+            anyhow::ensure!(
+                k.is_finite()
+                    && k.fract() == 0.0
+                    && (1.0..=core::documents::MAX_K as f64).contains(&k),
+                "k must be an integer in 1..=1000"
+            );
+            let result = core.query_vectra_records(
+                &vector,
+                k as usize,
+                &filter,
+                &options.unwrap_or_default(),
+            )?;
+            Ok(VectorRecordQueryResultJs {
+                revision: result.revision,
+                results: result.results,
+                diagnostics: serde_json::to_value(result.diagnostics)?,
+            })
+        })
+        .await
+    }
+
     #[napi(constructor)]
     pub fn new(
         dimensions: u32,

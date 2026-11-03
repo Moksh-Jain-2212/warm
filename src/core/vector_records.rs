@@ -11,6 +11,8 @@ use serde_json::Value;
 
 use super::documents::{Embedding, StoredChunk, StoredDocument, VectorState};
 
+pub(crate) mod vectra_filter;
+
 pub const MAX_RECORD_BYTES: usize = 64 * 1024;
 pub(crate) const VERSION: &str = "warm-vector-record-v1";
 const ENVELOPE: &str = "$warm_vector_record";

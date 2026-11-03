@@ -6,6 +6,7 @@ export declare class WarmMemorySystem {
   getVectorRecord(id: string, options?: VectorRecordRevisionOptions | undefined | null): Promise<VectorRecordGetResult>
   listVectorRecords(options?: VectorRecordListOptions | undefined | null): Promise<VectorRecordListResult>
   queryVectorRecords(vector: Array<number>, k: number, options?: VectorRecordQueryOptions | undefined | null): Promise<VectorRecordQueryResult>
+  queryVectraRecords(vector: number[], k: number, filter: Record<string, string | number | boolean>, options?: VectorRecordQueryOptions): Promise<VectorRecordQueryResult>
   constructor(dimensions: number, storagePath?: string | undefined | null, config?: WarmConfigJs | undefined | null)
   /**
    * Replaces the memory API's configuration (policies and defaults; see

@@ -51,6 +51,11 @@ export async function provider(engine, config, directory, create = false, dimens
         try { for (const operation of operations) { if (operation.op === 'delete') await index.deleteItem(operation.id); else await index[operation.op === 'insert' ? 'insertItem' : 'upsertItem'](operation.record) }; await index.endUpdate() }
         catch (error) { index.cancelUpdate(); throw error }
       },
+      async prepareAll(records) {
+        await index.beginUpdate()
+        try { for (const record of records) await index.insertItem(record); await index.endUpdate() }
+        catch (error) { index.cancelUpdate(); throw error }
+      },
       async query(vector, arm, filter) {
         assert.equal(arm.mode, 'exact')
         const hits = await index.queryItems(vector, '', 10, filter, false)
@@ -164,10 +169,15 @@ export async function runWorker(job) {
   const baseline = liveState(job.dataset.rows), changed = liveState(job.dataset.rows, true)
   if (job.action === 'prepare') {
     await stage(job, 'ingest-acknowledgements', async () => {
-      for (let offset = 0; offset < baseline.length; offset += 100) {
-        await index.batch(baseline.slice(offset, offset + 100).map(item => ({ op: 'insert', record: { id: data.ids[item.ordinal], vector: data.row(item.row), metadata: metadata(item.ordinal) } })))
+      if (job.engine === 'vectra') {
+        function *records() { for (const item of baseline) yield { id: data.ids[item.ordinal], vector: data.row(item.row), metadata: metadata(item.ordinal) } }
+        await index.prepareAll(records())
+      } else {
+        for (let offset = 0; offset < baseline.length; offset += 100) {
+          await index.batch(baseline.slice(offset, offset + 100).map(item => ({ op: 'insert', record: { id: data.ids[item.ordinal], vector: data.row(item.row), metadata: metadata(item.ordinal) } })))
+        }
       }
-      return { count: baseline.length, batchSize: 100, acknowledgment: job.engine === 'warm' ? 'native ordered transaction' : 'endUpdate fs.writeFile; no explicit fsync guarantee' }
+      return { count: baseline.length, batchSize: job.engine === 'warm' ? 100 : baseline.length, acknowledgment: job.engine === 'warm' ? 'native ordered transactions' : 'one endUpdate fs.writeFile; no explicit fsync guarantee' }
     })
     await stage(job, 'explicit-flush', () => index.flush())
     await stage(job, 'validate-full-store', async () => validateItems(await index.all(), data, baseline, job.engine))

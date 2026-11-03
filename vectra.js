@@ -14,6 +14,9 @@ const MAX_BYTES = 8 * 1024 * 1024
 const MAX_VALUES = 1_048_576
 const MAX_OPS = 4096
 const ATTEMPTS = 3
+const FILTER_CACHE_ENTRIES = 8
+const FILTER_CACHE_BYTES = 2 * 1024 * 1024
+const FILTER_CACHE_IDS = 100_000
 const PRIVATE = Symbol('owned migration store')
 const bytes = value => Buffer.byteLength(value, 'utf8')
 const own = (object, key) => Object.prototype.hasOwnProperty.call(object, key)
@@ -110,6 +113,23 @@ function unwrap(record, includeVector = true) {
 function cleanConflict(error) {
   return typeof error?.message === 'string' && /^vector record revision conflict\b/.test(error.message)
 }
+function nativeFilter(filter) {
+  const scalar = value => typeof value === 'string' || typeof value === 'boolean' || (typeof value === 'number' && Number.isFinite(value))
+  const entries = Object.keys(filter)
+  if (entries.length === 0 || entries.length > 64) return undefined
+  const result = Object.create(null)
+  for (const key in filter) {
+    if (!own(filter, key) || key in Object.prototype || key === '$and' || key === '$or') return undefined
+    const value = filter[key]
+    if (scalar(value)) result[key] = value
+    else {
+      if (!value || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 1 || !own(value, '$eq') || !scalar(value.$eq)) return undefined
+      for (const operator in value) if (operator !== '$eq') return undefined
+      result[key] = value.$eq
+    }
+  }
+  return result
+}
 function addBudget(budget, operation) {
   const item = operation.record
   const next = {
@@ -186,7 +206,9 @@ class VectraMigrationIndex {
   #pending = 0
   #tail = Promise.resolve()
   #readers = new Set()
-  #filterCache
+  #filterCache = new Map()
+  #filterCacheBytes = 0
+  #filterCacheRevision
   #maxPending
   #transaction
 
@@ -284,6 +306,40 @@ class VectraMigrationIndex {
   }
   #committed() {
     if (this.#transaction) throw new Error('commit or cancel the staged transaction before reading or maintaining the index')
+  }
+  #clearFilterCache() {
+    this.#filterCache.clear()
+    this.#filterCacheBytes = 0
+    this.#filterCacheRevision = undefined
+  }
+  #cachedFilter(key, ifRevision) {
+    const cached = this.#filterCache.get(key)
+    if (!cached || (ifRevision !== undefined && ifRevision !== cached.revision)) return undefined
+    this.#filterCache.delete(key)
+    this.#filterCache.set(key, cached)
+    return cached
+  }
+  #rememberFilter(key, revision, ids, idBytes) {
+    if (this.#filterCacheRevision !== revision) {
+      this.#clearFilterCache()
+      this.#filterCacheRevision = revision
+    }
+    const size = bytes(key) + idBytes
+    if (ids.length > FILTER_CACHE_IDS || size > FILTER_CACHE_BYTES) return
+    const existing = this.#filterCache.get(key)
+    if (existing) {
+      this.#filterCache.delete(key)
+      this.#filterCacheBytes -= existing.size
+    }
+    while (this.#filterCache.size >= FILTER_CACHE_ENTRIES || this.#filterCacheBytes + size > FILTER_CACHE_BYTES) {
+      const oldest = this.#filterCache.keys().next().value
+      const entry = this.#filterCache.get(oldest)
+      if (!entry) throw new Error('filter cache accounting invariant failed')
+      this.#filterCache.delete(oldest)
+      this.#filterCacheBytes -= entry.size
+    }
+    this.#filterCache.set(key, { revision, ids, size })
+    this.#filterCacheBytes += size
   }
   #record(input, importing = false) {
     if (!input || typeof input !== 'object') throw new TypeError('item is required')
@@ -393,12 +449,19 @@ class VectraMigrationIndex {
       this.#committed()
       const nativeOptions = { k, mode, ef, minScore, documentIds: explicit, ifRevision }
       if (!filter || Object.keys(filter).length === 0 || explicit?.length === 0) return this.#query(queryVector, nativeOptions)
+      const indexed = typeof this.#system.queryVectraRecords === 'function' && nativeFilter(filter)
+      if (indexed) {
+        try { return await this.#query(queryVector, nativeOptions, indexed) }
+        catch (error) {
+          if (error?.message !== 'native Vectra filter unavailable') throw error
+        }
+      }
       const allowed = explicit && new Set(explicit)
       const filterKey = explicit ? undefined : JSON.stringify(filter)
       for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
         try {
-          const cached = this.#filterCache
-          if (filterKey !== undefined && cached?.key === filterKey && (ifRevision === undefined || ifRevision === cached.revision)) {
+          const cached = filterKey === undefined ? undefined : this.#cachedFilter(filterKey, ifRevision)
+          if (cached) {
             return await this.#query(queryVector, { ...nativeOptions, documentIds: cached.ids, ifRevision: cached.revision })
           }
           let revision = ifRevision
@@ -407,6 +470,7 @@ class VectraMigrationIndex {
           const eligible = []
           do {
             const page = await this.#system.listVectorRecords({ from, limit: 1000, includeVectors: false, ifRevision: revision })
+            if (typeof page.revision !== 'string' || !page.revision) throw new Error('native listing omitted its revision')
             if (revision !== undefined && page.revision !== revision) throw new Error('native listing returned an inconsistent revision')
             revision = page.revision
             for (const record of page.records) {
@@ -420,21 +484,21 @@ class VectraMigrationIndex {
             if (page.nextFrom !== null && (typeof page.nextFrom !== 'string' || page.nextFrom === from)) throw new Error('native listing cursor did not advance')
             from = page.nextFrom
           } while (from !== null)
-          if (filterKey !== undefined && eligible.length <= 100_000 && totalBytes <= 2 * 1024 * 1024) {
-            this.#filterCache = { key: filterKey, revision, ids: eligible }
-          }
+          if (filterKey !== undefined) this.#rememberFilter(filterKey, revision, eligible, totalBytes)
           return await this.#query(queryVector, { ...nativeOptions, documentIds: eligible, ifRevision: revision })
         } catch (error) {
-          if (cleanConflict(error)) this.#filterCache = undefined
+          if (cleanConflict(error)) this.#clearFilterCache()
           if (ifRevision !== undefined || !cleanConflict(error) || attempt === ATTEMPTS - 1) throw error
         }
       }
       throw new Error('unreachable query retry state')
     }, true)
   }
-  async #query(query, options) {
+  async #query(query, options, filter) {
     const { k, ...nativeOptions } = options
-    const result = await this.#system.queryVectorRecords(query, k, nativeOptions)
+    const result = filter === undefined
+      ? await this.#system.queryVectorRecords(query, k, nativeOptions)
+      : await this.#system.queryVectraRecords(query, k, filter, nativeOptions)
     if (options.ifRevision !== undefined && result.revision !== options.ifRevision) throw new Error('native query returned an inconsistent revision')
     return { ...result, results: result.results.map(hit => ({ item: unwrap(hit.item), score: hit.score })) }
   }

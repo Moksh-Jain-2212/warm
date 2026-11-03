@@ -21,7 +21,7 @@ async function artifacts() {
   require('hnswlib-node'); require('usearch')
   const native = Object.values(require.cache).filter(entry => entry.filename.endsWith('.node')).map(entry => entry.filename)
   assert.equal(native.length, 2, 'expected exactly the two competitor native addons')
-  const files = [...new Set([worker, fileURLToPath(import.meta.url), path.join(here, 'test.mjs'), path.join(here, 'README.md'), path.join(here, 'package.json'), path.join(here, 'package-lock.json'), path.resolve(here, '../vector-receipts.mjs'), path.resolve(here, '../oracle-vector.mjs'), ...Object.keys(require.cache), process.execPath])].sort()
+  const files = [...new Set([worker, fileURLToPath(import.meta.url), path.join(here, 'test.mjs'), path.join(here, 'README.md'), path.join(here, 'package.json'), path.join(here, 'package-lock.json'), path.resolve(here, '../vector-receipts.mjs'), path.resolve(here, '../oracle-vector.mjs'), path.resolve(here, '../../../../docs/research/technical-audit-20261029/vectra-comparison-20261102/PLAN.md'), path.resolve(here, '../../../../docs/research/technical-audit-20261029/vectra-comparison-followup-20261102/PLAN.md'), path.resolve(here, '../../../../docs/research/technical-audit-20261029/vectra-comparison-followup-20261102/IMPORT-AND-QUIET-HOST.md'), ...Object.keys(require.cache), process.execPath])].sort()
   return Object.fromEntries(await Promise.all(files.map(async file => [file, await sha256(file)])))
 }
 

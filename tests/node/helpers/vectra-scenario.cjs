@@ -165,6 +165,124 @@ async function main() {
       WarmMemorySystem.prototype.getVectorRecord = originalGet
       WarmMemorySystem.prototype.mutateVectorRecords = originalMutate
     }
+  } else if (phase === 'filter-cache-lru') {
+    const items = Array.from({ length: 1001 }, (_, i) => record(`row-${String(i).padStart(4, '0')}`, [1, 0, 0], { group: `g${i % 10}` }))
+    const { index } = await importVectraItems(items, options)
+    const list = WarmMemorySystem.prototype.listVectorRecords
+    let calls = 0
+    WarmMemorySystem.prototype.listVectorRecords = async function (...args) { calls++; return list.apply(this, args) }
+    const query = async group => {
+      const found = await index.queryItems([1, 0, 0], { k: 1000, filter: { $and: [{ group }] } })
+      const expected = items.filter(item => item.metadata.group === group).map(item => item.id)
+      assert.deepEqual(hitIds(found), expected)
+      return found
+    }
+    try {
+      for (let i = 0; i < 8; i++) await query(`g${i}`)
+      assert.equal(calls, 16)
+      await query('g0'); assert.equal(calls, 16, 'a cached alternating filter must not rescan')
+      await query('g8'); assert.equal(calls, 18)
+      await query('g0'); assert.equal(calls, 18, 'most recently used filter survives eviction')
+      await query('g1'); assert.equal(calls, 20, 'least recently used filter is evicted')
+      const stale = await query('g0')
+      await index.upsertItem(record('row-0000', [1, 0, 0], { group: 'g1' }))
+      items[0].metadata.group = 'g1'
+      await assert.rejects(index.queryItems([1, 0, 0], { filter: { group: 'g0' }, ifRevision: stale.revision }), /vector record revision conflict/)
+      const afterConflict = calls
+      await query('g0'); assert.equal(calls, afterConflict + 2, 'a mutation forces a fresh revision scan')
+      await query('missing'); const afterMissing = calls
+      await query('missing'); assert.equal(calls, afterMissing, 'empty eligibility is cached')
+      await index.flush()
+    } finally { WarmMemorySystem.prototype.listVectorRecords = list }
+  } else if (phase === 'filter-cache-selector') {
+    const { ItemSelector } = require('../../fixtures/vectra-0.15/ItemSelector.js')
+    const values = [5, '5', 1, 15, null, true, '15', 0, {}, [5], -1, false]
+    const items = values.map((n, i) => record(`item-${String(i).padStart(2, '0')}`, [1, 0, 0], { n }))
+    items.push(record('item-missing', [1, 0, 0], {}))
+    const { index } = await importVectraItems(items, options)
+    const filters = [
+      { n: { $in: [5] } }, { n: { $in: ['15'] } }, { n: { $nin: ['15'] } },
+      { missing: { $ne: 1 } }, { n: { $gt: '4' } },
+      { n: { unknown: 5, $eq: 99 } }, { n: { $eq: 99, unknown: 5 } },
+      { $or: [{ n: 5 }, { n: { $gte: 15 } }] },
+    ]
+    const list = WarmMemorySystem.prototype.listVectorRecords
+    let calls = 0
+    WarmMemorySystem.prototype.listVectorRecords = async function (...args) { calls++; return list.apply(this, args) }
+    try {
+      for (const filter of filters) {
+        const expected = items.filter(item => ItemSelector.select(item.metadata, filter)).map(item => item.id).sort()
+        assert.deepEqual(hitIds(await index.queryItems([1, 0, 0], { filter, k: 100 })), expected)
+      }
+      assert.equal(calls, filters.length)
+      for (const filter of filters.toReversed()) {
+        const expected = items.filter(item => ItemSelector.select(item.metadata, filter)).map(item => item.id).sort()
+        assert.deepEqual(hitIds(await index.queryItems([1, 0, 0], { filter, k: 100 })), expected)
+      }
+      assert.equal(calls, filters.length, 'all eight selector results remain cached')
+    } finally { WarmMemorySystem.prototype.listVectorRecords = list }
+  } else if (phase === 'filter-cache-concurrency') {
+    const { index } = await importVectraItems([record('a1', [1, 0, 0], { group: 'a' }), record('b1', [1, 0, 0], { group: 'b' })], options)
+    const filterA = { $and: [{ group: 'a' }] }, filterB = { $and: [{ group: 'b' }] }
+    assert.deepEqual(hitIds(await index.queryItems([1, 0, 0], { filter: filterA })), ['a1'])
+    assert.deepEqual(hitIds(await index.queryItems([1, 0, 0], { filter: filterB })), ['b1'])
+    const query = WarmMemorySystem.prototype.queryVectorRecords, mutate = WarmMemorySystem.prototype.mutateVectorRecords, list = WarmMemorySystem.prototype.listVectorRecords
+    let enter, release, wrote = false, calls = 0, first = true
+    const entered = new Promise(resolve => { enter = resolve }), gate = new Promise(resolve => { release = resolve })
+    WarmMemorySystem.prototype.queryVectorRecords = async function (...args) {
+      if (first) { first = false; enter(); await gate }
+      return query.apply(this, args)
+    }
+    WarmMemorySystem.prototype.mutateVectorRecords = async function (...args) { wrote = true; return mutate.apply(this, args) }
+    WarmMemorySystem.prototype.listVectorRecords = async function (...args) { calls++; return list.apply(this, args) }
+    try {
+      const before = index.queryItems([1, 0, 0], { filter: filterA })
+      const write = index.upsertItem(record('a1', [1, 0, 0], { group: 'b' }))
+      const after = index.queryItems([1, 0, 0], { filter: filterA })
+      await entered; assert.equal(wrote, false)
+      release()
+      assert.deepEqual(hitIds(await before), ['a1'])
+      await write
+      assert.deepEqual(hitIds(await after), [])
+      assert.deepEqual(hitIds(await index.queryItems([1, 0, 0], { filter: filterB })), ['a1', 'b1'])
+      assert.equal(calls, 2, 'revision conflict invalidates all cached filters')
+      WarmMemorySystem.prototype.listVectorRecords = async function (...args) { const page = await list.apply(this, args); delete page.revision; return page }
+      const nested = { $and: [filterB] }
+      await assert.rejects(index.queryItems([1, 0, 0], { filter: nested }), /native listing omitted its revision/)
+      WarmMemorySystem.prototype.listVectorRecords = list
+      assert.deepEqual(hitIds(await index.queryItems([1, 0, 0], { filter: nested })), ['a1', 'b1'])
+    } finally {
+      release()
+      WarmMemorySystem.prototype.queryVectorRecords = query
+      WarmMemorySystem.prototype.mutateVectorRecords = mutate
+      WarmMemorySystem.prototype.listVectorRecords = list
+    }
+  } else if (phase === 'filter-cache-budget') {
+    const cap = 2 * 1024 * 1024, items = []
+    for (const [group, delta] of [['a', -1], ['b', 0], ['c', 1]]) {
+      const filter = { $and: [{ group }] }, total = cap + delta - Buffer.byteLength(JSON.stringify(filter))
+      const base = Math.floor(total / 33), remainder = total % 33
+      for (let i = 0; i < 33; i++) {
+        const prefix = `${group}-${String(i).padStart(2, '0')}-`, length = base + Number(i < remainder)
+        assert.ok(length <= 65523 && length >= prefix.length)
+        items.push(record(prefix + 'x'.repeat(length - prefix.length), [1, 0, 0], { group }))
+      }
+      assert.equal(items.filter(item => item.metadata.group === group).reduce((sum, item) => sum + Buffer.byteLength(item.id), 0) + Buffer.byteLength(JSON.stringify(filter)), cap + delta)
+    }
+    const { index } = await importVectraItems(items, options)
+    const list = WarmMemorySystem.prototype.listVectorRecords
+    let calls = 0
+    WarmMemorySystem.prototype.listVectorRecords = async function (...args) { calls++; return list.apply(this, args) }
+    try {
+      for (const group of ['a', 'b', 'c']) {
+        const filter = { $and: [{ group }] }, expected = items.find(item => item.metadata.group === group).id
+        assert.deepEqual(hitIds(await index.queryItems([1, 0, 0], { filter, k: 1 })), [expected])
+        const before = calls
+        assert.deepEqual(hitIds(await index.queryItems([1, 0, 0], { filter, k: 1 })), [expected])
+        assert.equal(calls - before, group === 'c' ? 1 : 0, `unexpected cache admission for ${group}`)
+      }
+      await index.flush()
+    } finally { WarmMemorySystem.prototype.listVectorRecords = list }
   } else if (phase === 'paging') {
     const items = Array.from({ length: 1001 }, (_, n) => record(`a${String(n).padStart(4, '0')}`, [1, 0, 0], { group: 'excluded' }))
     items.push(record('z-negative', [-1, 0, 0], { group: 'eligible' }))
@@ -175,7 +293,7 @@ async function main() {
     const second = await index.listItems({ from: first.nextFrom, limit: 1000, ifRevision: first.revision })
     assert.equal(second.items.length, 2)
     assert.equal(second.nextFrom, null)
-    const query = { filter: { group: 'eligible' }, k: 1 }
+    const query = { filter: { $and: [{ group: 'eligible' }] }, k: 1 }
     const result = await index.queryItems([1, 0, 0], query)
     assert.deepEqual(hitIds(result), ['z-negative'])
     assert.ok(Math.abs(result.results[0].score + 1) < 1e-6)

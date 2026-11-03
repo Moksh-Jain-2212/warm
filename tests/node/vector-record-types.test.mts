@@ -15,6 +15,10 @@ const nullableCursor: string | null = page.nextFrom
 const found: VectorRecordQueryResult = await warm.queryVectorRecords([0, 1, 0], 1, { documentIds: ['one'], ifRevision: page.revision, mode: 'exact', ef: 128, minScore: -1 })
 const vector: number[] = found.results[0].item.vector
 const route: string = found.diagnostics.route
+const filtered: VectorRecordQueryResult = await warm.queryVectraRecords([0, 1, 0], 1, { group: 'a', count: 0.5, active: true }, { ifRevision: page.revision })
+void filtered
+// @ts-expect-error native equality filters require scalar operands
+await warm.queryVectraRecords([0, 1, 0], 1, { group: { $eq: 'a' } })
 void [nullableRecord, nullableCursor, vector, route]
 // @ts-expect-error a delete requires its ID
 await warm.mutateVectorRecords([{ op: 'delete', record: item }])

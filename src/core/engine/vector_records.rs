@@ -209,6 +209,27 @@ impl WarmCore {
         k: usize,
         options: &VectorRecordQueryOptions,
     ) -> Result<VectorRecordQueryResult> {
+        self.query_vector_records_inner(vector, k, options, None)
+    }
+
+    pub fn query_vectra_records(
+        &self,
+        vector: &[f64],
+        k: usize,
+        filter: &serde_json::Value,
+        options: &VectorRecordQueryOptions,
+    ) -> Result<VectorRecordQueryResult> {
+        let filter = records::vectra_filter::Filter::parse(filter)?;
+        self.query_vector_records_inner(vector, k, options, Some(&filter))
+    }
+
+    fn query_vector_records_inner(
+        &self,
+        vector: &[f64],
+        k: usize,
+        options: &VectorRecordQueryOptions,
+        filter: Option<&records::vectra_filter::Filter>,
+    ) -> Result<VectorRecordQueryResult> {
         let dimensions = self.require_vector_records()?;
         let mode = options
             .mode
@@ -251,7 +272,46 @@ impl WarmCore {
                 let _read = self.mutation_gate.read();
                 let revision = self.check_vector_record_revision(options.if_revision.as_deref())?;
                 let store = self.documents.read();
-                let candidates = if let Some(requested) = &requested {
+                let candidates = if let Some(filter) = filter {
+                    let indexed = store.vectra_filter_candidates(filter)?;
+                    let documents: Box<dyn Iterator<Item = Arc<documents::StoredDocument>> + '_> =
+                        match (indexed, requested.as_ref()) {
+                            (Some(indexed), Some(requested)) if requested.len() < indexed.len() => {
+                                Box::new(requested.iter().filter_map(|id| store.get(id).cloned()))
+                            }
+                            (Some(indexed), _) => {
+                                Box::new(indexed.iter().filter_map(|id| store.get(id).cloned()))
+                            }
+                            (None, Some(requested)) => {
+                                Box::new(requested.iter().filter_map(|id| store.get(id).cloned()))
+                            }
+                            (None, None) => Box::new(store.shared_values()),
+                        };
+                    let mut selected = Vec::new();
+                    let mut bytes = 0usize;
+                    for document in documents {
+                        if !records::is_record(&document)
+                            || requested
+                                .as_ref()
+                                .is_some_and(|ids| !ids.contains(document.id.as_str()))
+                            || !filter.matches(&document)
+                        {
+                            continue;
+                        }
+                        ensure!(
+                            selected.len() < MAX_EMBEDDING_VALUES,
+                            "vector record eligibility exceeds 1048576 IDs"
+                        );
+                        bytes = bytes
+                            .checked_add(document.id.len())
+                            .filter(|&n| n <= MAX_BATCH_METADATA)
+                            .ok_or_else(|| {
+                                anyhow::anyhow!("vector record eligibility exceeds 8 MiB")
+                            })?;
+                        selected.push(document);
+                    }
+                    Some(selected)
+                } else if let Some(requested) = &requested {
                     Some(
                         requested
                             .iter()

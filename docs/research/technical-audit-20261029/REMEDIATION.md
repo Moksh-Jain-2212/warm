@@ -2565,3 +2565,116 @@ arrange a quieter host before its single admission check and investigate Vectra'
 memory behavior without weakening the fixed resource or quality gates. The raw
 receipts, observations, summary and failures remain in their respective output
 directories; the previously exposed queries are not held-out evidence.
+
+### Import and quiet-host investigation
+
+The [investigation and proposed protocol](vectra-comparison-followup-20261102/IMPORT-AND-QUIET-HOST.md)
+retain the failed attempts and all gates. In 10,000-row synthetic diagnostics,
+100 Vectra transactions repeatedly serialized 1,087,941,713 bytes; an ablation
+of intermediate serialization and writes materially reduced observed RSS while
+preserving final contents. A macOS memory map of a separate diagnostic showed
+884.4 MiB resident in empty large-allocation regions; this does not identify the
+real failed worker's exact allocations. A V8 heap cap did not reduce the synthetic
+footprint. The revised harness creates the initial Vectra fixture in one streamed
+transaction, leaving timed single and 100-operation writes unchanged. Initial
+import times are no longer directly comparable with WARM's 100-record batches.
+
+On a 100,000-row synthetic fixture, the revised worker checked all records and
+passed separate-process reopen validation; sampled preparation and reopen RSS
+peaked at 1,083,883,520 and 910,426,112 bytes respectively. The real inputs and
+remaining study phases may behave differently. The proposal reserves an idle host
+and a fixed settling interval before the one unchanged admission preflight, with
+no threshold polling, retries or termination of unrelated processes. It requires
+a fresh committed and frozen source and explicit user authorization before any
+new attempt. No timing result or performance advantage follows from the diagnostics.
+Final vector, hybrid and competitor harness validation passed 41 tests; the log
+is `/Volumes/A/.hms-bench-cache/vectra-import-harness-validation-20261102-v1/tests.log`
+(SHA-256 `7e5c6ae12de20b80daace41d69ed42032a9da7761b5744b00b9cb0377427065e`).
+
+### Graph traversal investigation
+
+The [local graph trace](vectra-comparison-followup-20261102/GRAPH-TRACE.md)
+reproduced all 3,000 saved ordered rankings for three configurations on the
+exposed 100,000-row GloVe data. Every oracle neighbor missing from the final
+top ten was absent from the evaluated set: 141 at default ef 512, seven at
+default ef 2048, and 15 at degree 64/build ef 500/search ef 512. With uncompressed
+routing scores on the same topology, 139, seven and 14 of those respective misses
+were shared. This identifies traversal coverage as the observed loss boundary,
+not a proven root cause for all inputs. Both high-accuracy configurations passed
+the fixed recall gates on these exposed queries. Shared-host standalone timing
+and graph-build observations are retained but do not establish public-API latency
+or a competitive advantage.
+
+The first separate update diagnostic at
+`/Volumes/A/.hms-bench-cache/warm-graph-updates-20261102-v1` stopped before
+cloning or mutating fixtures because the default profile omits the optional
+`highRecall` field. The diagnostic was corrected to interpret omission as false;
+its synthetic graph mutation and separate-process reopen test passes. This was
+not a frozen study phase, and its failure remains preserved.
+
+The completed [update and union diagnostics](vectra-comparison-followup-20261102/GRAPH-UPDATES.md)
+preserved the source fixtures and validated 100 upserts per profile through
+flush and separate-process reopen. Three graph/exact probes matched at every
+recorded post-update boundary. On the shared host, one observed post-update
+maintenance took 19.766 s for the default graph and 71.156 s for the degree-64
+profile; these are not qualified benchmark measurements. A post-hoc offline
+union of the saved default-2048 and degree-64-512 top tens had 1.00/1.00
+mean/worst recall on the already exposed queries; it requires two graphs and
+has no implemented or timed merged query. No held-out or product advantage is
+established.
+
+The [adjacency encoding diagnostic](vectra-comparison-followup-20261102/ADJACENCY.md)
+found identical candidate order and saved/reopened behavior on all 1,000 exposed
+queries when the same high-recall graph used three-byte rather than four-byte
+neighbor IDs. Its logical graph index shrank from 49,234,176 to 42,834,176 bytes.
+The host exceeded the fixed load threshold during 23 of 84 observations, so its
+timing is unqualified and no production encoding was changed. The representation
+has a 2^24−1-row sentinel boundary; retained vectors and metadata were not pruned.
+
+The [selective-fallback analysis](vectra-comparison-followup-20261102/ADAPTIVE.md)
+selected a low-top-score rule on the first 500 exposed queries: 50 fallback
+calls recovered five of nine missing neighbors. Its fixed threshold triggered
+49 fallbacks on the other 500 queries and recovered none of six misses. This
+is an internal split of already exposed data, not independent validation; the
+rule is not suitable as an automatic fallback on this evidence. No additional
+graph queries or timings were collected.
+
+### Filter cache follow-on
+
+The [filter-cache implementation and evidence](vectra-comparison-followup-20261102/FILTER-CACHE.md)
+retain up to eight complete filters for one checked revision, bounded to
+100,000 IDs per entry and 2 MiB of UTF-8 keys and ID bytes in aggregate. A
+conflict clears the cache; explicit ID subsets bypass it. On ten alternating
+queries against a cloned 100,000-row fixture, independent exact audits and all
+payload hashes matched while listing calls decreased from 1,000 to 200. The
+shared host exceeded the study-load threshold, so no latency or performance
+advantage is claimed. A separate clone-based check verified admission at
+99,999/100,000/100,001 IDs, and the prior frozen fixtures remained unchanged.
+Final validation passed 32 Node tests (three optional embedding tests skipped),
+41 comparison-harness checks, and strict TypeScript using the lock-matched
+local compiler. Logs are retained under
+`/Volumes/A/.hms-bench-cache/warm-filter-cache-dev-20261102-v1`.
+
+### Native equality filtering
+
+The [native-filter implementation](vectra-comparison-followup-20261102/NATIVE-FILTER.md)
+routes supported scalar equality conjunctions through revision-consistent native
+metadata postings, updated with document mutations and reconstructed on reopen.
+Unsupported selectors preserve the existing JavaScript selector and cache.
+The derived index has a 64 MiB accounted-storage budget with exact native scan
+fallback; no stored records are pruned. Eligibility limits, exact ranking and
+complete payloads are unchanged. Synthetic checks and the predeclared local
+100,000-row diagnostic are retained separately from every frozen study attempt.
+On ten alternating queries the preceding cache adapter read 200 metadata pages
+and native equality routing read zero, with all twenty independent exact audits
+and all cross-arm payload hashes passing. The source fixture hashes were unchanged;
+the receipt is `/Volumes/A/.hms-bench-cache/warm-native-filter-compare-20261102-v1`
+(`finished.json` SHA-256
+`8096acab02bda39567e4b71f191ff0b1567de0b139b51b5838d0112ff9a406fa`).
+Both arms used the same new addon and lacked quiet-host admission, so this is
+neither an old/new native memory comparison nor qualified latency evidence.
+Validation passed 36 Node tests (three optional embedding skips), 41 harness
+checks, strict TypeScript, scoped Node/security Clippy, and 169 focused Rust
+tests (one existing latency microbenchmark ignored). The exact commands, logs
+and source inventory are retained at
+`/Volumes/A/.hms-bench-cache/warm-native-filter-dev-20261102-v1`.

@@ -37,13 +37,16 @@ Means use compensated summation. Threshold comparisons allow four machine epsilo
 solely for floating-point representation at equality; thresholds are not rounded.
 
 The controller hashes its own and worker sources, their shared scoring and resource
-helpers, package lock, runtime, loaded JavaScript/native dependencies, inputs and
-oracle, then verifies them before each phase. It uses a fresh exclusive output,
+helpers, package lock, runtime, loaded JavaScript/native dependencies, inputs,
+oracle and the original, follow-up and [proposed revised protocols](../../../../docs/research/technical-audit-20261029/vectra-comparison-followup-20261102/IMPORT-AND-QUIET-HOST.md),
+then verifies them before each phase. It uses a fresh exclusive output,
 one no-retry start per phase, two-hour preparation and measurement ceilings,
 8 GiB per-process RSS ceiling and the existing two-interval host-load preflight.
 Measurement aborts on load or resource violations and keeps partial receipts.
 Do not run other benchmark work or builds during timing. Never relax a gate or
 select a best retry after viewing results.
+The revised protocol is a proposal; obtain explicit user authorization before a
+new attempt.
 
 From the repository root, after installing the isolated locked dependencies and
 building hnswlib-node for this host, run:
