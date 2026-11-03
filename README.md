@@ -236,7 +236,7 @@ print(client.query([0.1] * 384, top_k=1)["matches"][0]["id"])
 ```
 
 Endpoints, flags, tenants and limits are in the
-[server docs](https://writerslogic.com/warm/docs/latest/SERVER/). A runnable Python quickstart
+[server docs](https://writerslogic.com/warm/docs/latest/server/). A runnable Python quickstart
 with a toy embedder is in [`examples/quickstart/python`](examples/quickstart/python/quickstart.py).
 
 </details>
