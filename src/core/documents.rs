@@ -55,8 +55,8 @@ pub(crate) use search::{
 pub(crate) use text::TextSegment;
 #[cfg(not(target_arch = "wasm32"))]
 pub(crate) use vector_index::{
-    build_projected_vector_snapshot, build_vector_snapshot, capture_vector_rows,
-    search_vector_snapshot_with_report, vector_index_status, VectorIndexSlot,
+    build_configured_vector_snapshot, capture_vector_rows, search_vector_snapshot_with_report,
+    vector_index_status, VectorIndexSlot,
 };
 #[cfg(all(test, not(target_arch = "wasm32")))]
 pub(crate) use vector_index::{rank_vector_snapshot, read_vector_hits};

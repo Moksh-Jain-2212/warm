@@ -1,0 +1,130 @@
+{
+  "corpus": "/Volumes/A/.hms-bench-cache/competitive/data/glove-100-angular-n100000-q1000/train.f32",
+  "corpusSha256": "119360a40fed67fd92d9a16ff15b21e5566ecaef1865f93ff07efc53e2bca8e7",
+  "queries": "/Volumes/A/.hms-bench-cache/competitive/data/glove-100-angular-n100000-q1000/test.f32",
+  "queriesSha256": "d834585869aac11aba8de8dffe22ec50006b22d223ed1cce1ad357611091d613",
+  "oracle": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen/results/preparation-0030-glove-100000-oracle-oracle.ndjson",
+  "oracleSha256": "d3d9b337c191f8c2ff628a2af63d206367dcfcb05e016017797b62576bfc8ae8",
+  "binary": "/Volumes/A/.hms-bench-cache/warm-vector-topology-development-20261102-v1/diagnostic-binary",
+  "binarySha256": "775a555864db528ff22a01c88e85c052e2f74229d5967b07f0959fbd5ec51425",
+  "sourceCommit": "0224fd365d9926b32ff23ec1d5fe5f2ada4479a9",
+  "sourcePatchSha256": "cbfc111b8c5fb404b5ff6f117908efc5c2e0a5a84166d58d4e54070642a8aa7f",
+  "sourceSha256": "c15f87d51fc2136258793370d0b5f6a14104f523f904dc6edbd60d5ac36aa2f7",
+  "lockSha256": "7fd5fa8b19f16562828bee0924d6c81e78390737d9d21253c017c0928a4b4fec",
+  "rootLockSha256": "2fc4a034e5af215be9c559b8b34d47acb5df94e83acbb39e3e7260121f05add1",
+  "rustVersion": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+  "controllerSha256": "dfa3d8170c363d69ab776c44671e38e56da767cd5585100615803439adecb863",
+  "workerSha256": "23ccfc482d85bbd3720cd079e413795ffc7ab314d3eaa93ab5fc226914ff1e44",
+  "modes": [
+    "default",
+    "degree48",
+    "degree64"
+  ],
+  "efs": [
+    128,
+    256,
+    512
+  ],
+  "deadlineMs": 7200000,
+  "scope": "100,000-row GloVe development; no timing or competitive claims. Default must reproduce all 3,000 saved WARM rankings before topology variants run.",
+  "complete": true,
+  "failure": null,
+  "results": [
+    {
+      "mode": "default",
+      "output": "/Volumes/A/.hms-bench-cache/warm-vector-topology-development-20261102-v1/default.ndjson",
+      "sha256": "c836183b68f45fc28b22caaa065a3c37963562182fc1d76776d61c4b3f7c6602",
+      "graphHash": "b032161111580eb9",
+      "cells": [
+        {
+          "ef": 128,
+          "below90": 210,
+          "meanRecall": 0.9235,
+          "type": "summary",
+          "worstRecall": 0.1,
+          "changedAgainstSaved": 0
+        },
+        {
+          "ef": 256,
+          "below90": 95,
+          "meanRecall": 0.9634,
+          "type": "summary",
+          "worstRecall": 0.5,
+          "changedAgainstSaved": 0
+        },
+        {
+          "ef": 512,
+          "below90": 22,
+          "meanRecall": 0.9859,
+          "type": "summary",
+          "worstRecall": 0.6,
+          "changedAgainstSaved": 0
+        }
+      ]
+    },
+    {
+      "mode": "degree48",
+      "output": "/Volumes/A/.hms-bench-cache/warm-vector-topology-development-20261102-v1/degree48.ndjson",
+      "sha256": "f17fdd8fe7378012a8761783225493450bbc5d2da5eda53a2ed77cf7a118d9cd",
+      "graphHash": "89e85af1d96c85a8",
+      "cells": [
+        {
+          "ef": 128,
+          "below90": 118,
+          "meanRecall": 0.9549,
+          "type": "summary",
+          "worstRecall": 0.4,
+          "changedAgainstSaved": 319
+        },
+        {
+          "ef": 256,
+          "below90": 26,
+          "meanRecall": 0.9852,
+          "type": "summary",
+          "worstRecall": 0.6,
+          "changedAgainstSaved": 212
+        },
+        {
+          "ef": 512,
+          "below90": 1,
+          "meanRecall": 0.9969,
+          "type": "summary",
+          "worstRecall": 0.8,
+          "changedAgainstSaved": 107
+        }
+      ]
+    },
+    {
+      "mode": "degree64",
+      "output": "/Volumes/A/.hms-bench-cache/warm-vector-topology-development-20261102-v1/degree64.ndjson",
+      "sha256": "a8509b14f28d7655938da32ad0852967d7f31a35a9c18fedb64faf0c534ccf5b",
+      "graphHash": "e61a091c32284eb7",
+      "cells": [
+        {
+          "ef": 128,
+          "below90": 62,
+          "meanRecall": 0.9718,
+          "type": "summary",
+          "worstRecall": 0.4,
+          "changedAgainstSaved": 339
+        },
+        {
+          "ef": 256,
+          "below90": 4,
+          "meanRecall": 0.9924,
+          "type": "summary",
+          "worstRecall": 0.8,
+          "changedAgainstSaved": 225
+        },
+        {
+          "ef": 512,
+          "below90": 0,
+          "meanRecall": 0.9985,
+          "type": "summary",
+          "worstRecall": 0.9,
+          "changedAgainstSaved": 110
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "recorded_at_utc": "2026-11-02T07:52:44Z",
+  "review_scope": "Bounded independent review of vector comparison oracle, measurement and error accounting; coordinator inspected the identified implementations.",
+  "status": "unresolved; benchmark freeze and execution blocked",
+  "source_worktree": "/Volumes/A/warm-vectra-vector-harness",
+  "source_branch": "test/vectra-vector-harness",
+  "study_execution": false,
+  "findings": [
+    {
+      "severity": "P1",
+      "path": "benchmarks/public/vectra_comparison/vector.mjs",
+      "lines_at_review": "229-245",
+      "finding": "Timed ANN outputs do not receive per-repetition recall and relevance gates. Static/lifecycle success can permit a performance claim even when timed graph queries have zero oracle recall.",
+      "acceptance": "Gate each repetition's actual timed outputs against matching exact references and the oracle; a synthetic zero-recall timed graph case must reject qualification."
+    },
+    {
+      "severity": "P2",
+      "path": "benchmarks/public/vectra_comparison/vector.mjs",
+      "lines_at_review": "184-197,218,224",
+      "finding": "Static and lifecycle row counts do not establish complete unique query identities. Duplicate q0 rows can hide missing q1 while the expected row count is satisfied.",
+      "acceptance": "Validate exact expected query identities, uniqueness and completeness in both result and reference sets; regress duplicate, missing and unexpected IDs."
+    },
+    {
+      "severity": "P2",
+      "path": "benchmarks/public/vectra_comparison/vector-worker.mjs",
+      "lines_at_review": "208-212",
+      "finding": "The fullGraph route checks returned cosine scores and membership but does not validate descending score order; reversed correct-score results can pass.",
+      "acceptance": "Validate descending canonical scores regardless of retrieval route; regress reversed graph results while preserving the declared numerical tolerance."
+    }
+  ],
+  "evidence_limit": "Reviewer used synthetic accounting cases only. No real comparison corpus queries or measurements have run. These are harness qualification defects, not demonstrated WARM retrieval defects."
+}

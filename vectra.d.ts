@@ -35,7 +35,7 @@ export interface VectraMutationResult {
 }
 export type VectraNativeOptions = Omit<WarmConfigJs,
   'vectorRecords' | 'embeddingModel' | 'embeddingRevision' | 'embeddingDimensions' |
-  'vectorCandidateDimensions' | 'vectorRerankCandidates'>
+  'vectorCandidateDimensions' | 'vectorRerankCandidates' | 'vectorHighRecall'>
 export interface VectraOpenOptions {
   path: string
   /** Runtime/security configuration is reapplied on every open, never stored in the profile. */
@@ -53,6 +53,8 @@ export interface VectraCreateOptions extends VectraOpenOptions {
   /** Experimental candidate prefix; must be supplied together with rerankCandidates. */
   candidateDimensions?: number
   rerankCandidates?: number
+  /** Opt into degree-64/build-500 single-hop graph search; recall remains approximate. */
+  highRecall?: boolean
 }
 export interface VectraQueryOptions {
   k?: number
@@ -62,14 +64,14 @@ export interface VectraQueryOptions {
   /** A caller-supplied revision disables clean-conflict retries. */
   ifRevision?: string
   minScore?: number
-  /** Exact by default. A graph must already exist for explicit graph queries. */
+  /** Exact by default. A graph query builds a graph deferred by a cold exact query; otherwise an unavailable graph is an error. */
   mode?: 'exact' | 'auto' | 'graph'
   ef?: number
 }
 export interface VectraQueryResult {
   revision: string
   results: Array<{ item: StoredVectraItem; score: number }>
-  diagnostics?: { route: string; candidateDimensions: number; shortlistLimit?: number | null }
+  diagnostics?: { route: string; candidateDimensions: number; shortlistLimit?: number | null; graphDegree?: number | null; graphBuildEf?: number | null }
 }
 export interface VectraListOptions {
   /** Inclusive opaque cursor: pass nextFrom unchanged. */

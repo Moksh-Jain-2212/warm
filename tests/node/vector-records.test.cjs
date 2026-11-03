@@ -88,3 +88,40 @@ test('native revisions, staged preconditions and type/range failures remain atom
     rmSync(directory, { recursive: true, force: true })
   }
 })
+
+test('large valid vector pages and query results cross the Node binding', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'warm-native-record-pages-'))
+  try {
+    const dimensions = 1024
+    const warm = new WarmMemorySystem(256, directory, { ...config, embeddingDimensions: dimensions })
+    const vector = Array(dimensions).fill(0)
+    vector[0] = 1
+    vector[1] = -0
+    for (let start = 0; start < 1000; start += 250) {
+      const operations = Array.from({ length: 250 }, (_, i) => ({
+        op: 'insert', record: { id: `row-${String(start + i).padStart(4, '0')}`, vector, metadata: { group: 'large' } },
+      }))
+      await warm.mutateVectorRecords(operations)
+    }
+    const penultimate = await warm.listVectorRecords({ limit: 999, includeVectors: true })
+    assert.equal(penultimate.records.length, 999)
+    assert.equal(penultimate.nextFrom, 'row-0999')
+    const page = await warm.listVectorRecords({ limit: 1000, includeVectors: true, ifRevision: penultimate.revision })
+    assert.equal(page.records.length, 1000)
+    assert.equal(page.nextFrom, null)
+    assert.ok(Object.is(page.records[999].vector[1], -0))
+    assert.deepEqual(page.records[999].metadata, { group: 'large' })
+    const withoutVectors = await warm.listVectorRecords({ limit: 1, includeVectors: false, ifRevision: page.revision })
+    assert.equal(Object.hasOwn(withoutVectors.records[0], 'vector'), false)
+    assert.equal(withoutVectors.nextFrom, 'row-0001')
+    const penultimateResults = await warm.queryVectorRecords(vector, 999, { mode: 'exact', ifRevision: page.revision })
+    assert.equal(penultimateResults.results.length, 999)
+    const result = await warm.queryVectorRecords(vector, 1000, { mode: 'exact', ifRevision: page.revision })
+    assert.equal(result.results.length, 1000)
+    assert.equal(result.results[0].item.id, 'row-0000')
+    assert.ok(Object.is(result.results[999].item.vector[1], -0))
+    assert.equal(result.diagnostics.route, 'fullExact')
+  } finally {
+    rmSync(directory, { recursive: true, force: true })
+  }
+})

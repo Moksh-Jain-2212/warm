@@ -52,6 +52,97 @@ fn populate(core: &WarmCore) -> Result<()> {
 }
 
 #[test]
+fn high_recall_graph_is_opt_in_and_reports_its_build_settings() -> Result<()> {
+    for high_recall in [false, true] {
+        let directory = tempfile::tempdir()?;
+        let mut cfg = config(None);
+        cfg.vector_high_recall = high_recall;
+        let core = WarmCore::new(
+            1024,
+            Some(directory.path().display().to_string()),
+            Some(cfg),
+        )?;
+        populate(&core)?;
+        let status = core.vector_index_status();
+        assert_eq!(status.graph_degree, Some(64));
+        assert_eq!(
+            status.graph_build_ef,
+            Some(if high_recall { 500 } else { 256 })
+        );
+        let found = core.search_vectors_with_report(
+            &[1.0, 0.0, 0.0, 10.0],
+            2,
+            &VectorQueryOptions {
+                mode: VectorIndexMode::Graph,
+                ..Default::default()
+            },
+        )?;
+        assert_eq!(found.diagnostics.graph_degree, status.graph_degree);
+        assert_eq!(found.diagnostics.graph_build_ef, status.graph_build_ef);
+        assert_eq!(found.results[0].document_id, "full-winner");
+    }
+    let directory = tempfile::tempdir()?;
+    assert!(WarmCore::new(
+        1024,
+        Some(directory.path().display().to_string()),
+        Some(WarmConfig {
+            vector_high_recall: true,
+            ..Default::default()
+        })
+    )
+    .is_err());
+    Ok(())
+}
+
+#[test]
+fn cold_exact_defers_only_graph_sized_snapshots_and_maintenance_finishes_them() -> Result<()> {
+    use writerslogic_warm::core::documents::DEFAULT_GRAPH_MIN_ROWS;
+    use writerslogic_warm::core::vector_records::{
+        VectorRecordInput, VectorRecordOperation, VectorRecordQueryOptions,
+    };
+
+    for rows in [
+        DEFAULT_GRAPH_MIN_ROWS - 1,
+        DEFAULT_GRAPH_MIN_ROWS,
+        DEFAULT_GRAPH_MIN_ROWS + 1,
+    ] {
+        let directory = tempfile::tempdir()?;
+        let mut cfg = config(None);
+        cfg.vector_records = true;
+        let core = WarmCore::new(256, Some(directory.path().display().to_string()), Some(cfg))?;
+        let operations: Vec<_> = (0..rows)
+            .map(|i| VectorRecordOperation::Insert {
+                record: VectorRecordInput {
+                    id: format!("id-{i:04}"),
+                    vector: vec![1.0, 0.0, 0.0, 0.0],
+                    metadata: json!({}),
+                },
+            })
+            .collect();
+        for batch in operations.chunks(4096) {
+            core.mutate_vector_records(batch.to_vec(), &Default::default())?;
+        }
+        let result = core.query_vector_records(
+            &[1.0, 0.0, 0.0, 0.0],
+            1,
+            &VectorRecordQueryOptions::default(),
+        )?;
+        assert_eq!(result.diagnostics.route, VectorSearchRoute::FullExact);
+        let status = core.vector_index_status();
+        assert!(!status.graph);
+        assert_eq!(status.rebuild_recommended, rows >= DEFAULT_GRAPH_MIN_ROWS);
+        assert!(core.maintain_vector_index(usize::MAX)?);
+        assert!(!core.vector_index_status().graph);
+        assert!(core.maintain_vector_index(DEFAULT_GRAPH_MIN_ROWS)?);
+        assert_eq!(
+            core.vector_index_status().graph,
+            rows >= DEFAULT_GRAPH_MIN_ROWS
+        );
+    }
+    Ok(())
+}
+
+#[test]
 fn projected_graph_reranks_full_vectors_and_full_width_is_a_matched_control() -> Result<()> {
     let query = [1.0, 0.0, 0.0, 10.0];
     let exact_options = VectorQueryOptions {

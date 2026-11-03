@@ -13,16 +13,13 @@
 //! to documents. Readers share the snapshot through one `Arc`, so a query holds the store's
 //! read lock only to read the generation and the text segment for fresh queries. Stale
 //! exact queries derive live-row eligibility from a bounded changed-ID ledger and binary
-//! ranges in the ID-ordered rows, then score captured immutable owners after releasing it. Graph scoring stays outside
-//! the lock before stale-hit validation and the delta pass.
+//! ranges in the ID-ordered rows, then score captured immutable owners after releasing it.
 //!
 //! Data layout: `rows[i]` owns the document of row `i` and the chunk index inside it;
 //! `exact.rows[i]` is that chunk's embedding handle, l2-normalised `f32` values rounded from
-//! the `f64` normalisation at ingest. `members` holds the address of every document
-//! allocation the snapshot covers; the addresses stay unique while the snapshot holds the
-//! `Arc`s, so a replaced document (a new allocation under the same id) is never mistaken for
-//! the captured one. The graph build needs one contiguous matrix; it is assembled for the
-//! build and freed with the builder, so it is transient memory, not part of the snapshot.
+//! the `f64` normalisation at ingest. The graph build needs one contiguous matrix; it is
+//! assembled for the build and freed with the builder, so it is transient memory, not part
+//! of the snapshot.
 //!
 //! Consistency: the store bumps `generation` on every insert, replace and delete
 //! (`index.rs`), and a snapshot records the generation it was captured at.
@@ -45,12 +42,11 @@
 //!   scan under research in `benchmarks/research/scan`; nothing implements it here.
 //!
 //! Scores: exact-mode selection uses [`super::Embedding::cosine`], the canonical `f64`
-//! accumulation. Graph candidates use the `f32` dot before canonical re-scoring; graph
-//! membership remains approximate. Ties break on `(document id, chunk)` ascending.
+//! accumulation. Graph membership remains approximate. Ties break on `(document id, chunk)`
+//! ascending.
 
 use std::{cmp::Ordering, collections::BinaryHeap, sync::Arc};
 
-use crate::core::hash::FastSet;
 use crate::core::sync::{Mutex, MutexGuard, RwLock};
 use anyhow::{bail, ensure, Context, Result};
 use serde::{Deserialize, Serialize};
@@ -175,6 +171,8 @@ pub struct VectorSearchDiagnostics {
     pub route: VectorSearchRoute,
     pub candidate_dimensions: usize,
     pub shortlist_limit: Option<usize>,
+    pub graph_degree: Option<usize>,
+    pub graph_build_ef: Option<usize>,
 }
 
 #[derive(Clone, Debug, Serialize)]
@@ -198,6 +196,9 @@ pub struct VectorIndexStatus {
     pub stale_mutations: u64,
     /// Whether the snapshot carries a graph index.
     pub graph: bool,
+    /// Graph construction settings, present only when a graph is built.
+    pub graph_degree: Option<usize>,
+    pub graph_build_ef: Option<usize>,
     /// Whether maintenance should capture a fresh snapshot.
     pub rebuild_recommended: bool,
     pub candidate_identity: Option<VectorCandidateIdentity>,
@@ -411,6 +412,9 @@ pub(crate) struct GraphIndex {
     graph: VGraph,
     exact: ExactScan,
     candidate_dimensions: Option<usize>,
+    build_degree: usize,
+    build_ef: usize,
+    high_recall: bool,
 }
 
 impl VectorIndex for GraphIndex {
@@ -435,6 +439,18 @@ impl GraphIndex {
         k: usize,
         ef: usize,
     ) -> Result<Option<Vec<(u32, f32)>>> {
+        let Some(ids) = self.search_candidate_ids(query, k, ef)? else {
+            return Ok(None);
+        };
+        let mut hits: Vec<_> = ids
+            .into_iter()
+            .map(|id| (id, dot(query, self.exact.row(id))))
+            .collect();
+        hits.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
+        Ok(Some(hits))
+    }
+
+    fn search_candidate_ids(&self, query: &[f32], k: usize, ef: usize) -> Result<Option<Vec<u32>>> {
         ensure!(
             query.len() == self.exact.dim,
             "query has {} dimensions, the index {}",
@@ -461,22 +477,42 @@ impl GraphIndex {
         } else {
             query
         };
-        self.graph
-            .search_two_hop_cached(candidate_query, k, params, &mut ids)
-            .map_err(|e| anyhow::anyhow!("graph search: {e}"))?;
-        ensure!(
-            ids.iter().all(|&id| (id as usize) < self.rows()),
-            "graph search returned a vertex outside the snapshot"
-        );
-        let mut hits: Vec<(u32, f32)> = ids
-            .into_iter()
-            .map(|id| (id, dot(query, self.exact.row(id))))
-            .collect();
-        hits.sort_by(|a, b| b.1.total_cmp(&a.1).then(a.0.cmp(&b.0)));
-        hits.dedup_by(|a, b| a.0 == b.0);
-        hits.truncate(k);
-        Ok(Some(hits))
+        #[cfg(not(target_arch = "wasm32"))]
+        if self.high_recall {
+            self.graph
+                .search_cached(candidate_query, k, params, &mut ids)
+        } else {
+            self.graph
+                .search_two_hop_cached(candidate_query, k, params, &mut ids)
+        }
+        .map_err(|e| anyhow::anyhow!("graph search: {e}"))?;
+        #[cfg(target_arch = "wasm32")]
+        if self.high_recall {
+            self.graph
+                .searcher()
+                .search(candidate_query, k, params, &mut ids)
+        } else {
+            self.graph
+                .searcher()
+                .search_two_hop(candidate_query, k, params, &mut ids)
+        }
+        .map_err(|e| anyhow::anyhow!("graph search: {e}"))?;
+        validate_graph_candidates(&mut ids, self.rows())?;
+        Ok(Some(ids))
     }
+}
+
+fn validate_graph_candidates(ids: &mut [u32], rows: usize) -> Result<()> {
+    ensure!(
+        ids.iter().all(|&id| (id as usize) < rows),
+        "graph returned a candidate outside the vector snapshot"
+    );
+    ids.sort_unstable();
+    ensure!(
+        ids.windows(2).all(|pair| pair[0] != pair[1]),
+        "graph returned duplicate candidates"
+    );
+    Ok(())
 }
 
 fn append_normalized_prefix(values: &[f32], dimensions: usize, out: &mut Vec<f32>) -> Result<bool> {
@@ -514,12 +550,12 @@ pub(crate) struct VectorSnapshot {
     generation: u64,
     dim: usize,
     rows: Vec<RowRef>,
-    members: FastSet<usize>,
     exact: ExactScan,
     graph: Option<GraphIndex>,
     candidate_identity: Option<VectorCandidateIdentity>,
     rerank_candidates: Option<usize>,
     zero_prefix: bool,
+    graph_pending: bool,
 }
 
 impl VectorSnapshot {
@@ -529,6 +565,14 @@ impl VectorSnapshot {
 
     pub(crate) fn has_graph(&self) -> bool {
         self.graph.is_some()
+    }
+
+    pub(crate) fn defer_graph(&mut self) {
+        self.graph_pending = !self.has_graph() && self.rows() >= DEFAULT_GRAPH_MIN_ROWS;
+    }
+
+    pub(crate) fn graph_pending(&self) -> bool {
+        self.graph_pending
     }
 
     pub(crate) fn matches_embedding_space(&self, space: &EmbeddingSpace) -> bool {
@@ -556,7 +600,7 @@ impl VectorSnapshot {
     }
 }
 
-/// The rows captured under the store's read lock; [`build_vector_snapshot`] turns it into a
+/// The rows captured under the store's read lock; [`build_configured_vector_snapshot`] turns it into a
 /// snapshot without any lock. `embeddings[i]` is the handle of `rows[i]`'s chunk embedding,
 /// shared with the store (a reference count, not a copy).
 pub(crate) struct VectorCapture {
@@ -633,34 +677,39 @@ pub(crate) fn capture_vector_rows(
     }))
 }
 
-/// Builds the exact scan and, with at least `graph_min_rows` rows, the vertex graph. The
-/// graph build is deterministic (fixed seed) and uses the rayon
-/// pool; its contiguous input matrix (`rows * dim * 4` bytes) lives only for the build.
-pub(crate) fn build_vector_snapshot(
-    capture: VectorCapture,
-    graph_min_rows: usize,
-) -> Result<VectorSnapshot> {
-    build_vector_snapshot_inner(capture, graph_min_rows, None)
+/// Builds the default exact scan and, with enough rows, the vertex graph.
+#[cfg(test)]
+fn build_vector_snapshot(capture: VectorCapture, graph_min_rows: usize) -> Result<VectorSnapshot> {
+    build_vector_snapshot_inner(capture, graph_min_rows, None, false)
 }
 
-pub(crate) fn build_projected_vector_snapshot(
+pub(crate) fn build_configured_vector_snapshot(
     capture: VectorCapture,
     graph_min_rows: usize,
     space: &EmbeddingSpace,
-    candidates: &VectorCandidateConfig,
+    candidates: Option<&VectorCandidateConfig>,
+    high_recall: bool,
 ) -> Result<VectorSnapshot> {
-    candidates.validate(space)?;
+    if let Some(candidates) = candidates {
+        candidates.validate(space)?;
+    }
     ensure!(
         capture.dim == space.dimensions,
         "candidate and full embedding spaces differ"
     );
-    build_vector_snapshot_inner(capture, graph_min_rows, Some((space, candidates)))
+    build_vector_snapshot_inner(
+        capture,
+        graph_min_rows,
+        candidates.map(|candidates| (space, candidates)),
+        high_recall,
+    )
 }
 
 fn build_vector_snapshot_inner(
     capture: VectorCapture,
     graph_min_rows: usize,
     candidates: Option<(&EmbeddingSpace, &VectorCandidateConfig)>,
+    high_recall: bool,
 ) -> Result<VectorSnapshot> {
     let VectorCapture {
         identity,
@@ -669,10 +718,6 @@ fn build_vector_snapshot_inner(
         rows,
         embeddings,
     } = capture;
-    let members = rows
-        .iter()
-        .map(|row| Arc::as_ptr(&row.document) as usize)
-        .collect();
     let embeddings: Arc<[Embedding]> = embeddings.into();
     let exact = ExactScan {
         dim,
@@ -681,6 +726,7 @@ fn build_vector_snapshot_inner(
     let mut zero_prefix = false;
     let graph = if rows.len() >= graph_min_rows.max(SNAPSHOT_MIN_ROWS) {
         let candidate_dimensions = candidates.map_or(dim, |(_, config)| config.dimensions);
+        let params = graph_build_params(high_recall, rows.len())?;
         let mut matrix = Vec::new();
         matrix
             .try_reserve_exact(
@@ -702,11 +748,6 @@ fn build_vector_snapshot_inner(
         if zero_prefix {
             None
         } else {
-            let params = BuildParams {
-                degree: 64,
-                build_ef: 256,
-                ..BuildParams::default()
-            };
             let built = Graph::build_owned(matrix, candidate_dimensions, &params)
                 .map_err(|e| anyhow::anyhow!("graph build: {e}"))?;
             let encoded = VGraph::from_graph(&built, true)
@@ -723,6 +764,9 @@ fn build_vector_snapshot_inner(
             );
             Some(GraphIndex {
                 graph: encoded,
+                build_degree: params.degree,
+                build_ef: params.build_ef,
+                high_recall,
                 candidate_dimensions: candidates.map(|(_, config)| config.dimensions),
                 exact: ExactScan {
                     dim,
@@ -738,7 +782,6 @@ fn build_vector_snapshot_inner(
         generation,
         dim,
         rows,
-        members,
         exact,
         graph,
         candidate_identity: candidates.map(|(space, config)| VectorCandidateIdentity {
@@ -748,7 +791,31 @@ fn build_vector_snapshot_inner(
         }),
         rerank_candidates: candidates.map(|(_, config)| config.rerank_candidates),
         zero_prefix,
+        graph_pending: false,
     })
+}
+
+fn graph_build_params(high_recall: bool, rows: usize) -> Result<BuildParams> {
+    let params = if high_recall {
+        BuildParams {
+            degree: 64,
+            build_ef: 500,
+            ..Default::default()
+        }
+    } else {
+        BuildParams {
+            degree: 64,
+            build_ef: 256,
+            ..Default::default()
+        }
+    };
+    let max_edges = MAX_ROWS * if high_recall { 32 } else { 64 };
+    ensure!(
+        rows.checked_mul(params.degree)
+            .is_some_and(|edges| edges <= max_edges),
+        "vector graph exceeds the adjacency limit"
+    );
+    Ok(params)
 }
 
 fn staleness(store_generation: u64, snapshot_generation: u64) -> u64 {
@@ -770,6 +837,8 @@ pub(crate) fn vector_index_status(
             current: false,
             stale_mutations: 0,
             graph: false,
+            graph_degree: None,
+            graph_build_ef: None,
             candidate_identity: None,
             rerank_candidates: None,
             graph_index_bytes: None,
@@ -786,6 +855,8 @@ pub(crate) fn vector_index_status(
                 current: stale == 0,
                 stale_mutations: stale,
                 graph: snapshot.has_graph(),
+                graph_degree: snapshot.graph.as_ref().map(|graph| graph.build_degree),
+                graph_build_ef: snapshot.graph.as_ref().map(|graph| graph.build_ef),
                 candidate_identity: snapshot.candidate_identity.clone(),
                 rerank_candidates: snapshot.rerank_candidates,
                 graph_index_bytes: snapshot
@@ -796,7 +867,9 @@ pub(crate) fn vector_index_status(
                     .graph
                     .as_ref()
                     .map(|graph| graph.graph.residual_bytes()),
-                rebuild_recommended: !same_store || stale >= REBUILD_AFTER_MUTATIONS,
+                rebuild_recommended: !same_store
+                    || stale >= REBUILD_AFTER_MUTATIONS
+                    || snapshot.graph_pending,
             }
         }
     }
@@ -805,7 +878,7 @@ pub(crate) fn vector_index_status(
 struct Hit {
     document: Arc<StoredDocument>,
     chunk: u32,
-    /// Candidate score from the `f32` scan, replaced by the `f64` re-score before ranking.
+    /// Replaced by the canonical `f64` score before ranking.
     score: f64,
 }
 
@@ -821,7 +894,14 @@ fn append_graph_delta(
     document: &Arc<StoredDocument>,
     found: &mut Vec<Hit>,
 ) -> Result<()> {
-    if snapshot.members.contains(&(Arc::as_ptr(document) as usize)) {
+    let row = snapshot
+        .rows
+        .partition_point(|row| row.document.id < document.id);
+    if snapshot
+        .rows
+        .get(row)
+        .is_some_and(|row| Arc::ptr_eq(&row.document, document))
+    {
         return Ok(());
     }
     for (chunk, stored) in document.chunks.iter().enumerate() {
@@ -1030,7 +1110,7 @@ pub(crate) fn rank_vector_snapshot(
         "minScore must be in [-1,1]"
     );
     let index = snapshot.index(options.mode)?;
-    let (generation, segment) = {
+    let (generation, mut segment) = {
         let store = store.read();
         if snapshot.identity != store.identity {
             return Ok(None);
@@ -1068,7 +1148,7 @@ pub(crate) fn rank_vector_snapshot(
             .graph
             .as_ref()
             .expect("selected graph missing")
-            .search_candidates(query, fetch, options.ef)?
+            .search_candidate_ids(query, fetch, options.ef)?
         else {
             return Ok(None);
         };
@@ -1081,10 +1161,7 @@ pub(crate) fn rank_vector_snapshot(
                 .exact
                 .search_canonical(exact_query, fetch, |_| true)
         } else {
-            graph_hits
-                .into_iter()
-                .map(|(row, score)| (row, f64::from(score)))
-                .collect()
+            graph_hits.into_iter().map(|row| (row, 0.0)).collect()
         };
         for (row, score) in hits {
             let row = &snapshot.rows[row as usize];
@@ -1101,7 +1178,8 @@ pub(crate) fn rank_vector_snapshot(
         if snapshot.identity != store.identity {
             return Ok(None);
         }
-        for (row, score) in graph_hits {
+        segment = store.text_segment();
+        for row in graph_hits {
             let row = &snapshot.rows[row as usize];
             let live = store
                 .get(&row.document.id)
@@ -1110,7 +1188,7 @@ pub(crate) fn rank_vector_snapshot(
                 found.push(Hit {
                     document: Arc::clone(&row.document),
                     chunk: row.chunk,
-                    score: f64::from(score),
+                    score: 0.0,
                 });
             }
         }
@@ -1175,6 +1253,20 @@ pub(crate) fn rank_vector_snapshot(
                 .map_or(snapshot.dim, |identity| identity.dimensions)
         },
         shortlist_limit: (!exact_index).then_some(fetch),
+        graph_degree: (!exact_index).then(|| {
+            snapshot
+                .graph
+                .as_ref()
+                .expect("selected graph missing")
+                .build_degree
+        }),
+        graph_build_ef: (!exact_index).then(|| {
+            snapshot
+                .graph
+                .as_ref()
+                .expect("selected graph missing")
+                .build_ef
+        }),
     };
     Ok(Some(ranked))
 }
@@ -1259,6 +1351,8 @@ fn finish_vector_hits(
             route: VectorSearchRoute::FullExact,
             candidate_dimensions: exact_query.len(),
             shortlist_limit: None,
+            graph_degree: None,
+            graph_build_ef: None,
         },
     }
 }
@@ -1332,6 +1426,142 @@ mod tests {
         ExactScan {
             dim: 4,
             rows: rows.into(),
+        }
+    }
+
+    #[test]
+    fn graph_candidates_must_belong_to_snapshot() {
+        assert!(validate_graph_candidates(&mut [0, 1], 2).is_ok());
+        assert!(validate_graph_candidates(&mut [1, 2], 2).is_err());
+        assert!(validate_graph_candidates(&mut [0], 0).is_err());
+        assert!(validate_graph_candidates(&mut [], 0).is_ok());
+        assert!(validate_graph_candidates(&mut [1, 0, 1], 2).is_err());
+    }
+
+    #[test]
+    fn high_recall_graph_adjacency_limit_is_checked_at_boundaries() {
+        let limit = MAX_ROWS * 32 / 64;
+        for rows in [limit - 1, limit, limit + 1] {
+            let result = graph_build_params(true, rows);
+            assert_eq!(result.is_ok(), rows <= limit);
+            if let Ok(params) = result {
+                assert_eq!((params.degree, params.build_ef), (64, 500));
+            }
+        }
+        assert_eq!(
+            (
+                graph_build_params(false, MAX_ROWS).unwrap().degree,
+                graph_build_params(false, MAX_ROWS).unwrap().build_ef
+            ),
+            (64, 256)
+        );
+        for rows in [MAX_ROWS - 1, MAX_ROWS, MAX_ROWS + 1] {
+            assert_eq!(graph_build_params(false, rows).is_ok(), rows <= MAX_ROWS);
+        }
+        assert!(graph_build_params(true, usize::MAX).is_err());
+    }
+
+    #[test]
+    fn high_recall_graph_settings_apply_to_projected_candidates() {
+        let mut store = DocumentStore::default();
+        for row in 0..16 {
+            put_vector(
+                &mut store,
+                &format!("d{row:03}"),
+                "base",
+                vec![vec![1.0, (row + 1) as f64 / 20.0]],
+            );
+        }
+        let space = EmbeddingSpace {
+            model: "fixture".into(),
+            revision: "1".into(),
+            dimensions: 2,
+            normalization: "l2".into(),
+            metric: "cosine".into(),
+        };
+        let candidates = VectorCandidateConfig {
+            dimensions: 1,
+            rerank_candidates: 8,
+        };
+        let capture = capture_vector_rows(&store, 2).unwrap().unwrap();
+        let snapshot =
+            build_configured_vector_snapshot(capture, 1, &space, Some(&candidates), true).unwrap();
+        let status = vector_index_status(Some(&snapshot), &store);
+        assert_eq!(
+            (status.graph_degree, status.graph_build_ef),
+            (Some(64), Some(500))
+        );
+        let store = RwLock::new(store);
+        let result = search_vector_snapshot_with_report(
+            &snapshot,
+            &store,
+            &[1.0, 0.0],
+            &[1.0, 0.0],
+            1,
+            &VectorQueryOptions {
+                mode: VectorIndexMode::Graph,
+                ..Default::default()
+            },
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(result.diagnostics.route, VectorSearchRoute::ProjectedGraph);
+        assert_eq!(
+            (
+                result.diagnostics.graph_degree,
+                result.diagnostics.graph_build_ef
+            ),
+            (Some(64), Some(500))
+        );
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    #[test]
+    fn cached_graph_search_matches_fresh_scratch_after_graph_replacement() {
+        for dimensions in [2, 4, 2] {
+            let mut store = DocumentStore::default();
+            for i in 0..32 {
+                let mut values = vec![0.0; dimensions];
+                values[0] = 1.0;
+                values[1] = (i + 1) as f64 / 20.0;
+                let input: DocumentInput = serde_json::from_value(json!({
+                    "id": format!("d{i:03}"), "text": "base", "embeddings": [values],
+                }))
+                .unwrap();
+                let document =
+                    prepare(input, 1024, Some(dimensions), TextEncoder::default()).unwrap();
+                store.insert(document.id.clone(), document);
+            }
+            let snapshot =
+                build_vector_snapshot(capture_vector_rows(&store, dimensions).unwrap().unwrap(), 1)
+                    .unwrap();
+            let graph = &snapshot.graph.as_ref().unwrap().graph;
+            for ef in [8, 16, 128, 1023, 1024, 1025, 8] {
+                let mut query = vec![0.0f32; dimensions];
+                query[0] = 1.0;
+                query[1] = 0.5;
+                let params = VSearchParams {
+                    ef,
+                    rerank: ef,
+                    ..Default::default()
+                };
+                let mut expected = Vec::new();
+                let mut actual = Vec::new();
+                graph
+                    .searcher()
+                    .search(&query, 5, params, &mut expected)
+                    .unwrap();
+                graph.search_cached(&query, 5, params, &mut actual).unwrap();
+                assert_eq!(actual, expected);
+                assert!(graph
+                    .search_cached(&vec![0.0; dimensions], 5, params, &mut actual)
+                    .is_err());
+                let mut invalid = query.clone();
+                invalid[0] = f32::NAN;
+                assert!(graph
+                    .search_cached(&invalid, 5, params, &mut actual)
+                    .is_err());
+            }
         }
     }
 
@@ -1652,13 +1882,17 @@ mod tests {
         let snapshot =
             build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), 1).unwrap();
         let store = RwLock::new(store);
-        for stage in 0..4 {
+        for stage in 0..5 {
             {
                 let mut live = store.write();
                 match stage {
-                    0 => put_vector(&mut live, "base-00", "replaced", vec![vec![1.0, 0.0]]),
-                    1 => delete_vector(&mut live, "base-01"),
-                    2 => put_vector(&mut live, "base-01", "reinserted", vec![vec![0.9, 0.1]]),
+                    0 => {
+                        let original = Arc::clone(live.get("base-00").unwrap());
+                        live.insert("base-00".into(), original);
+                    }
+                    1 => put_vector(&mut live, "base-00", "replaced", vec![vec![1.0, 0.0]]),
+                    2 => delete_vector(&mut live, "base-01"),
+                    3 => put_vector(&mut live, "base-01", "reinserted", vec![vec![0.9, 0.1]]),
                     _ => put_vector(&mut live, "new", "inserted", vec![vec![0.8, 0.2]]),
                 }
             }
@@ -1806,6 +2040,51 @@ mod tests {
             actual,
             live_scan_results(&store.read(), &[1.0, 0.0], 65, -1.0)
         );
+    }
+
+    #[test]
+    fn stale_graph_merges_changed_ids_without_returning_deleted_owners() {
+        let mut store = DocumentStore::default();
+        for row in 0..40 {
+            put_vector(
+                &mut store,
+                &format!("d{row:03}"),
+                "base",
+                vec![vec![1.0, (row + 1) as f64 / 20.0]],
+            );
+        }
+        let snapshot =
+            build_vector_snapshot(capture_vector_rows(&store, 2).unwrap().unwrap(), 1).unwrap();
+        put_vector(&mut store, "d000", "replacement", vec![vec![0.0, 1.0]]);
+        delete_vector(&mut store, "d001");
+        put_vector(&mut store, "inserted", "new", vec![vec![1.0, 0.0]]);
+        let expected = live_scan_results(&store, &[1.0, 0.0], 5, -1.0);
+        let store = RwLock::new(store);
+        let query = [1.0f32, 0.0];
+        let actual = search_vector_snapshot(
+            &snapshot,
+            &store,
+            &query,
+            &[1.0, 0.0],
+            5,
+            &VectorQueryOptions {
+                mode: VectorIndexMode::Graph,
+                ef: 128,
+                ..Default::default()
+            },
+        )
+        .unwrap()
+        .unwrap();
+        let ids: Vec<_> = actual.iter().map(|hit| hit.document_id.as_str()).collect();
+        assert_eq!(
+            ids,
+            expected
+                .iter()
+                .map(|hit| hit.0.as_str())
+                .collect::<Vec<_>>()
+        );
+        assert_eq!(ids[0], "inserted");
+        assert!(!ids.contains(&"d000") && !ids.contains(&"d001"));
     }
 
     #[test]

@@ -70,7 +70,11 @@ In a **later process**, reopen with `await VectraMigrationIndex.open({ path: './
 
 ## Filters and ranking
 
-Filtered queries first scan **all** metadata pages at one revision, then pass the complete eligible ID set to native ranking at that same revision. They do not filter a previously truncated shortlist. `documentIds` intersects that set; `[]` always returns no matches. The adapter retries a clean revision conflict at most twice after the first attempt, restarting the whole scan. An explicit `ifRevision` disables these retries. Other failures propagate immediately. Exceeding an eligibility bound fails; it never truncates the set or substitutes an unfiltered search.
+Scalar equality conjunctions of up to 64 fields use native metadata postings when the loaded addon supports `queryVectraRecords`. Each field may be a string, finite number or boolean, directly or through a sole `$eq` operator. The native path uses the imported filter view, intersects `documentIds`, and ranks every eligible vector exactly at one checked revision. Updates and deletes maintain postings under the document-store write lock; reopening reconstructs them from records. The derived index is limited to 64 MiB of accounted key/value/ID storage and structural charges, excluding allocator overhead. Exceeding that budget switches to exact native scanning; stored records are retained.
+
+Other selectors and older addons use the original complete metadata-page scan. Its eight-entry cache retains complete filter results from one revision, bounded to 100,000 IDs per entry and 2 MiB of UTF-8 keys and IDs in total, excluding JavaScript object overhead. Native equality queries bypass this cache. Unsupported predicates are not partially pushed into the native path, preserving order-sensitive selector behavior.
+
+Both paths check revisions again before returning results and retry a clean conflict at most twice after the first attempt. An explicit `ifRevision` disables these retries. `documentIds: []` returns no matches. Exceeding the eligibility limit fails without truncation or an unfiltered substitute. Returned items retain their complete original metadata and vectors.
 
 Selectors follow the pinned [`ItemSelector`](https://github.com/Stevenic/vectra/blob/dec2dadc3bb158b06ac72fa9097bee729429a271/src/ItemSelector.ts), including its unusual behavior:
 
@@ -85,7 +89,16 @@ Selectors follow the pinned [`ItemSelector`](https://github.com/Stevenic/vectra/
 
 Accepted metadata and filters are bounded, finite, acyclic plain JSON with valid Unicode strings. Object-reference equality, functions, accessors, `undefined`, sparse arrays, NaN and infinity are not a supported migration contract. Empty or omitted `indexedMetadata` means all metadata is indexed; a nonempty list projects only existing named keys. Imported explicit filter views are retained; later upserts derive their view from the persisted key list.
 
-Native exact search is the default. For ANN comparisons, call `await index.maintainIndices()` outside measured queries and use `{mode:'graph', ef:128}` only after a graph exists (the current preparation threshold is 4096 vector rows). Explicit graph requests report an unavailable graph rather than silently training one. Filtered/ownership-restricted routes may use full exact search; inspect returned diagnostics and do not label that work a graph speedup. Experimental `candidateDimensions` and `rerankCandidates` must be configured together when creating the store; full-width candidates are allowed as a control. Neither projection nor a different model is enabled automatically.
+Native exact search is the default. For ANN comparisons, call `await index.maintainIndices()` outside measured queries (the current graph preparation threshold is 4096 vector rows). A cold exact query can build an exact snapshot and defer its graph; a later unfiltered graph or auto query completes that deferred build on demand. Otherwise an explicit graph request reports an unavailable graph if none exists. Set `ef` from 1 to 4096 to trade search effort against approximate recall; validate quality on your own workload. Filtered/ownership-restricted routes use full exact search; inspect returned diagnostics and do not label that work a graph speedup. Experimental `candidateDimensions` and `rerankCandidates` must be configured together when creating the store; full-width candidates are allowed as a control. Neither projection nor a different model is enabled automatically.
+
+For the opt-in graph profile, create the migration index with `highRecall: true`.
+This selects degree 64, construction effort 500 and single-hop traversal instead
+of the current default degree 64, effort 256 and two-hop traversal, and persists
+the choice in the migration profile. The opt-in profile supports at most 2,097,152
+embedded rows; the default retains its 4,194,304-row limit. Neither profile
+guarantees a recall or latency target. Full-graph query diagnostics report the actual
+`graphDegree` and `graphBuildEf`. Native `WarmMemorySystem` callers can set
+`vectorHighRecall: true` and should reapply their runtime configuration on reopen.
 
 ## Storage and bounds
 

@@ -391,7 +391,8 @@ impl WarmCore {
     /// vector snapshot (`documents::vector_index`) when one is built: the graph index under
     /// `Auto`/`Graph`, the contiguous exact scan under `Exact`. Without a snapshot, or when the
     /// snapshot is too stale for this query, the generic exact path answers. `Graph` without a
-    /// graph index fails with [`documents::GraphUnavailable`]. Filters always use complete
+    /// graph index fails with [`documents::GraphUnavailable`], except that a graph deferred by
+    /// a cold exact query is built on demand. Filters always use complete
     /// full-dimensional eligibility before ranking. Projected stale or zero-prefix queries
     /// use the full exact route.
     pub fn search_vectors(
@@ -438,6 +439,14 @@ impl WarmCore {
                 .as_ref()
                 .is_some_and(|filter| filter.as_object().is_none_or(|object| !object.is_empty()));
         if !filtered {
+            if options.mode != VectorIndexMode::Exact
+                && self
+                    .vector_index
+                    .get()
+                    .is_some_and(|snapshot| snapshot.graph_pending())
+            {
+                self.complete_deferred_vector_graph()?;
+            }
             match self.vector_index.get() {
                 Some(snapshot) => {
                     if snapshot.matches_embedding_space(space) {
@@ -460,7 +469,13 @@ impl WarmCore {
                     // First vector query over a store without a snapshot: publish one now so an
                     // unfiltered query answers from the same scan before and after maintenance
                     // (the fallback below scores `f64` rows and would differ in the last digits).
-                    if self.rebuild_vector_index(documents::DEFAULT_GRAPH_MIN_ROWS)? {
+                    let exact_only = options.mode == VectorIndexMode::Exact;
+                    let built = if exact_only {
+                        self.rebuild_vector_index_deferred_graph()?
+                    } else {
+                        self.rebuild_vector_index(documents::DEFAULT_GRAPH_MIN_ROWS)?
+                    };
+                    if built {
                         if let Some(snapshot) = self.vector_index.get() {
                             if let Some(results) = documents::search_vector_snapshot_with_report(
                                 &snapshot,
@@ -503,6 +518,8 @@ impl WarmCore {
                 },
                 candidate_dimensions: space.dimensions,
                 shortlist_limit: None,
+                graph_degree: None,
+                graph_build_ef: None,
             },
         })
     }
@@ -524,17 +541,40 @@ impl WarmCore {
         let Some(_building) = self.vector_index.try_build() else {
             return Ok(self.vector_index.get().is_some());
         };
-        self.rebuild_vector_index_locked(graph_min_rows)
+        self.rebuild_vector_index_locked(graph_min_rows, false)
+    }
+
+    fn rebuild_vector_index_deferred_graph(&self) -> Result<bool> {
+        let Some(_building) = self.vector_index.try_build() else {
+            return Ok(self.vector_index.get().is_some());
+        };
+        self.rebuild_vector_index_locked(usize::MAX, true)
+    }
+
+    fn complete_deferred_vector_graph(&self) -> Result<()> {
+        let _building = self.vector_index.build();
+        if self
+            .vector_index
+            .get()
+            .is_some_and(|snapshot| snapshot.graph_pending())
+        {
+            self.rebuild_vector_index_locked(documents::DEFAULT_GRAPH_MIN_ROWS, false)?;
+        }
+        Ok(())
     }
 
     /// [`Self::rebuild_vector_index`] that waits for a running build instead of keeping its
     /// result, so the snapshot published on return was captured after the call began.
     pub(super) fn rebuild_vector_index_waiting(&self, graph_min_rows: usize) -> Result<bool> {
         let _building = self.vector_index.build();
-        self.rebuild_vector_index_locked(graph_min_rows)
+        self.rebuild_vector_index_locked(graph_min_rows, false)
     }
 
-    fn rebuild_vector_index_locked(&self, graph_min_rows: usize) -> Result<bool> {
+    fn rebuild_vector_index_locked(
+        &self,
+        graph_min_rows: usize,
+        defer_graph: bool,
+    ) -> Result<bool> {
         let Some(space) = &self.config.embedding_space else {
             return Ok(false);
         };
@@ -546,24 +586,35 @@ impl WarmCore {
             self.vector_index.clear();
             return Ok(false);
         };
-        let snapshot = match &self.config.vector_candidates {
-            Some(candidates) => documents::build_projected_vector_snapshot(
-                capture,
-                graph_min_rows,
-                space,
-                candidates,
-            )?,
-            None => documents::build_vector_snapshot(capture, graph_min_rows)?,
-        };
+        let mut snapshot = documents::build_configured_vector_snapshot(
+            capture,
+            graph_min_rows,
+            space,
+            self.config.vector_candidates.as_ref(),
+            self.config.vector_high_recall,
+        )?;
+        if defer_graph {
+            snapshot.defer_graph();
+        }
         self.vector_index.publish(Arc::new(snapshot));
         Ok(true)
     }
 
     /// [`Self::rebuild_vector_index`] when the status recommends it (no snapshot over a store
-    /// with enough embedded chunks, or `REBUILD_AFTER_MUTATIONS` mutations since the capture);
-    /// otherwise reports whether a snapshot exists.
+    /// with enough embedded chunks, a deferred graph, or `REBUILD_AFTER_MUTATIONS` mutations
+    /// since the capture); otherwise reports whether a snapshot exists.
     pub fn maintain_vector_index(&self, graph_min_rows: usize) -> Result<bool> {
-        if self.vector_index_status().rebuild_recommended {
+        let status = self.vector_index_status();
+        if status.rebuild_recommended {
+            if status.current
+                && status.rows < graph_min_rows
+                && self
+                    .vector_index
+                    .get()
+                    .is_some_and(|snapshot| snapshot.graph_pending())
+            {
+                return Ok(true);
+            }
             return self.rebuild_vector_index(graph_min_rows);
         }
         Ok(self.vector_index.get().is_some())

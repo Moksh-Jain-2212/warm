@@ -1,0 +1,79 @@
+{
+  "status": "frozen; study phases not started",
+  "freezeDirectory": "/Volumes/A/.hms-bench-cache/vectra-comparison-20261102-frozen",
+  "freezeHash": "bdc3c2b02e1b93b48895280da89d434a3fd9570bb09770f96a5b67ceea37d4b6",
+  "hybridFreezeHash": "1c0b864ff37df61b1a814502ed79e8d2ab17043f8c261069c183e6c94fe81859",
+  "source": "cdc6603a24c27dc29056b7cc09c4911ef06f1341",
+  "driverSource": "cdc6603a24c27dc29056b7cc09c4911ef06f1341",
+  "nativeAddon": "/Volumes/A/warm-vectra-frozen-source/warm-sdk.darwin-arm64.node",
+  "nativeSha256": "a0f52138b80c1c2a75c152305d95385a34ea36894fc7c1cb9a3cc40d38688475",
+  "inputIdentity": "168698554d2e9fec380e436e2bf72800220cfce38bd4e7c5408db98ad84808d2",
+  "protocolSha256": "729c2a9e7adb4b19176ffe7524ec47491f47784034b62a980c3f6e91505ad217",
+  "inputManifestSha256": "ac1450fdb0fc3f2540618b022a3ac2cac3afa3411885fde47354f13292ba75f5",
+  "datasets": [
+    {
+      "name": "glove-128",
+      "rows": 128,
+      "queryCount": 1000
+    },
+    {
+      "name": "glove-1000",
+      "rows": 1000,
+      "queryCount": 1000
+    },
+    {
+      "name": "glove-10000",
+      "rows": 10000,
+      "queryCount": 1000
+    },
+    {
+      "name": "glove-100000",
+      "rows": 100000,
+      "queryCount": 1000
+    },
+    {
+      "name": "scifact",
+      "rows": 5183,
+      "queryCount": 300
+    }
+  ],
+  "vectorTimingJobs": 228,
+  "hybridTimingJobs": 6,
+  "limits": {
+    "preparationMs": 7200000,
+    "measurementMs": 7200000,
+    "rssBytes": 8589934592,
+    "externalCpuFraction": 0.2,
+    "rssConsecutive": 2,
+    "preflightMs": 5000,
+    "preflightCount": 2,
+    "sampleMs": 1000
+  },
+  "artifacts": {
+    "freeze.json": {
+      "archive": "frozen-freeze.json.gz",
+      "rawSha256": "bdc3c2b02e1b93b48895280da89d434a3fd9570bb09770f96a5b67ceea37d4b6",
+      "compressedSha256": "44931b8a951ed7926b190d9db462733c7172c125443a7eea269419a3f64bc83c",
+      "rawBytes": 3737101
+    },
+    "hybrid-freeze.json": {
+      "archive": "frozen-hybrid-freeze.json.gz",
+      "rawSha256": "1c0b864ff37df61b1a814502ed79e8d2ab17043f8c261069c183e6c94fe81859",
+      "compressedSha256": "93496c26cd558b60714759bb341a24248ec87a8aeeee65837d5fa13215665edd",
+      "rawBytes": 21049
+    },
+    "freeze-receipt.json": {
+      "archive": "frozen-freeze-receipt.json.gz",
+      "rawSha256": "510dc0b2b2e460cee891a51907554c5e1a0b3dcacacbba0169e516c2872c7e19",
+      "compressedSha256": "11343956b64e3451c4a8fde13ccb88012931a8469662896cff94ea11d3fff186",
+      "rawBytes": 120
+    }
+  },
+  "verification": {
+    "passed": true,
+    "log": "frozen-verification.log.gz",
+    "rawSha256": "8a1e3123a3db9aec33f917d5f7c24a414b10d6abdd35426f311b40a295a0084f",
+    "compressedSha256": "a09b43ae281d12349f544615e322315f5c825e19fb7a52fce637d283360a9ea5",
+    "scope": "Post-freeze source, host, runtime, addon, installed dependency and receipt verification; no study queries or timing."
+  }
+}

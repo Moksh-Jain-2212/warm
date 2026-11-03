@@ -1,0 +1,146 @@
+{
+  "complete": true,
+  "scope": "Local merged-source qualification; no real-data benchmark, paid services, all-platform or all-feature claim.",
+  "sourceRoot": "/Volumes/A/holographic-memory",
+  "parents": [
+    "04e9978cc88eaf6d765618989bc8cc74fc2f88e0",
+    "7d9b0d8b967b6109e02da6d14e30a2a5759a3b60"
+  ],
+  "sourceTrees": {
+    "src": "8a8e976a875ba07e5a7b67cc7083c34157786e6e",
+    "tests": "973742002e9fc53b20dde84f53b9c10b2715af5a",
+    "benchmarks": "2b1b52c230099546fa45ff30a8f2b2006c30cd37"
+  },
+  "sources": {
+    "Cargo.toml": "259706334829c934ce0130812fd320f2de6d54bb72a605fd2c11e5f2c3abb693",
+    "Cargo.lock": "2fc4a034e5af215be9c559b8b34d47acb5df94e83acbb39e3e7260121f05add1",
+    "package.json": "5b841aa138d5672e50a324e4236262094d85f7fe58f64590cd8bdbda027aa87e",
+    "package-lock.json": "c857a65dd8dc9e872db864f66f4355b1b09ac393a5663ff00d26d6f0323740fa",
+    "index.js": "1c28979a2fca2accc26893712035ba50c10ac07455bae8d49f5c24f30163673d",
+    "index.d.ts": "3fa171444e1779cad47ed8fbbdf44af3fa70007cf2e7f3329cc4c48d35dfb7d8",
+    "vectra.js": "66fffa7a2daefe78dd327cc25e19293f0ab767b8f30028c603994bc615ca84f5",
+    "vectra.d.ts": "447f4f4f37013da12c66ce55c1b76a3bbec0749c657f643e3a9b1354fe94239f",
+    "vectra-selector.js": "061a18189ba9bb91732603cb0b2510651909f247c40a4ee465712cb1df2722a9"
+  },
+  "toolchain": {
+    "rustc": "rustc 1.96.0 (ac68faa20 2026-05-25)",
+    "cargo": "cargo 1.96.0 (30a34c682 2026-05-25)",
+    "node": "v26.8.1",
+    "typescript": "Version 7.0.2",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "nativeAddon": {
+    "path": "/Volumes/A/holographic-memory/warm-sdk.node",
+    "sha256": "d42c212d9c7f5f5eb4dc3a237c47c65de723e8bf58b85d2f16d6f5c4b207abf5"
+  },
+  "checks": {
+    "rustLibrary": {
+      "passed": 809,
+      "failed": 0,
+      "ignored": 12
+    },
+    "vectorIntegration": {
+      "passed": 8,
+      "failed": 0
+    },
+    "topology": {
+      "passed": 2,
+      "failed": 0
+    },
+    "node": {
+      "passed": 36,
+      "failed": 0,
+      "optionalEmbeddingSkipped": 3
+    },
+    "harness": {
+      "passed": 41,
+      "failed": 0
+    },
+    "updateAndReopen": {
+      "passed": 1,
+      "failed": 0
+    },
+    "strictTypeScript": true,
+    "scopedClippy": true,
+    "format": true,
+    "javascriptSyntaxFiles": 34,
+    "packedOfflineConsumer": true,
+    "diffCheck": true
+  },
+  "lockResolution": "The first topology locked check refused the missing windows-sys dependency edge from main. Offline metadata added only that edge; the subsequent locked tests passed.",
+  "logs": {
+    "rust-lib.log": {
+      "command": "CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification cargo test --locked --offline --lib --features security",
+      "exitCode": 0,
+      "rawSha256": "3aca3da994b5e10f1d79cf900062f213b41f1033cd3611d12a1a9b653dfbdc25",
+      "gzipSha256": "335de6548603efcc96add0389fdd8afa77dc41fd13f84243323cc5c2e17718fa"
+    },
+    "matryoshka.log": {
+      "command": "CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification cargo test --locked --offline --test matryoshka_vectors --features security",
+      "exitCode": 0,
+      "rawSha256": "06c54158abd30955e4bd4ed87ca1c7caaf688ad767e8314b149f8baf0b042a1c",
+      "gzipSha256": "e512fbee3fa7dcb926b6953e1a6bb9702b171cd144f8b2c06f06b47c920fb24f"
+    },
+    "clippy.log": {
+      "command": "CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification cargo clippy --locked --offline --lib --features node-api,security -- -D warnings",
+      "exitCode": 0,
+      "rawSha256": "10abab8fd87c542c7b92b4a82762bed4e625b99f834ab21b71b4692b41a42152",
+      "gzipSha256": "341aa54d0b08200570ef38cb94c45af1af77121f38c6bcca8c72380f8d138bab"
+    },
+    "node-build.log": {
+      "command": "CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification NODE_PATH=/Volumes/A/warm-vectra-node-qualification/node_modules node scripts/build-node.cjs --no-js --release --features node-api,security -- --offline --locked",
+      "exitCode": 0,
+      "rawSha256": "10e9f28158eb448d78be6cf7c6aa7d3999200a2af19ff9904c039fc3120c8c8e",
+      "gzipSha256": "d853df989efe1605e60f09d92dddcfd83760edc10c4500992017d59edcb537a8"
+    },
+    "node-tests.log": {
+      "command": "node --test tests/node/*.test.cjs",
+      "exitCode": 0,
+      "rawSha256": "8af4c25350b3eeecdcbbed12c74ddced261ea09ac001ee0d6523c7fb1a8d053e",
+      "gzipSha256": "af22a434827e1ea975a12c479135919818bc70037dfbfa2e8d3ee6999154a1e4"
+    },
+    "harness-tests.log": {
+      "command": "VECTRA_TEST_PACKAGE=/Volumes/A/toip-warm-backend/toip-mcp-server/node_modules/vectra WARM_TEST_PACKAGE=/Volumes/A/holographic-memory WARM_TEST_ADDON=/Volumes/A/holographic-memory/warm-sdk.node VECTRA_MODULE=/Volumes/A/toip-warm-backend/toip-mcp-server/node_modules/vectra WARM_MODULE=/Volumes/A/holographic-memory NODE_PATH=/Volumes/A/warm-vectra-comparison/benchmarks/public/vectra_comparison/competitors/node_modules UV_OFFLINE=1 node --test benchmarks/public/vectra_comparison/test_vector.mjs benchmarks/public/vectra_comparison/test_hybrid.mjs benchmarks/public/vectra_comparison/competitors/test.mjs",
+      "exitCode": 0,
+      "rawSha256": "377f8445c2ead3f49668cbe658713f47dbbc6c82eb0121416606fa6dcf0db85a",
+      "gzipSha256": "e556f5212c13ec6a828d001dcb22ca62b74fb7f148d84e7c187bbc8f34b9b3cd"
+    },
+    "update-tests.log": {
+      "command": "node --test benchmarks/research/vector_topology/update-test.mjs",
+      "exitCode": 0,
+      "rawSha256": "c437c02b6112a502cfca91176b12fbcfcb382e1105dad2fdca52512f68910971",
+      "gzipSha256": "da54b039cebbbbb327d73ac1bcc8ebb2885ce66394dc2193e1e5b7695b005f03"
+    },
+    "package-tests.log": {
+      "command": "npm_config_offline=true npm run test:package",
+      "exitCode": 0,
+      "rawSha256": "396cc833b2f4dcd9d56d6e7c46a9df054fedee15998b8cf469ab9174254000cb",
+      "gzipSha256": "0d1a13dc3e914d7fb3631fed2d45a6841f69ba0261dc728e4daff62aa1b7f70f"
+    },
+    "topology-tests.log": {
+      "command": "CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification cargo test --locked --offline --manifest-path benchmarks/research/vector_topology/Cargo.toml --features writerslogic_warm/experimental --bins",
+      "exitCode": 0,
+      "rawSha256": "419be802587c64a77b7924ece53b0b2f787039d6753e005520e8f538454fc09a",
+      "gzipSha256": "2730951c91bc3ae66ca5e80a2c6a4f63b4b5f3433fb41beb5d793d7324845c1a"
+    },
+    "topology-lock-precheck.log": {
+      "command": "CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification cargo test --locked --offline --manifest-path benchmarks/research/vector_topology/Cargo.toml --features writerslogic_warm/experimental --bins",
+      "exitCode": 101,
+      "rawSha256": "edc95e49f4f8d8074f3066331e09f437726499dc1f31585fe9dcedd758877168",
+      "gzipSha256": "73b8f3f8bb2a71ad0d394561847bc08ff38272cb8631371e9c0a4a35a9100b5e"
+    },
+    "typescript.log": {
+      "command": "/Volumes/A/warm-vectra-node-qualification/node_modules/.bin/tsc --noEmit --strict --target es2022 --module nodenext --moduleResolution nodenext --types node --typeRoots /Volumes/A/warm-vectra-node-qualification/node_modules/@types tests/node/types.test.mts tests/node/memory-types.test.mts tests/node/vector-record-types.test.mts tests/node/vectra-types.test.mts",
+      "exitCode": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzipSha256": "f1b651238a58fe290baec6c5e32f3bdb1943dd2bd582f02569231f7a757c7837"
+    },
+    "format.log": {
+      "command": "cargo fmt -- --check",
+      "exitCode": 0,
+      "rawSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "gzipSha256": "f1b651238a58fe290baec6c5e32f3bdb1943dd2bd582f02569231f7a757c7837"
+    }
+  }
+}

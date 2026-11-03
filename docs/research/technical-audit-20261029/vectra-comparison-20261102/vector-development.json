@@ -1,0 +1,82 @@
+{
+  "scope": "Synthetic development checks only; no study dataset queries, benchmark measurements, model calls or downloads.",
+  "observedAtUtc": "2026-11-02T07:55:04.245Z",
+  "runtime": {
+    "executable": "/opt/homebrew/Cellar/node/26.8.1/bin/node",
+    "version": "v26.8.1",
+    "sha256": "902b6a6984d5d825829ea9064ab73b734548df37bc0683990dca31c8dc2a9253"
+  },
+  "syntheticTests": {
+    "passed": 8,
+    "failed": 0,
+    "skipped": 0,
+    "rawLog": "vector-development.log.gz",
+    "rawBytes": 961,
+    "rawSha256": "b2cedf1185b602be90203080c6d6e4c369a82926c6947955e74275fe8074608d",
+    "compressedBytes": 582,
+    "compressedSha256": "955988bd4b5e018bb7f1bfd6078c1bcf52b05d63aeb3802cd04fa91e2965747f",
+    "command": "VECTRA_TEST_PACKAGE=/Volumes/A/toip-warm-backend/toip-mcp-server/node_modules/vectra WARM_TEST_PACKAGE=/Volumes/A/warm-vectra-integration WARM_TEST_ADDON=/Volumes/A/warm-vector-records/warm-sdk.darwin-arm64.node /opt/homebrew/bin/node --test benchmarks/public/vectra_comparison/test_vector.mjs",
+    "limits": "These passing development tests do not cover the three unresolved independent-review blockers. Test runner durations are not study measurements."
+  },
+  "warm": {
+    "sourceObservation": "60620821524b3d7b1ede2b3520d37084853a4f67",
+    "jsHashes": {
+      "index.js": "1c28979a2fca2accc26893712035ba50c10ac07455bae8d49f5c24f30163673d",
+      "vectra.js": "8534e7d49f84cffc38c034c244913605d369500b7c4e8e2ac8620eafd8f6e0d1",
+      "vectra-selector.js": "061a18189ba9bb91732603cb0b2510651909f247c40a4ee465712cb1df2722a9"
+    },
+    "nativePath": "/Volumes/A/warm-vector-records/warm-sdk.darwin-arm64.node",
+    "nativeSha256": "5dc63e8d321aaf4c2cb0815805a8ea7fdf3543226d0476bc0dccf0e147394c26",
+    "nativeSource": "5154eb94a3350b0143f7e0923a5003fff912f077",
+    "limitation": "Synthetic API checks reused the previously qualified addon; final integrated native source requires its own pinned build before study freeze."
+  },
+  "vectra": {
+    "path": "/Volumes/A/toip-warm-backend/toip-mcp-server/node_modules/vectra",
+    "version": "0.15.0",
+    "entrySha256": "089482dcf5fc0939c90ba07eb876b563da4ca563eb43c46a9a80201aafa95985",
+    "selectorSha256": "9407a00b12b8fdf10809e856e9917e67b312f2ef3ae5d57d24a43156a3d9bafd"
+  },
+  "harness": {
+    "vector.mjs": "9fc08a9aa10e27387d523ec9ac5565ff7526eefe5d075c9b27c2fa21cf0ea7da",
+    "vector-worker.mjs": "1c2a348f6c1cbce1faed91312de69949a810a9a8b39382781aa8d02da7e93a98",
+    "vector-receipts.mjs": "c69bec06abfeba76aa4253264c86250c0850a3d4eee88ba007f3b4ce01d87ad3",
+    "oracle-vector.mjs": "6f16531af06087e1a76e80f23c5c17fa415596de4bba457b7111851a154c0e71",
+    "test_vector.mjs": "b40d19d4ec5561cf040e4d549beaa9ebf7b2cd6db91f93084644ac965781bc56",
+    "README-vector.md": "929f3d031a9f84af4286e72f0179ea4d2c0ebd1908f41ee8b15bd546f7117264"
+  },
+  "syntaxChecks": "node --check passed for vector, worker, receipts, oracle and tests",
+  "noStudyFreezeOrExecution": true,
+  "status": "Preparation checkpoint; NOT qualified for freezing or study execution.",
+  "monitorCleanup": {
+    "behavior": "After worker exit, SIGKILL any residual owned process group and retain cleanup receipt. Unexpected surviving descendants or cleanup failure make the job non-qualifying.",
+    "focusedRegression": {
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "alsoIncludedInFullSyntheticSuite": true
+    }
+  },
+  "unresolvedBlockers": [
+    {
+      "id": "timed-ann-quality",
+      "status": "unresolved",
+      "finding": "Timed graph rows do not receive per-repetition recall/relevance gates against their matched exact/oracle outputs; static quality cannot qualify a separately rebuilt timed graph.",
+      "reportedProof": "Independent reviewer constructed a full synthetic summary with perfect static/lifecycle rows and oracleRecall=0 on warm-graph-128 timing rows; current summary still qualified an advantage."
+    },
+    {
+      "id": "complete-quality-query-identities",
+      "status": "unresolved",
+      "finding": "Static/lifecycle row-count checks allow duplicate query IDs to hide omitted queries; rows and exact references need unique complete expected query identities.",
+      "reportedProof": "Independent reviewer verified duplicate query0 rows with expected count2 pass despite omitting query1."
+    },
+    {
+      "id": "ann-score-order",
+      "status": "unresolved",
+      "finding": "Full-graph payload/count/uniqueness checks do not reject descending-score violations; canonical score ordering must be checked independently of ANN membership.",
+      "reportedProof": "Independent reviewer verified reversed valid top10 IDs/scores pass the graph quality path."
+    }
+  ],
+  "nextAcceptance": "Fix all three accounting gaps with regressions, obtain independent review, and only then seek coordinator approval for a source/input/protocol freeze and any study execution.",
+  "noPaidOperations": true,
+  "stoppingReason": "User requested a stopping point; only the bounded monitor cleanup was completed after independent review identified additional blockers."
+}

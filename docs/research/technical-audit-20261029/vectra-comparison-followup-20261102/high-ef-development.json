@@ -1,0 +1,41 @@
+{
+  "node": "v26.8.1",
+  "addon": "/Volumes/A/warm-vectra-comparison/warm-sdk.node",
+  "addonSha256": "4fa581138eb738d800801df2e7c040d4b9e81993702253297a1524ef40b6e96f",
+  "scriptSha256": "bb4d7d85ebd59c8c9a04d33b55ca12e382aa89b12259aa484e5148d6e82fcbf6",
+  "corpusSha256": "119360a40fed67fd92d9a16ff15b21e5566ecaef1865f93ff07efc53e2bca8e7",
+  "queriesSha256": "d834585869aac11aba8de8dffe22ec50006b22d223ed1cce1ad357611091d613",
+  "scope": "Development recall diagnostic using previously exposed GloVe queries; no timings or competitive claims.",
+  "results": [
+    {
+      "rows": 100000,
+      "ef": 1024,
+      "meanRecall": 0.9951,
+      "worstRecall": 0.8,
+      "below90": 6,
+      "passes": false,
+      "path": "/Volumes/A/.hms-bench-cache/warm-graph-high-ef-20261102-v1/glove-100000-ef1024.ndjson",
+      "sha256": "74f5544a63b13aebc20fe3f1a2834d631f4d6b4db01d7059a3994eff2eaae2ff"
+    },
+    {
+      "rows": 100000,
+      "ef": 2048,
+      "meanRecall": 0.9993,
+      "worstRecall": 0.9,
+      "below90": 0,
+      "passes": true,
+      "path": "/Volumes/A/.hms-bench-cache/warm-graph-high-ef-20261102-v1/glove-100000-ef2048.ndjson",
+      "sha256": "8d31177858b5593afa3d890b8597b236ad39900c784a28b7b0067da1fd5a2aee"
+    },
+    {
+      "rows": 100000,
+      "ef": 4096,
+      "meanRecall": 1,
+      "worstRecall": 1,
+      "below90": 0,
+      "passes": true,
+      "path": "/Volumes/A/.hms-bench-cache/warm-graph-high-ef-20261102-v1/glove-100000-ef4096.ndjson",
+      "sha256": "9cd5808daed20234e911073d50affae14ef239a2b14b699924a1029d25ea877a"
+    }
+  ]
+}

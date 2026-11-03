@@ -4,6 +4,7 @@ import { VectraMigrationIndex, importVectraItems, importVectraIndex, type Vectra
 
 const options = { path: './types-only-new-store', embeddingSpace: { model: 'fixture', revision: '1', dimensions: 3 } }
 const index = await VectraMigrationIndex.create(options)
+await VectraMigrationIndex.create({ ...options, highRecall: true })
 await index.beginUpdate()
 await index.insertItem({ id: 'a', vector: [1, -0, 0], metadata: { kind: 'fixture' } })
 const committed = await index.endUpdate()
@@ -27,3 +28,7 @@ await index.queryItems([1, 0, 0], { mode: 'hybrid' })
 void index.system
 // @ts-expect-error controlled store configuration cannot be overridden
 await VectraMigrationIndex.create({ ...options, native: { vectorRecords: false } })
+// @ts-expect-error construction profile is owned by the migration adapter
+await VectraMigrationIndex.create({ ...options, native: { vectorHighRecall: true } })
+// @ts-expect-error graph profile is an explicit boolean
+await VectraMigrationIndex.create({ ...options, highRecall: 'yes' })

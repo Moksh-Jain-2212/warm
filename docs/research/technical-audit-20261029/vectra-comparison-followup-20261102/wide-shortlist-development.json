@@ -1,0 +1,71 @@
+{
+  "node": "v26.8.1",
+  "addon": "/Volumes/A/warm-vectra-comparison/warm-sdk.node",
+  "addonSha256": "c72126f47ccd652c9c2c07056f2be163c4ef09b13947ebc3d6383e9c72f88ab2",
+  "scriptSha256": "098ef1e238ae7d6ca5f6518c4cba5f509bcc16af67f516ec24435ed702c3fc55",
+  "corpusSha256": "119360a40fed67fd92d9a16ff15b21e5566ecaef1865f93ff07efc53e2bca8e7",
+  "queriesSha256": "d834585869aac11aba8de8dffe22ec50006b22d223ed1cce1ad357611091d613",
+  "scope": "Development recall diagnostic using previously exposed GloVe queries; no timings or competitive claims.",
+  "results": [
+    {
+      "rows": 10000,
+      "ef": 128,
+      "meanRecall": 0.9847,
+      "worstRecall": 0.7,
+      "below90": 22,
+      "passes": false,
+      "path": "/Volumes/A/.hms-bench-cache/warm-graph-development-20261102-v1/glove-10000-ef128.ndjson",
+      "sha256": "79a62a97c00daf3f8a60599269447d4ac69653c727f679f00b7e53f16d6ca37e"
+    },
+    {
+      "rows": 10000,
+      "ef": 256,
+      "meanRecall": 0.9976,
+      "worstRecall": 0.9,
+      "below90": 0,
+      "passes": true,
+      "path": "/Volumes/A/.hms-bench-cache/warm-graph-development-20261102-v1/glove-10000-ef256.ndjson",
+      "sha256": "c692c7f47f804719d8d87d5183822db336fc7b2f7a2ab64d74b32299607e27fe"
+    },
+    {
+      "rows": 10000,
+      "ef": 512,
+      "meanRecall": 0.9999,
+      "worstRecall": 0.9,
+      "below90": 0,
+      "passes": true,
+      "path": "/Volumes/A/.hms-bench-cache/warm-graph-development-20261102-v1/glove-10000-ef512.ndjson",
+      "sha256": "4c1f89c93dd321e15238cf8ded9d6adb9611dac0f99bfb2d772d2a0df0ec000b"
+    },
+    {
+      "rows": 100000,
+      "ef": 128,
+      "meanRecall": 0.9235,
+      "worstRecall": 0.1,
+      "below90": 210,
+      "passes": false,
+      "path": "/Volumes/A/.hms-bench-cache/warm-graph-development-20261102-v1/glove-100000-ef128.ndjson",
+      "sha256": "8d8a0a610ddb24914fcd7ed6cc13a9dba70239edfac450ab144b92c3c0cf932c"
+    },
+    {
+      "rows": 100000,
+      "ef": 256,
+      "meanRecall": 0.9633999999999999,
+      "worstRecall": 0.5,
+      "below90": 95,
+      "passes": false,
+      "path": "/Volumes/A/.hms-bench-cache/warm-graph-development-20261102-v1/glove-100000-ef256.ndjson",
+      "sha256": "6125798673c3b562ef12de58c7af5128c3b3fbb3c0fecac63906f3e463387760"
+    },
+    {
+      "rows": 100000,
+      "ef": 512,
+      "meanRecall": 0.9859,
+      "worstRecall": 0.6,
+      "below90": 22,
+      "passes": false,
+      "path": "/Volumes/A/.hms-bench-cache/warm-graph-development-20261102-v1/glove-100000-ef512.ndjson",
+      "sha256": "40dd852cb4813ee437df8fb031903833aa80d0bb4f1faf61bcea5c8dc8a2bad9"
+    }
+  ]
+}

@@ -2,6 +2,8 @@ use super::*;
 use serde_json::json;
 use std::sync::Barrier;
 
+mod vectra_filter;
+
 fn config() -> crate::core::WarmConfig {
     crate::core::WarmConfig {
         vector_records: true,
@@ -322,6 +324,171 @@ fn explicit_eligibility_handles_empty_missing_and_mixed_document_ids() -> Result
 }
 
 #[test]
+fn empty_eligibility_still_validates_query_and_revision() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let core = open(root.path())?;
+    upsert(&core, record("a"))?;
+    let mut options = VectorRecordQueryOptions {
+        document_ids: Some(vec![]),
+        ..Default::default()
+    };
+    assert!(core
+        .query_vector_records(&[0.0, 1.0, 0.0], 1, &options)?
+        .results
+        .is_empty());
+    for vector in [
+        &[0.0, 0.0, 0.0][..],
+        &[1.0, 0.0][..],
+        &[f64::NAN, 0.0, 1.0][..],
+    ] {
+        assert!(core.query_vector_records(vector, 1, &options).is_err());
+    }
+    assert!(core
+        .query_vector_records(&[0.0, 1.0, 0.0], 0, &options)
+        .is_err());
+    options.min_score = Some(f64::NAN);
+    assert!(core
+        .query_vector_records(&[0.0, 1.0, 0.0], 1, &options)
+        .is_err());
+    options.min_score = None;
+    options.if_revision = Some("invalid".into());
+    assert!(core
+        .query_vector_records(&[0.0, 1.0, 0.0], 1, &options)
+        .unwrap_err()
+        .is::<VectorRecordRevisionConflict>());
+    Ok(())
+}
+
+#[test]
+fn filtered_record_ranking_matches_canonical_vector_search() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let core = open(root.path())?;
+    let inputs = [
+        ("negative", [-1.0, 0.0, 0.0]),
+        ("positive-b", [1.0, 0.0, 0.0]),
+        ("positive-a", [1.0, 0.0, 0.0]),
+        ("angled", [0.5, 0.5, 0.0]),
+        ("orthogonal", [0.0, 1.0, 0.0]),
+    ];
+    for (id, vector) in inputs {
+        let mut item = record(id);
+        item.vector = vector.into();
+        upsert(&core, item)?;
+    }
+    let ids = vec![
+        "negative".into(),
+        "positive-b".into(),
+        "positive-a".into(),
+        "angled".into(),
+        "orthogonal".into(),
+        "missing".into(),
+    ];
+    for k in [1, 4, 5, 6, 1000] {
+        for minimum in [-1.0, 0.0, 1.0] {
+            let actual = core.query_vector_records(
+                &[1.0, 0.0, 0.0],
+                k,
+                &VectorRecordQueryOptions {
+                    document_ids: Some(ids.clone()),
+                    mode: Some("graph".into()),
+                    min_score: Some(minimum),
+                    ..Default::default()
+                },
+            )?;
+            let expected = core.search_vectors_with_report(
+                &[1.0, 0.0, 0.0],
+                k,
+                &VectorQueryOptions {
+                    document_ids: Some(ids.clone()),
+                    mode: VectorIndexMode::Graph,
+                    min_score: minimum,
+                    ..Default::default()
+                },
+            )?;
+            assert_eq!(
+                actual.diagnostics.route,
+                documents::VectorSearchRoute::FilteredExact
+            );
+            assert_eq!(
+                actual
+                    .results
+                    .iter()
+                    .map(|hit| (&hit.item.id, hit.score))
+                    .collect::<Vec<_>>(),
+                expected
+                    .results
+                    .iter()
+                    .map(|hit| (&hit.document_id, hit.score))
+                    .collect::<Vec<_>>()
+            );
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn cold_exact_defers_graph_until_automatic_or_graph_search() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let core = open(root.path())?;
+    let operations = (0..documents::DEFAULT_GRAPH_MIN_ROWS)
+        .map(|i| VectorRecordOperation::Insert {
+            record: record(&format!("id-{i:04}")),
+        })
+        .collect();
+    core.mutate_vector_records(operations, &Default::default())?;
+    let exact = core.query_vector_records(&[0.0, 1.0, 0.0], 1, &Default::default())?;
+    assert_eq!(
+        exact.diagnostics.route,
+        documents::VectorSearchRoute::FullExact
+    );
+    let status = core.vector_index_status();
+    assert!(!status.graph && status.rebuild_recommended);
+    let graph = core.query_vector_records(
+        &[0.0, 1.0, 0.0],
+        1,
+        &VectorRecordQueryOptions {
+            mode: Some("graph".into()),
+            ..Default::default()
+        },
+    )?;
+    assert_eq!(
+        graph.diagnostics.route,
+        documents::VectorSearchRoute::FullGraph
+    );
+    assert!(core.vector_index_status().graph);
+    Ok(())
+}
+
+#[test]
+fn metadata_only_reads_validate_envelope_without_decoding_vector() -> Result<()> {
+    let mut doc = records::prepare(record("a"), 256, 3)?;
+    let full = records::read(&doc, true)?;
+    let metadata_only = records::read(&doc, false)?;
+    assert_eq!(metadata_only.metadata, full.metadata);
+    assert!(metadata_only.vector.is_none());
+    let envelope = doc
+        .metadata
+        .get_mut("$warm_vector_record")
+        .unwrap()
+        .as_object_mut()
+        .unwrap();
+    envelope.insert("f64le".into(), json!("invalid base64"));
+    assert!(records::read(&doc, false).is_ok());
+    assert!(records::read(&doc, true).is_err());
+    for (field, value) in [
+        ("version", json!(2)),
+        ("f64le", json!(3)),
+        ("metadata", json!([])),
+        ("extra", json!(true)),
+    ] {
+        let mut malformed = records::prepare(record("a"), 256, 3)?;
+        malformed.metadata.get_mut("$warm_vector_record").unwrap()[field] = value;
+        assert!(records::read(&malformed, false).is_err(), "{field}");
+    }
+    Ok(())
+}
+
+#[test]
 fn ordinary_documents_keep_marker_metadata_and_cannot_be_mutated_as_vectors() -> Result<()> {
     let root = tempfile::tempdir()?;
     let source = root.path().join("source");
@@ -537,6 +704,24 @@ fn revision_is_rechecked_after_scoring_and_only_clean_reads_retry() -> Result<()
         found.revision,
         core.list_vector_records(&Default::default())?.revision
     );
+    let changed = Arc::clone(&core);
+    AFTER_RANKING.with(|slot| {
+        *slot.borrow_mut() = Some(Box::new(move || {
+            let mut updated = record("a");
+            updated.vector = vec![1.0, 0.0, 0.0];
+            upsert(&changed, updated).unwrap();
+        }));
+    });
+    let found = core.query_vector_records(
+        &[1.0, 0.0, 0.0],
+        1,
+        &VectorRecordQueryOptions {
+            document_ids: Some(vec!["a".into(), "b".into()]),
+            ..Default::default()
+        },
+    )?;
+    assert_eq!(found.results[0].item.id, "a");
+    assert_eq!(found.results[0].item.vector, vec![1.0, 0.0, 0.0]);
     Ok(())
 }
 
@@ -687,8 +872,39 @@ fn checkpoint_hydration_preserves_ordinary_metadata_and_native_journal_recovery(
     drop(core);
     let core = open(directory.path())?;
     assert!(core.documents.read().has_base());
+    let before = core.list_vector_records(&Default::default())?;
+    assert!(before.records.is_empty());
+    assert!(core
+        .get_vector_record("ordinary", &Default::default())?
+        .record
+        .is_none());
+    assert!(core.documents.read().has_base());
+    for operation in [
+        VectorRecordOperation::Insert {
+            record: record("ordinary"),
+        },
+        VectorRecordOperation::Upsert {
+            record: record("ordinary"),
+        },
+        VectorRecordOperation::Delete {
+            id: "ordinary".into(),
+        },
+    ] {
+        assert!(core
+            .mutate_vector_records(vec![operation], &Default::default())
+            .is_err());
+        assert!(core.documents.read().has_base());
+    }
     upsert(&core, record("native"))?;
-    assert!(!core.documents.read().has_base());
+    assert!(core.documents.read().has_base());
+    assert!(core
+        .list_vector_records(&VectorRecordListOptions {
+            if_revision: Some(before.revision),
+            ..Default::default()
+        })
+        .unwrap_err()
+        .is::<VectorRecordRevisionConflict>());
+    assert!(core.documents.read().has_base());
     assert_eq!(
         core.list_vector_records(&Default::default())?.records.len(),
         1
@@ -697,12 +913,56 @@ fn checkpoint_hydration_preserves_ordinary_metadata_and_native_journal_recovery(
         .get_vector_record("ordinary", &Default::default())?
         .record
         .is_none());
+    assert!(core.documents.read().has_base());
+    let found = core.query_vector_records(&[0.0, 1.0, 0.0], 1, &Default::default())?;
+    assert_eq!(found.results.len(), 1);
+    assert_eq!(found.results[0].item.id, "native");
+    assert_eq!(
+        found.diagnostics.route,
+        documents::VectorSearchRoute::FullExact
+    );
+    assert!(core.documents.read().has_base());
+    let filtered = core.query_vector_records(
+        &[0.0, 1.0, 0.0],
+        1,
+        &VectorRecordQueryOptions {
+            document_ids: Some(vec!["ordinary".into(), "native".into()]),
+            mode: Some("graph".into()),
+            ..Default::default()
+        },
+    )?;
+    assert_eq!(
+        filtered.diagnostics.route,
+        documents::VectorSearchRoute::FilteredExact
+    );
+    assert_eq!(filtered.results[0].item.id, "native");
+    assert!(core.documents.read().has_base());
+    assert!(core.rebuild_vector_index(1)?);
+    let graph = core.query_vector_records(
+        &[0.0, 1.0, 0.0],
+        1,
+        &VectorRecordQueryOptions {
+            mode: Some("graph".into()),
+            ..Default::default()
+        },
+    )?;
+    assert_eq!(graph.results[0].item.id, "native");
+    assert_eq!(
+        graph.diagnostics.route,
+        documents::VectorSearchRoute::FullGraph
+    );
+    assert!(core.documents.read().has_base());
     drop(core);
     let core = open(directory.path())?;
+    assert!(core.documents.read().has_base());
     assert_eq!(
         core.list_vector_records(&Default::default())?.records[0].id,
         "native"
     );
+    assert!(core.documents.read().has_base());
+    let found = core.query_vector_records(&[0.0, 1.0, 0.0], 1, &Default::default())?;
+    assert_eq!(found.results[0].item.id, "native");
+    assert!(core.documents.read().has_base());
     assert!(core.get_document("ordinary")?.is_some());
     assert_eq!(
         crate::core::format::verify_path(directory.path(), &Default::default())?.verdict,

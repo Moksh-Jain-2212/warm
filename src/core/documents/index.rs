@@ -139,6 +139,8 @@ pub(crate) struct DocumentStore {
     free: BTreeSet<usize>,
     sources: BTreeMap<String, BTreeSet<String>>,
     metadata: BTreeMap<(String, String), BTreeSet<String>>,
+    #[cfg(not(target_arch = "wasm32"))]
+    vectra_filters: crate::core::vector_records::vectra_filter::Index,
     /// Chunk text lives here, not in the documents, once attached.
     text: Option<Arc<TextSegment>>,
     /// Chunks memorized with deferred encoding whose vectors are not installed yet.
@@ -648,9 +650,15 @@ impl DocumentStore {
         self.documents.get(id)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(all(test, not(target_arch = "wasm32")))]
     pub(crate) fn only_vector_records(&self) -> bool {
         self.base.is_none() && self.vector_record_count == self.documents.len()
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn vector_search_only_records(&self) -> bool {
+        // Checkpoint images have no embeddings; all searchable rows are in the overlay.
+        self.vector_record_count == self.documents.len()
     }
 
     pub(crate) fn metadata_candidates(
@@ -674,6 +682,15 @@ impl DocumentStore {
             }
         }
         smallest
+    }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    pub(crate) fn vectra_filter_candidates(
+        &self,
+        filter: &crate::core::vector_records::vectra_filter::Filter,
+    ) -> anyhow::Result<Option<&BTreeSet<String>>> {
+        self.vectra_filters.validate()?;
+        Ok(self.vectra_filters.candidates(filter))
     }
 
     pub(super) fn candidate_ids<'a>(
@@ -1008,6 +1025,8 @@ impl DocumentStore {
     }
 
     fn insert_filters(&mut self, document: &StoredDocument) {
+        #[cfg(not(target_arch = "wasm32"))]
+        self.vectra_filters.insert(document);
         if let Some(uri) = &document.source_uri {
             self.sources
                 .entry(uri.clone())
@@ -1027,6 +1046,8 @@ impl DocumentStore {
     }
 
     fn remove_filters(&mut self, document: &StoredDocument) {
+        #[cfg(not(target_arch = "wasm32"))]
+        self.vectra_filters.remove(document);
         if let Some(uri) = &document.source_uri {
             remove_secondary(&mut self.sources, uri, &document.id);
         }
