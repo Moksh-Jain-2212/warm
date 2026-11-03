@@ -1,0 +1,39 @@
+{
+  "previousHead": "67b2098507ba7bacb2c3bbbd8cc14560f4ed5365",
+  "previousCi": {
+    "successfulChecks": 148,
+    "failedChecks": 0,
+    "requiredCheck": "https://github.com/writerslogic/warm/actions/runs/41581728637/job/125746426679"
+  },
+  "change": "Remove three unused named imports; source modules remain imported and runtime behavior is unchanged.",
+  "reviews": [
+    "https://github.com/writerslogic/warm/pull/383#discussion_r4451064455",
+    "https://github.com/writerslogic/warm/pull/383#discussion_r4451064463",
+    "https://github.com/writerslogic/warm/pull/383#discussion_r4451064469"
+  ],
+  "sources": {
+    "benchmarks/public/vectra_comparison/competitors/run.mjs": "213c476729a3cee6a9086574e0bed925345c3ed1ed2a6fac8c4c81b657a5ee79",
+    "benchmarks/public/vectra_comparison/vector-worker.mjs": "8d711f2e6c4c5b14b87196a5ce15b218f7da3eb8e44d8370cb8c34e9b7f66688",
+    "benchmarks/public/vectra_comparison/vector.mjs": "3788ec3775c320f5242b36232231b006a5d7c19e54e8535ca537d3ef58b76881"
+  },
+  "validation": {
+    "syntax": "node --check passed on all three changed modules",
+    "diff": "git diff --check passed",
+    "tests": "node --test benchmarks/public/vectra_comparison/test_vector.mjs benchmarks/public/vectra_comparison/test_hybrid.mjs benchmarks/public/vectra_comparison/competitors/test.mjs",
+    "environment": {
+      "VECTRA_TEST_PACKAGE": "/Volumes/A/toip-warm-backend/toip-mcp-server/node_modules/vectra",
+      "WARM_TEST_PACKAGE": "/Volumes/A/holographic-memory",
+      "WARM_TEST_ADDON": "/Volumes/A/holographic-memory/warm-sdk.node",
+      "VECTRA_MODULE": "/Volumes/A/toip-warm-backend/toip-mcp-server/node_modules/vectra",
+      "WARM_MODULE": "/Volumes/A/holographic-memory",
+      "NODE_PATH": "/Volumes/A/warm-vectra-comparison/benchmarks/public/vectra_comparison/competitors/node_modules",
+      "UV_OFFLINE": "1"
+    },
+    "passed": 41,
+    "failed": 0,
+    "skipped": 0,
+    "rawLogSha256": "aff0e6a070e29cd67fdb2f3b9606da3333227e5e4a3989714f9a806d08c30719",
+    "gzipLogSha256": "b19bfba828a4cc2699aa1ef00cfaa3f2bd135fcbde762c3ee3d89dddd18943f1"
+  },
+  "qualification": "The previous CI result is pinned to its own commit; the import cleanup must pass the required check on its updated commit. No benchmark or paid service ran."
+}

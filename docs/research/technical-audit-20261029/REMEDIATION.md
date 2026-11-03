@@ -3017,3 +3017,10 @@ regression passes and production code is unchanged. The
 retains the failed job and local regression. Remote main remains gated on the
 updated PR's required aggregate check; the earlier local qualification is not
 being relabeled as passing CI on Rust 1.99.1.
+
+Commit `67b20985` subsequently passed all 148 successful PR checks, including the
+required aggregate. Code-quality review identified three unused named imports in
+the comparison harness; removing them preserves module loading and behavior.
+All 41 focused harness checks and the three changed modules' syntax checks pass.
+The [review follow-up receipt](vectra-merge-validation-20261102/ci-review-followup.json)
+pins that evidence separately from the updated commit's required CI gate.

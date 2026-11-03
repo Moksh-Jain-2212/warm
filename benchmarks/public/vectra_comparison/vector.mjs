@@ -7,7 +7,7 @@ import os from 'node:os'
 import { fileURLToPath } from 'node:url'
 import { FILTERS, atLeast, latency, mean, recallAtK } from './oracle-vector.mjs'
 import { hybridTimingSchedule, runHybridJob, compareHybridPair } from './hybrid-run.mjs'
-import { LIMITS, exec, sha256, hashValue, manifest, packageFiles, storageReceipt, writeOnce, readJson, append, preflight, cloneStore, runMonitored, watchPhase } from './vector-receipts.mjs'
+import { LIMITS, exec, sha256, hashValue, manifest, packageFiles, storageReceipt, writeOnce, readJson, preflight, cloneStore, runMonitored, watchPhase } from './vector-receipts.mjs'
 const HERE = path.dirname(fileURLToPath(import.meta.url))
 const FILES = ['vector.mjs', 'vector-worker.mjs', 'vector-receipts.mjs', 'oracle-vector.mjs', 'test_vector.mjs', 'README-vector.md', 'hybrid-run.mjs', 'hybrid-worker.mjs', 'hybrid.mjs', 'hybrid-tokenizer.py', 'test_hybrid.mjs', 'README-hybrid.md', '../../../docs/research/technical-audit-20261029/vectra-comparison-20261102/PLAN.md', '../../../docs/research/technical-audit-20261029/vectra-comparison-followup-20261102/PLAN.md', '../../../docs/research/technical-audit-20261029/vectra-comparison-followup-20261102/IMPORT-AND-QUIET-HOST.md']
 const THREAD_ENVIRONMENT = ['RAYON_NUM_THREADS', 'OMP_NUM_THREADS', 'MKL_NUM_THREADS', 'VECLIB_MAXIMUM_THREADS', 'UV_THREADPOOL_SIZE', 'TOKENIZERS_PARALLELISM']

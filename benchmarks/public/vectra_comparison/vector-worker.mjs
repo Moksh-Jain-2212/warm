@@ -7,7 +7,7 @@ import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { performance } from 'node:perf_hooks'
 import { FILTERS, metadata, eligible, normalizeRows, oracleTopK, scalarCosine, liveState, auditExact, recallAtK, qrelMetrics } from './oracle-vector.mjs'
-import { append, readJson, writeOnce, hashValue, storageReceipt } from './vector-receipts.mjs'
+import { append, readJson, hashValue, storageReceipt } from './vector-receipts.mjs'
 const require = createRequire(import.meta.url)
 const now = () => performance.now()
 const rss = () => process.memoryUsage().rss

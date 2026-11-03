@@ -6,7 +6,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
-import { LIMITS, append, sha256, readJson, writeOnce, preflight, runMonitored, watchPhase } from '../vector-receipts.mjs'
+import { LIMITS, sha256, readJson, writeOnce, preflight, runMonitored, watchPhase } from '../vector-receipts.mjs'
 import { atLeast, latency, mean } from '../oracle-vector.mjs'
 
 const here = path.dirname(fileURLToPath(import.meta.url))
