@@ -1,0 +1,21 @@
+{
+  "originalQualifiedCommit": "ab978afd94a2d92a89c162c1e2af77372ffeeb16",
+  "pullRequest": "https://github.com/writerslogic/warm/pull/383",
+  "initialFailure": {
+    "job": "https://github.com/writerslogic/warm/actions/runs/41580986741/job/125735512625",
+    "toolchain": "rustc 1.99.1",
+    "lint": "clippy::chunks_exact_to_as_chunks",
+    "file": "src/core/qgraph/vertex.rs",
+    "line": 4004
+  },
+  "change": "Use as_chunks::<16>().0 instead of chunks_exact(16) in the existing cached two-hop regression; production code is unchanged.",
+  "sourceSha256": "73bf98c5d83a8cc4b19b49a199a865b416bbe474b5c07e91a213d8820b511838",
+  "regression": {
+    "command": "CARGO_BUILD_JOBS=2 CARGO_TARGET_DIR=/Volumes/A/warm-vectra-node-qualification/target/vectra-node-qualification cargo test --locked --offline --lib --features security cached_two_hop_search_matches_fresh_search_across_indexes",
+    "passed": 1,
+    "failed": 0,
+    "logRawSha256": "6d3051eff4616f19891957e70e35a8cdd74c26d09f09a9b18028c9f160fec284",
+    "logGzipSha256": "08b4c40567e5f0d0326cddedd71598f0a2a9bceb99ea369b869282467b44a5ea"
+  },
+  "mergeGate": "The required aggregate check must pass on the updated pull request before remote main is merged."
+}

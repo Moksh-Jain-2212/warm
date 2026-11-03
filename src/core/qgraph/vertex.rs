@@ -4001,7 +4001,7 @@ mod serving_tests {
         let (first, larger, different) = (build(65, 1), build(127, 2), build(65, 3));
         let queries = crate::core::qgraph::tests::clustered(3, 16, 4);
         for index in [&first, &larger, &different, &first] {
-            for query in queries.chunks_exact(16) {
+            for query in queries.as_chunks::<16>().0 {
                 for k in [1, 4, 17] {
                     let params = VSearchParams {
                         ef: 32,

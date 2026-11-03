@@ -3008,3 +3008,12 @@ qualification checks, not all-platform or all-feature release qualification.
 No new real-data benchmark or paid service was run. The exact source hashes,
 commands and compressed logs are retained in
 [vectra-merge-validation-20261102/verification.json](vectra-merge-validation-20261102/verification.json).
+
+The first [PR #383](https://github.com/writerslogic/warm/pull/383) CI run used Rust
+1.99.1 and rejected constant-size `chunks_exact(16)` in the existing cached
+traversal regression. The test now uses `as_chunks::<16>().0`; its focused
+regression passes and production code is unchanged. The
+[CI follow-up receipt](vectra-merge-validation-20261102/ci-followup.json)
+retains the failed job and local regression. Remote main remains gated on the
+updated PR's required aggregate check; the earlier local qualification is not
+being relabeled as passing CI on Rust 1.99.1.
